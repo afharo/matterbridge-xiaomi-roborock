@@ -1,9 +1,9 @@
 {
-  "name": "matterbridge-plugin-template",
-  "version": "1.0.0",
-  "description": "Matterbridge Template Plugin",
-  "author": "https://github.com/Luligu",
-  "homepage": "https://github.com/Luligu/matterbridge-plugin-template/blob/main/README.md",
+  "name": "matterbridge-xiaomi-roborock",
+  "version": "0.0.0",
+  "description": "Matterbridge Xiaomi Roborock Plugin",
+  "author": "https://github.com/afharo",
+  "homepage": "https://github.com/afharo/matterbridge-xiaomi-roborock/blob/main/README.md",
   "license": "Apache-2.0",
   "type": "module",
   "main": "dist/module.js",
@@ -13,16 +13,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Luligu/matterbridge-plugin-template.git"
+    "url": "git+https://github.com/afharo/matterbridge-xiaomi-roborock.git"
   },
   "bugs": {
-    "url": "https://github.com/Luligu/matterbridge-plugin-template/issues"
-  },
-  "funding": {
-    "type": "buymeacoffee",
-    "url": "https://www.buymeacoffee.com/luligugithub"
+    "url": "https://github.com/afharo/matterbridge-xiaomi-roborock/issues"
   },
   "keywords": [
+    "xiaomi",
+    "roborock",
+    "vacuum",
+    "robot-vacuum",
+    "robot-vacuum-cleaner",
+    "robot-cleaner",
     "matterbridge",
     "plugin",
     "template",
