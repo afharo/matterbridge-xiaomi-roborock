@@ -1,4 +1,6 @@
 import './device_manager.test.mock.js';
+import { jest } from '@jest/globals';
+
 import { getLoggerMock } from '../utils/logger.mock.js';
 import { miio } from '../test.mocks.js';
 
@@ -41,15 +43,18 @@ describe('DeviceManager', () => {
   });
 
   describe('get device', () => {
-    test('fails when not connected yet', () => {
+    test('fails when not connected yet', async () => {
       const deviceManager = new DeviceManager(log, {
         ip: '192.168.0.1',
         token: 'token',
       });
+
+      jest.spyOn(deviceManager, 'connect').mockRejectedValue();
       expect(deviceManager.model).toStrictEqual('unknown model');
       expect(() => deviceManager.state).toThrow('Not connected yet');
       expect(() => deviceManager.isCleaning).toThrow('Not connected yet');
       expect(() => deviceManager.isPaused).toThrow('Not connected yet');
+      await expect(() => deviceManager.ensureDevice('test')).rejects.toBeUndefined();
     });
 
     test('connects and loads', async () => {
@@ -65,6 +70,7 @@ describe('DeviceManager', () => {
       expect(deviceManager.state).toStrictEqual('cleaning');
       expect(deviceManager.isCleaning).toStrictEqual(true);
       expect(deviceManager.isPaused).toStrictEqual(false);
+      await expect(() => deviceManager.ensureDevice('test')).resolves.toBeUndefined();
     });
   });
 });
