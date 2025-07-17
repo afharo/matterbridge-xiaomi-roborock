@@ -27,7 +27,9 @@ export interface Config
 
 /**
  * Applies the default configuration values to the config provided by the user.
- * @param config The config provided by the user.
+ *
+ * @param {Partial<Config>} config The config provided by the user.
+ * @returns {Config} The config with default values applied.
  *
  * @remarks We may want to use a validation library like io-ts in the future for easier typing and defaulting.
  */

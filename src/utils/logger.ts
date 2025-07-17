@@ -18,6 +18,12 @@ export interface ModelLogger extends Pick<Logger, 'debug' | 'info' | 'warn' | 'e
   setModel: (modelName: string) => void;
 }
 
+/**
+ *
+ * @param {Logger | ModelLogger} log The logger
+ * @param {CustomLoggerConfig} config the config
+ * @returns {ModelLogger} The logger
+ */
 export function getLogger(log: Logger | ModelLogger, config: CustomLoggerConfig): ModelLogger {
   if ('setModel' in log) {
     return log;
@@ -25,6 +31,11 @@ export function getLogger(log: Logger | ModelLogger, config: CustomLoggerConfig)
 
   let model = 'unknown';
 
+  /**
+   *
+   * @param {string} message The log message
+   * @returns {string} The formatted message
+   */
   function buildMsg(message: string) {
     return `[Name=${config.name}][Model=${model}] ${message}`;
   }

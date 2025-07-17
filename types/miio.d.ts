@@ -1,3 +1,5 @@
+// eslint-disable-file no-unused-vars
+
 import type { Socket } from 'node:net';
 
 // TODO: Move these to the `miio` library once it supports typescript

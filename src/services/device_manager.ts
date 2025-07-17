@@ -125,6 +125,7 @@ export class DeviceManager {
         this.log.error(`ERR connect | miio.device, next try in 2 minutes | ${error}`);
         clearTimeout(this.connectRetry);
         // Using setTimeout instead of holding the promise. This way we'll keep retrying but not holding the other actions
+        // eslint-disable-next-line promise/no-nesting
         this.connectRetry = setTimeout(() => this.connect().catch(() => {}), 120000);
         throw error;
       });

@@ -16,7 +16,7 @@ import pluginVitest from '@vitest/eslint-plugin';
 export default defineConfig([
   {
     name: 'Global Ignores',
-    ignores: ['dist', 'node_modules', 'coverage', 'build'],
+    ignores: ['dist', 'node_modules', 'coverage', 'build', 'types'],
   },
   js.configs.recommended,
   ...tseslint.configs.strict,
