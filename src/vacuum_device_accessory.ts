@@ -97,7 +97,8 @@ export class VacuumDeviceAccessory {
 
 /**
  *
- * @param batteryLevel
+ * @param {number} batteryLevel The battery level in percentage
+ * @returns {PowerSource.BatChargeLevel} The battery charge level (OK, Warning, Critical)
  */
 function getBatteryChargeLevel(batteryLevel: number): PowerSource.BatChargeLevel {
   return batteryLevel < 10 ? PowerSource.BatChargeLevel.Critical : batteryLevel < 20 ? PowerSource.BatChargeLevel.Warning : PowerSource.BatChargeLevel.Ok;

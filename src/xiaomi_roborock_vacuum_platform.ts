@@ -1,4 +1,4 @@
-import { Matterbridge, MatterbridgeDynamicPlatform, MatterbridgeEndpoint, roboticVacuumCleaner, PlatformConfig } from 'matterbridge';
+import { Matterbridge, MatterbridgeDynamicPlatform, PlatformConfig } from 'matterbridge';
 import { type AnsiLogger, LogLevel } from 'matterbridge/logger';
 
 import { type Config } from './services/config_service.js';
