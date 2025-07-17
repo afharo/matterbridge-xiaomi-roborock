@@ -1,4 +1,4 @@
-import { BehaviorSubject, distinct, exhaustMap, filter, Subject, timer } from 'rxjs';
+import { BehaviorSubject, concat, defer, distinct, exhaustMap, filter, from, Subject, takeUntil, timer } from 'rxjs';
 import * as miio from 'miio';
 import type { MiioDevice, MiioErrorChangedEvent, MiioState } from 'miio';
 
@@ -25,8 +25,15 @@ export class DeviceManager {
 
   private readonly internalErrorChanged$ = new Subject<MiioErrorChangedEvent>();
   private readonly internalStateChanged$ = new Subject<StateChangedEvent>();
+  private readonly stop$ = new Subject<void>();
   public readonly errorChanged$ = this.internalErrorChanged$.pipe(distinct());
-  public readonly stateChanged$ = this.internalStateChanged$.asObservable();
+  public readonly stateChanged$ = concat(
+    defer(() => {
+      const allInitialProps = Object.entries(this.device.properties).map(([key, value]) => ({ key, value }));
+      return from(allInitialProps);
+    }),
+    this.internalStateChanged$,
+  );
   public readonly deviceConnected$ = this.internalDevice$.pipe(filter(Boolean));
 
   private connectingPromise: Promise<void> | null = null;
@@ -102,6 +109,15 @@ export class DeviceManager {
     }
   }
 
+  public stop() {
+    this.internalStateChanged$.complete();
+    this.internalErrorChanged$.complete();
+    this.stop$.next();
+    this.stop$.complete();
+    this.internalDevice$.value?.destroy();
+    this.internalDevice$.complete();
+  }
+
   private async connect() {
     if (this.connectingPromise === null) {
       // if already trying to connect, don't trigger yet another one
@@ -137,11 +153,16 @@ export class DeviceManager {
       this.log.info('STA getDevice | FanSpeed: ' + this.property('fanSpeed'));
       this.log.info('STA getDevice | BatteryLevel: ' + this.property('batteryLevel'));
 
+      Object.entries(this.device.properties).forEach(([key, value]) => this.internalStateChanged$.next({ key, value }));
+
       this.device.on<MiioErrorChangedEvent>('errorChanged', (error) => this.internalErrorChanged$.next(error));
       this.device.on<StateChangedEvent>('stateChanged', (state) => this.internalStateChanged$.next(state));
 
-      // Refresh the state every 30s so miio maintains a fresh connection (or recovers connection if lost until we fix https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum/issues/81)
-      timer(0, GET_STATE_INTERVAL_MS).pipe(exhaustMap(() => this.getState()));
+      // Refresh the state every 30s so miio maintains a fresh connection (or recovers connection if lost)
+      timer(0, GET_STATE_INTERVAL_MS).pipe(
+        takeUntil(this.stop$),
+        exhaustMap(() => this.getState()),
+      );
     } else {
       const model = (device || {}).miioModel;
       this.log.error(
@@ -154,6 +175,7 @@ export class DeviceManager {
 
   private async getState() {
     try {
+      this.log.debug(`DEB getState | ${this.model} | Polling...`);
       await this.ensureDevice('getState');
       await this.device.poll();
       const state = await this.device.state();

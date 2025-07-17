@@ -2,6 +2,11 @@ import { Logger } from 'matterbridge/logger';
 
 export interface CustomLoggerConfig {
   /**
+   * The name of the vacuum
+   */
+  name: string;
+
+  /**
    * When `true`, info and debug logs are silenced to avoid convoluted logs.
    */
   silent?: boolean;
@@ -21,7 +26,7 @@ export function getLogger(log: Logger | ModelLogger, config: CustomLoggerConfig)
   let model = 'unknown';
 
   function buildMsg(message: string) {
-    return `[Model=${model}] ${message}`;
+    return `[Name=${config.name}][Model=${model}] ${message}`;
   }
 
   return {
