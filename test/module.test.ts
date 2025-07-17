@@ -76,6 +76,7 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason: none');
   });
 
+  // eslint-disable-next-line jest/no-commented-out-tests
   // it('should call the command handlers', async () => {
   //   for (const device of instance.getDevices()) {
   //     if (device.hasClusterServer('onOff')) {
