@@ -2,7 +2,7 @@ import { vi, describe, beforeEach, afterAll } from 'vitest';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { Matterbridge, MatterbridgeEndpoint, PlatformConfig } from 'matterbridge';
 
-import { TemplatePlatform } from '../src/module.ts';
+import { XiaomiRoborockVacuumPlatform } from '../src/module.ts';
 
 const mockLog = {
   fatal: vi.fn((message: string, ...parameters: any[]) => {}),
@@ -41,7 +41,7 @@ const mockConfig = {
 const loggerLogSpy = vi.spyOn(AnsiLogger.prototype, 'log').mockImplementation((level: string, message: string, ...parameters: any[]) => {});
 
 describe('Matterbridge Plugin Template', () => {
-  let instance: TemplatePlatform;
+  let instance: XiaomiRoborockVacuumPlatform;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,15 +53,15 @@ describe('Matterbridge Plugin Template', () => {
 
   it('should throw an error if matterbridge is not the required version', async () => {
     mockMatterbridge.matterbridgeVersion = '2.0.0'; // Simulate an older version
-    expect(() => new TemplatePlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
+    expect(() => new XiaomiRoborockVacuumPlatform(mockMatterbridge, mockLog, mockConfig)).toThrow(
       'This plugin requires Matterbridge version >= "3.0.7". Please update Matterbridge from 2.0.0 to the latest version in the frontend.',
     );
     mockMatterbridge.matterbridgeVersion = '3.0.7';
   });
 
   it('should create an instance of the platform', async () => {
-    instance = (await import('../src/module.ts')).default(mockMatterbridge, mockLog, mockConfig) as TemplatePlatform;
-    expect(instance).toBeInstanceOf(TemplatePlatform);
+    instance = (await import('../src/module.ts')).default(mockMatterbridge, mockLog, mockConfig) as XiaomiRoborockVacuumPlatform;
+    expect(instance).toBeInstanceOf(XiaomiRoborockVacuumPlatform);
     expect(instance.matterbridge).toBe(mockMatterbridge);
     expect(instance.log).toBe(mockLog);
     expect(instance.config).toBe(mockConfig);

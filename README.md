@@ -17,7 +17,18 @@ If you like this project and find it useful, please consider giving it a star on
 
 ## Features
 
-- TODO
+- Connects to the vacuum cleaner using Xiaomi Miio API via miio (only tokens created using the Mi Home app are supported)
+- Exposes the current battery level of the vacuum cleaner (TODO: how to update it?)
+
+### TODO
+
+- [ ] Start/stop/pause/resume the vacuum cleaner 
+Get/set the fan speed
+- [ ] Get/set the cleaning mode
+- [ ] Get/set the cleaning area
+- [ ] Go to a specific location?
+- [ ] Charging state
+- ...
 
 ## Documentation
 

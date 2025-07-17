@@ -1,0 +1,64 @@
+{
+  "title": "Matterbridge Xiaomi Roborock Robot Vacuum",
+  "description": "Xiaomi Roborock Robot",
+  "type": "object",
+  "required": [
+    "devices"
+  ],
+  "properties": {
+    "name": {
+      "description": "Plugin name",
+      "type": "string",
+      "readOnly": true,
+      "ui:widget": "hidden"
+    },
+    "type": {
+      "description": "Plugin type",
+      "type": "string",
+      "readOnly": true,
+      "ui:widget": "hidden"
+    },
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the robot vacuum."
+          },
+          "ip": {
+            "type": "string",
+            "description": "The IP address of the robot vacuum."
+          },
+          "token": {
+            "type": "string",
+            "description": "The token of the robot vacuum."
+          },
+          "silent": {
+            "type": "boolean",
+            "default": false,
+            "description": "Makes the logs less verbose."
+          },
+          "required": [
+            "ip",
+            "token"
+          ]
+        }
+      },
+      "minItems": 1,
+      "default": []
+    },
+    "debug": {
+      "description": "Capture debug-level logging from this plugin, overriding the Matterbridge global log level setting.",
+      "type": "boolean",
+      "default": false
+    },
+    "unregisterOnShutdown": {
+      "description": "Unregister all exposed devices on shutdown (used for development/testing).",
+      "type": "boolean",
+      "default": false,
+      "ui:widget": "hidden"
+    }
+  }
+}
