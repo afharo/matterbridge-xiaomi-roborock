@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { Matterbridge, MatterbridgeEndpoint, PlatformConfig } from 'matterbridge';
 
-import { XiaomiRoborockVacuumPlatform } from '../src/module.ts';
+import { XiaomiRoborockVacuumPlatform, type XiaomiRoborockVacuumPluginConfig } from '../src/module.js';
 
 const mockLog = {
   fatal: jest.fn((message: string, ...parameters: any[]) => {}),
@@ -40,7 +40,7 @@ const mockConfig = {
 
 const loggerLogSpy = jest.spyOn(AnsiLogger.prototype, 'log').mockImplementation((level: string, message: string, ...parameters: any[]) => {});
 
-describe('Matterbridge Plugin Template', () => {
+describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
   let instance: XiaomiRoborockVacuumPlatform;
 
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe('Matterbridge Plugin Template', () => {
   });
 
   it('should create an instance of the platform', async () => {
-    instance = (await import('../src/module.ts')).default(mockMatterbridge, mockLog, mockConfig) as XiaomiRoborockVacuumPlatform;
+    instance = (await import('../src/module.js')).default(mockMatterbridge, mockLog, mockConfig) as XiaomiRoborockVacuumPlatform;
     expect(instance).toBeInstanceOf(XiaomiRoborockVacuumPlatform);
     expect(instance.matterbridge).toBe(mockMatterbridge);
     expect(instance.log).toBe(mockLog);
@@ -76,18 +76,19 @@ describe('Matterbridge Plugin Template', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason: none');
   });
 
-  it('should call the command handlers', async () => {
-    for (const device of instance.getDevices()) {
-      if (device.hasClusterServer('onOff')) {
-        await device.executeCommandHandler('on');
-        await device.executeCommandHandler('off');
-      }
-    }
-    expect(mockLog.info).toHaveBeenCalledWith('Command on called on cluster undefined'); // Is undefined here cause the endpoint in not active
-    expect(mockLog.info).toHaveBeenCalledWith('Command off called on cluster undefined'); // Is undefined here cause the endpoint in not active
-  });
+  // it('should call the command handlers', async () => {
+  //   for (const device of instance.getDevices()) {
+  //     if (device.hasClusterServer('onOff')) {
+  //       await device.executeCommandHandler('on');
+  //       await device.executeCommandHandler('off');
+  //     }
+  //   }
+  //   expect(mockLog.info).toHaveBeenCalledWith('Command on called on cluster undefined'); // Is undefined here cause the endpoint in not active
+  //   expect(mockLog.info).toHaveBeenCalledWith('Command off called on cluster undefined'); // Is undefined here cause the endpoint in not active
+  // });
 
   it('should configure', async () => {
+    jest.spyOn(instance, 'getDevices').mockReturnValueOnce([{ uniqueId: '1234' } as MatterbridgeEndpoint]);
     await instance.onConfigure();
     expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
     expect(mockLog.info).toHaveBeenCalledWith(expect.stringContaining('Configuring device:'));

@@ -8,8 +8,8 @@ import { applyConfigDefaults, type Config } from './services/config_service.js';
 import { DeviceManager } from './services/device_manager.js';
 import { getLogger } from './utils/logger.js';
 
-interface XiaomiRoborockVacuumPluginConfig extends PlatformConfig {
-  devices: Partial<Config>[];
+export interface XiaomiRoborockVacuumPluginConfig extends PlatformConfig {
+  devices?: Partial<Config>[];
   debug?: boolean;
 }
 
@@ -93,8 +93,10 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
   private async discoverDevices() {
     this.log.info('Discovering devices...');
 
+    const devices = this.config.devices ?? [];
+
     await Promise.allSettled(
-      this.config.devices.map(async (cfg) => {
+      devices.map(async (cfg) => {
         const config = applyConfigDefaults(cfg);
         const logger = getLogger(this.log, config);
         this.log.info(`Discovering device: ${config.name}...`);
