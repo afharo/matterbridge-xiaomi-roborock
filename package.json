@@ -111,7 +111,7 @@
     "eslint-plugin-prettier": "5.5.3",
     "eslint-plugin-promise": "7.2.1",
     "jest": "30.0.5",
-    "npm-check-updates": "18.0.1",
+    "npm-check-updates": "18.0.2",
     "prettier": "3.6.2",
     "shx": "0.4.0",
     "ts-jest": "29.4.0",
