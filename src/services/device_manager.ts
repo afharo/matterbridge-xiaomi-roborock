@@ -15,7 +15,7 @@ export interface StateChangedEvent {
   value: unknown;
 }
 
-const GET_STATE_INTERVAL_MS = 30000; // 30s
+const GET_STATE_INTERVAL_MS = 10000; // 30s
 
 export class DeviceManager {
   private readonly internalDevice$ = new BehaviorSubject<MiioDevice | undefined>(undefined);
@@ -122,11 +122,11 @@ export class DeviceManager {
     if (this.connectingPromise === null) {
       // if already trying to connect, don't trigger yet another one
       this.connectingPromise = this.initializeDevice().catch((error) => {
-        this.log.error(`ERR connect | miio.device, next try in 2 minutes | ${error}`);
+        this.log.error(`ERR connect | miio.device, next try in 10 seconds | ${error}`);
         clearTimeout(this.connectRetry);
         // Using setTimeout instead of holding the promise. This way we'll keep retrying but not holding the other actions
         // eslint-disable-next-line promise/no-nesting
-        this.connectRetry = setTimeout(() => this.connect().catch(() => {}), 120000);
+        this.connectRetry = setTimeout(() => this.connect().catch(() => {}), 10000);
         throw error;
       });
     }
@@ -159,11 +159,13 @@ export class DeviceManager {
       this.device.on<MiioErrorChangedEvent>('errorChanged', (error) => this.internalErrorChanged$.next(error));
       this.device.on<StateChangedEvent>('stateChanged', (state) => this.internalStateChanged$.next(state));
 
-      // Refresh the state every 30s so miio maintains a fresh connection (or recovers connection if lost)
-      timer(0, GET_STATE_INTERVAL_MS).pipe(
-        takeUntil(this.stop$),
-        exhaustMap(() => this.getState()),
-      );
+      // Refresh the state every 10s so miio maintains a fresh connection (or recovers connection if lost)
+      timer(0, GET_STATE_INTERVAL_MS)
+        .pipe(
+          takeUntil(this.stop$),
+          exhaustMap(() => this.getState()),
+        )
+        .subscribe();
     } else {
       const model = (device || {}).miioModel;
       this.log.error(

@@ -9,6 +9,7 @@ const miioDevice: jest.Mocked<MiioDevice> = {
   call: jest.fn() as jest.MockedFunction<MiioDevice['call']>,
   activateCharging: jest.fn(),
   activateCleaning: jest.fn(),
+  deactivateCleaning: jest.fn(),
   batteryLevel: jest.fn(),
   changeFanSpeed: jest.fn(),
   cleanRooms: jest.fn(),

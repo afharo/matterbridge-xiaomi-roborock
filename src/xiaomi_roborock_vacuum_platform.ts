@@ -76,7 +76,9 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
 
     const devices = this.config.devices ?? [];
 
-    await Promise.allSettled(
+    this.log.info(`Found ${devices.length} devices`);
+
+    await Promise.all(
       devices.map(async (cfg) => {
         const vacuumDevice = new VacuumDeviceAccessory(cfg, this.log);
         const vacuum = await vacuumDevice.initializeMatterbridgeEndpoint();

@@ -8,17 +8,16 @@
 
 [![powered by](https://img.shields.io/badge/powered%20by-matterbridge-blue)](https://www.npmjs.com/package/matterbridge)
 [![powered by](https://img.shields.io/badge/powered%20by-matter--history-blue)](https://www.npmjs.com/package/matter-history)
-[![powered by](https://img.shields.io/badge/powered%20by-node--ansi--logger-blue)](https://www.npmjs.com/package/node-ansi-logger)
-[![powered by](https://img.shields.io/badge/powered%20by-node--persist--manager-blue)](https://www.npmjs.com/package/node-persist-manager)
-
-This repository provides a default template for developing Matterbridge plugins.
+[![powered by](https://img.shields.io/badge/powered%20by-miio-blue)](https://www.npmjs.com/package/miio)
+[![powered by](https://img.shields.io/badge/powered%20by-rxjs-blue)](https://www.npmjs.com/package/rxjs)
+[![powered by](https://img.shields.io/badge/powered%20by-semver-blue)](https://www.npmjs.com/package/semver)
 
 If you like this project and find it useful, please consider giving it a star on GitHub at [Matterbridge Xiaomi Roborock Plugin](https://github.com/afharo/matterbridge-xiaomi-roborock).
 
 ## Features
 
 - Connects to the vacuum cleaner using Xiaomi Miio API via miio (only tokens created using the Mi Home app are supported)
-- Exposes the current battery level of the vacuum cleaner (TODO: how to update it?)
+- Exposes the current battery level of the vacuum cleaner
 
 ### TODO
 
