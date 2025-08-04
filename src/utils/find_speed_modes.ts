@@ -1,11 +1,14 @@
 import semver from 'semver';
 
-import { MODELS } from '../models/index.js';
+import { MODELS } from '../models/models.js';
 
 /**
+ * Finds the speed modes that apply to the current model and firmware version
  *
- * @param model
- * @param firmware
+ * @param {string} model The Robot Vacuum's model
+ * @param {string?} firmware The firmware's version
+ *
+ * @returns {ModelDefinition} The speed modes that apply to the robot.
  */
 export function findSpeedModes(model: string, firmware?: string) {
   if (model.startsWith('viomi.')) {

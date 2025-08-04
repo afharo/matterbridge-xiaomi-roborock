@@ -54,8 +54,6 @@ export class VacuumDeviceAccessory {
     this.log.info(`Serial number: ${serialNumber}`);
     this.log.info(`Firmware: ${firmware.fw_ver}`);
 
-    const level = this.deviceManager.property<number>('battery');
-
     const modelSpeeds = findSpeedModes(this.deviceManager.model, firmware.fw_ver);
     const supportedCleanModes = modelSpeeds.waterspeed ? SUPPORTED_CLEAN_MODES : [SUPPORTED_CLEAN_MODES[0]];
 
@@ -157,8 +155,7 @@ export class VacuumDeviceAccessory {
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
           break;
 
-        case 'returning':
-        // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
+        case 'returning': // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
         case 'docking':
           await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[1].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
