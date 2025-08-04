@@ -36,6 +36,7 @@ declare module 'miio' {
     getTimer: () => Promise<unknown>;
     getRoomMap: () => Promise<[string, string][]>;
     activateCleaning: () => Promise<void>;
+    deactivateCleaning: () => Promise<void>;
     activateCharging: () => Promise<void>;
     pause: () => Promise<void>;
     cleanRooms: (roomIds: string[]) => Promise<void>;

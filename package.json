@@ -94,15 +94,15 @@
   },
   "dependencies": {
     "miio": "^0.15.6",
-    "node-ansi-logger": "3.1.1",
-    "node-persist-manager": "2.0.0",
-    "rxjs": "^7.8.2"
+    "rxjs": "^7.8.2",
+    "semver": "^7.7.2"
   },
   "devDependencies": {
     "@eslint/js": "9.32.0",
     "@jest/globals": "30.0.5",
     "@types/jest": "30.0.0",
     "@types/node": "24.1.0",
+    "@types/semver": "^7.7.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jest": "29.0.1",

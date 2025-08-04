@@ -1,5 +1,6 @@
 import './device_manager.test.mock.js';
 import { jest } from '@jest/globals';
+import { firstValueFrom } from 'rxjs';
 
 import { getLoggerMock } from '../utils/logger.mock.js';
 import { miio } from '../test.mocks.js';
@@ -43,13 +44,20 @@ describe('DeviceManager', () => {
   });
 
   describe('get device', () => {
+    let deviceManager: IDeviceManager;
+
+    afterEach(() => {
+      deviceManager.stop();
+    });
+
     test('fails when not connected yet', async () => {
-      const deviceManager = new DeviceManager(log, {
+      deviceManager = new DeviceManager(log, {
         ip: '192.168.0.1',
         token: 'token',
       });
 
-      jest.spyOn(deviceManager, 'connect').mockRejectedValue();
+      // @ts-expect-error `connect` is a private method
+      jest.spyOn(deviceManager, 'connect').mockRejectedValueOnce();
       expect(deviceManager.model).toStrictEqual('unknown model');
       expect(() => deviceManager.state).toThrow('Not connected yet');
       expect(() => deviceManager.isCleaning).toThrow('Not connected yet');
@@ -60,7 +68,8 @@ describe('DeviceManager', () => {
     test('connects and loads', async () => {
       miio.device.matches.mockReturnValue(true);
       miio.device.property.mockReturnValue('cleaning');
-      const deviceManager = new DeviceManager(log, {
+      miio.device.properties = { state: 'cleaning', battery: 10 };
+      deviceManager = new DeviceManager(log, {
         ip: '192.168.0.1',
         token: 'token',
       });
@@ -71,6 +80,48 @@ describe('DeviceManager', () => {
       expect(deviceManager.isCleaning).toStrictEqual(true);
       expect(deviceManager.isPaused).toStrictEqual(false);
       await expect(() => deviceManager.ensureDevice('test')).resolves.toBeUndefined();
+      const props = await firstValueFrom(deviceManager.stateChanged$);
+      expect(props).toMatchInlineSnapshot(`
+        {
+          "key": "state",
+          "value": "cleaning",
+        }
+      `);
+    });
+  });
+
+  describe('get state', () => {
+    let deviceManager: IDeviceManager;
+
+    beforeEach(() => {
+      deviceManager = new DeviceManager(log, {
+        ip: '192.168.0.1',
+        token: 'token',
+      });
+    });
+
+    afterEach(() => {
+      deviceManager.stop();
+    });
+
+    // TODO: Write this test
+    test('Triggers a getState cycle', async () => {
+      const getStateSpy = jest.spyOn(deviceManager, 'getState');
+      miio.device.matches.mockReturnValue(true);
+      miio.device.property.mockReturnValue('cleaning');
+      miio.device.state.mockResolvedValue({ error: 'full', state: 'cleaning' });
+
+      // await jest.advanceTimersByTimeAsync(20_000);
+      const [state, error] = await Promise.all([firstValueFrom(deviceManager.stateChanged$), firstValueFrom(deviceManager.errorChanged$)]);
+
+      expect(getStateSpy).toHaveBeenCalledTimes(1);
+      expect(state).toMatchInlineSnapshot(`
+        {
+          "key": "state",
+          "value": "cleaning",
+        }
+      `);
+      expect(error).toMatchInlineSnapshot(`"full"`);
     });
   });
 });
