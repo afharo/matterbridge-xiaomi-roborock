@@ -39,12 +39,12 @@
             "type": "boolean",
             "default": false,
             "description": "Makes the logs less verbose."
-          },
-          "required": [
-            "ip",
-            "token"
-          ]
-        }
+          }
+        },
+        "required": [
+          "ip",
+          "token"
+        ]
       },
       "minItems": 1,
       "default": []
