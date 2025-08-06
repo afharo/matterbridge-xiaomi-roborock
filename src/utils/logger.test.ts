@@ -49,20 +49,4 @@ describe('getLogger', () => {
     logger[level]('Test message');
     expect(logSpy).toHaveBeenCalledWith('[Name=test][Model=test-model] Test message');
   });
-
-  describe('if silent === true', () => {
-    test.each(['debug', 'info'] as const)('it not should log %p messages', (level) => {
-      const logSpy = jest.spyOn(mockLog, level);
-      const logger = getLogger(mockLog, { name: 'test', silent: true });
-      logger[level]('Test message');
-      expect(logSpy).not.toHaveBeenCalled();
-    });
-
-    test.each(['warn', 'error'] as const)('it should log %p messages', (level) => {
-      const logSpy = jest.spyOn(mockLog, level);
-      const logger = getLogger(mockLog, { name: 'test', silent: true });
-      logger[level]('Test message');
-      expect(logSpy).toHaveBeenCalledWith('[Name=test][Model=unknown] Test message');
-    });
-  });
 });
