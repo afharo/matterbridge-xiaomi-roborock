@@ -4,25 +4,15 @@ import type { CustomLoggerConfig } from '../utils/logger.ts';
 
 import type { DeviceManagerConfig } from './device_manager.ts';
 
-export interface Config
-  extends PlatformConfig,
-    // MainServiceConfig,
-    DeviceManagerConfig,
-    // RoomsConfig,
-    // PauseConfig,
-    // WaterBoxConfig,
-    // DustBinConfig,
-    // DustCollectionConfig,
-    // FindMeConfig,
-    // GoToConfig,
-    // DockConfig,
-    // ZonesConfig,
-    // CareConfig,
-    CustomLoggerConfig {
+export interface Config extends PlatformConfig, DeviceManagerConfig, CustomLoggerConfig {
   /**
    * The name of the main service as it will show up in the Home App.
    */
   name: string;
+  /**
+   * The room names in case the alternative timer approach is used to identify the rooms.
+   */
+  roomNames?: string[];
 }
 
 /**
