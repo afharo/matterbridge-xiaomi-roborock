@@ -34,11 +34,6 @@
           "token": {
             "type": "string",
             "description": "The token of the robot vacuum."
-          },
-          "silent": {
-            "type": "boolean",
-            "default": false,
-            "description": "Makes the logs less verbose."
           }
         },
         "required": [
