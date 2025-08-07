@@ -148,11 +148,11 @@ export class DeviceManager {
 
       this.log.setModel(this.model);
 
-      this.log.info('STA getDevice | Connected to: %s', this.ip);
-      this.log.info('STA getDevice | Model: ' + this.model);
-      this.log.info('STA getDevice | State: ' + this.property('state'));
-      this.log.info('STA getDevice | FanSpeed: ' + this.property('fanSpeed'));
-      this.log.info('STA getDevice | BatteryLevel: ' + this.property('batteryLevel'));
+      this.log.info(`STA getDevice | Connected to: ${this.ip}`);
+      this.log.info(`STA getDevice | Model: ${this.model}`);
+      this.log.info(`STA getDevice | State: ${this.property('state')}`);
+      this.log.info(`STA getDevice | FanSpeed: ${this.property('fanSpeed')}`);
+      this.log.info(`STA getDevice | BatteryLevel: ${this.property('batteryLevel')}`);
 
       Object.entries(this.device.properties).forEach(([key, value]) => this.internalStateChanged$.next({ key, value }));
 
@@ -169,7 +169,7 @@ export class DeviceManager {
     } else {
       const model = (device || {}).miioModel;
       this.log.error(
-        `Device "${model}" is not registered as a vacuum cleaner! If you think it should be, please open an issue at https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum/issues/new and provide this line.`,
+        `Device "${model}" is not registered as a vacuum cleaner! If you think it should be, please open an issue at https://github.com/afharo/matterbridge-xiaomi-roborock/issues/new and provide this line.`,
       );
       this.log.debug(device);
       device.destroy();
@@ -182,7 +182,7 @@ export class DeviceManager {
       await this.ensureDevice('getState');
       await this.device.poll();
       const state = await this.device.state();
-      this.log.debug(`DEB getState | ${this.model} | State %j | Props %j`, state, this.device.properties);
+      this.log.debug(`DEB getState | ${this.model} | State ${JSON.stringify(state)} | Props ${JSON.stringify(this.device.properties)}`);
 
       for (const key in state) {
         if (key === 'error' && state[key]) {
@@ -192,7 +192,7 @@ export class DeviceManager {
         }
       }
     } catch (err) {
-      this.log.error(`getState | %j`, err);
+      this.log.error(`getState | ${err}`, err);
     }
   }
 }

@@ -2,7 +2,7 @@ import { MatterbridgeEndpoint } from 'matterbridge';
 import { RoboticVacuumCleaner } from 'matterbridge/devices';
 import type { Logger } from 'matterbridge/logger';
 import { firstValueFrom, mergeMap } from 'rxjs';
-import { PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState } from 'matterbridge/matter/clusters';
+import { PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea } from 'matterbridge/matter/clusters';
 
 import { applyConfigDefaults, type Config } from './services/config_service.js';
 import { DeviceManager } from './services/device_manager.js';
@@ -57,6 +57,8 @@ export class VacuumDeviceAccessory {
     const modelSpeeds = findSpeedModes(this.deviceManager.model, firmware.fw_ver);
     const supportedCleanModes = modelSpeeds.waterspeed ? SUPPORTED_CLEAN_MODES : [SUPPORTED_CLEAN_MODES[0]];
 
+    const serviceAreas = await this.getServiceAreas();
+
     this.endpoint = new RoboticVacuumCleaner(
       this.config.name,
       serialNumber,
@@ -71,7 +73,9 @@ export class VacuumDeviceAccessory {
       undefined,
       RvcOperationalState.OperationalState.Docked,
       SUPPORTED_OPERATIONAL_STATES,
-      // TODO: Add service areas
+      serviceAreas,
+      [],
+      serviceAreas[0]?.areaId,
     );
 
     this.endpoint.vendorName = 'Xiaomi';
@@ -84,34 +88,64 @@ export class VacuumDeviceAccessory {
       this.deviceManager.stop();
     });
 
-    this.endpoint?.addCommandHandler('changeToMode', async (data) => {
+    this.endpoint.addCommandHandler('changeToMode', async (data) => {
       this.log.debug(`Start command received: ${JSON.stringify(data)}`);
       switch (data.request.newMode) {
         case 0: // Idle
+          // TODO: Confirm what to do here
           await this.deviceManager.device.pause();
           break;
-        case 1: // Cleaning
-          await this.deviceManager.device.activateCleaning();
+        case 1: {
+          // Cleaning
+          const selectedAreas = this.selectedAreas;
+          if (selectedAreas.length === 0) {
+            this.log.info(`Initiating full cleaning...`);
+            await this.deviceManager.device.activateCleaning();
+          } else {
+            this.log.info(`Initiating room cleaning...`);
+            await this.deviceManager.device.call('app_segment_clean', selectedAreas, {
+              refresh: ['state'],
+              refreshDelay: 1000,
+            });
+          }
           break;
+        }
         default:
           this.log.warn(`Unknown mode ${data.request.newMode}`);
           break;
       }
     });
-    this.endpoint?.addCommandHandler('stop', async () => {
+    this.endpoint.addCommandHandler('stop', async () => {
       await this.deviceManager.device.deactivateCleaning();
     });
-    this.endpoint?.addCommandHandler('pause', async () => {
+    this.endpoint.addCommandHandler('pause', async () => {
       await this.deviceManager.device.pause();
     });
-    this.endpoint?.addCommandHandler('resume', async () => {
-      await this.deviceManager.device.activateCleaning();
+    this.endpoint.addCommandHandler('resume', async () => {
+      const selectedAreas = this.selectedAreas;
+      if (selectedAreas.length > 0) {
+        await this.deviceManager.device.call('resume_segment_clean', selectedAreas, {
+          refresh: ['state'],
+          refreshDelay: 1000,
+        });
+      } else {
+        await this.deviceManager.device.activateCleaning();
+      }
     });
-    this.endpoint?.addCommandHandler('goHome', async () => {
+    this.endpoint.addCommandHandler('goHome', async () => {
+      await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
       await this.deviceManager.device.activateCharging();
     });
-    this.endpoint?.addCommandHandler('identify', async () => {
+    this.endpoint.addCommandHandler('identify', async () => {
       await this.deviceManager.device.find();
+    });
+    this.endpoint.addCommandHandler('selectAreas', async (data) => {
+      this.log.debug(`Select areas command received: ${JSON.stringify(data)}`);
+      let selectedAreas = data.request.newAreas;
+      if ((data.attributes.supportedAreas as ServiceArea.Area[])?.length === selectedAreas.length) {
+        selectedAreas = []; // Force empty if all areas are selected
+      }
+      await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'selectedAreas', selectedAreas);
     });
 
     return this.endpoint;
@@ -194,7 +228,99 @@ export class VacuumDeviceAccessory {
       }
     },
   };
+
+  private async getServiceAreas(): Promise<ServiceArea.Area[]> {
+    // It should try to retrieve the map from the device.
+    // If empty, try the timer workaround.
+    // Else, return an empty array.
+
+    const roomMapping = await this.deviceManager.device.call<Array<[string, string]>>('get_room_mapping');
+    if (roomMapping.length > 0) {
+      this.log.info(`Room mapping found: ${JSON.stringify(roomMapping)}`);
+      this.log.info(`Creating service areas from room mapping...`);
+      return roomMapping.map(
+        ([roomName, roomId]): ServiceArea.Area => ({
+          areaId: parseInt(roomId),
+          mapId: null,
+          areaInfo: {
+            locationInfo: {
+              locationName: roomName,
+              floorNumber: null,
+              areaType: null,
+            },
+            landmarkInfo: null,
+          },
+        }),
+      );
+    }
+
+    const timers = await this.deviceManager.device.call<GetTimerResponseTimer[]>('get_timer');
+    if (timers.length > 0) {
+      const timer = timers.find(([id, status, definition]) => {
+        if (['off', 'disabled'].includes(status)) {
+          const [cronExpression, action] = definition;
+          // Who sets up a timer that runs at midnight for a Vacuum Cleaner? This should be it.
+          if (cronExpression.startsWith('0 0 * *')) {
+            const [, params] = action;
+            if (params.segments) {
+              this.log.debug(`Potential timer found with ID ${id}: ${JSON.stringify(action)}}`);
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+      if (timer) {
+        const segments = timer[2][1][1].segments.split(',');
+        return segments.map(
+          (roomId, index): ServiceArea.Area => ({
+            areaId: parseInt(roomId),
+            mapId: null,
+            areaInfo: {
+              locationInfo: {
+                // Can't know the name in these models. Users will need to rename it in their apps.
+                locationName: this.config.roomNames?.[index] ?? `Room ${roomId}`,
+                floorNumber: null,
+                areaType: null,
+              },
+              landmarkInfo: null,
+            },
+          }),
+        );
+      }
+    }
+
+    return [];
+  }
+
+  private get selectedAreas(): string[] {
+    const selectedAreas = (this.endpoint?.getAttribute(ServiceArea.Cluster.id, 'selectedAreas') as number[] | undefined) ?? [];
+    return selectedAreas.map((areaId) => areaId.toString());
+  }
 }
+
+type GetTimerResponseTimer = [
+  string, // timer ID
+  'off' | 'disable' | 'on' | 'enable', // status
+  GetTimerResponseTimerDefinition, // timer definition
+];
+
+type GetTimerResponseTimerDefinition = [
+  string, // cron expression
+  GetTimerResponseTimerDefinitionAction, // action
+];
+
+type GetTimerResponseTimerDefinitionAction = [
+  string, // method
+  GetTimerResponseTimerDefinitionActionParams, // params
+];
+
+type GetTimerResponseTimerDefinitionActionParams = {
+  fan_power: number;
+  segments: string; // comma-separated list of segments (e.g.: '28,19,18,17,16,20,29,23,26,25,24')
+  repeat: number;
+  clean_order_mode: number;
+};
 
 /**
  *
