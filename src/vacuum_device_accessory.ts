@@ -29,11 +29,17 @@ const SUPPORTED_OPERATIONAL_STATES: RvcOperationalState.OperationalStateStruct[]
   { operationalStateId: RvcOperationalState.OperationalState.Error },
 ];
 
+const refreshStateArgument = {
+  refresh: ['state'],
+  refreshDelay: 1000,
+};
+
 export class VacuumDeviceAccessory {
   private readonly config: Config;
   private readonly log: ModelLogger;
   private readonly deviceManager: DeviceManager;
   private endpoint?: RoboticVacuumCleaner;
+  private serviceAreas: ServiceArea.Area[] = [];
 
   constructor(config: Partial<Config>, logger: Logger) {
     this.config = applyConfigDefaults(config);
@@ -57,7 +63,7 @@ export class VacuumDeviceAccessory {
     const modelSpeeds = findSpeedModes(this.deviceManager.model, firmware.fw_ver);
     const supportedCleanModes = modelSpeeds.waterspeed ? SUPPORTED_CLEAN_MODES : [SUPPORTED_CLEAN_MODES[0]];
 
-    const serviceAreas = await this.getServiceAreas();
+    this.serviceAreas = await this.getServiceAreas();
 
     this.endpoint = new RoboticVacuumCleaner(
       this.config.name,
@@ -73,9 +79,9 @@ export class VacuumDeviceAccessory {
       undefined,
       RvcOperationalState.OperationalState.Docked,
       SUPPORTED_OPERATIONAL_STATES,
-      serviceAreas,
+      this.serviceAreas,
       [],
-      serviceAreas[0]?.areaId,
+      this.serviceAreas[0]?.areaId,
     );
 
     this.endpoint.vendorName = 'Xiaomi';
@@ -93,14 +99,14 @@ export class VacuumDeviceAccessory {
       switch (data.request.newMode) {
         case 0: // Idle
           // TODO: Confirm what to do here
-          await this.deviceManager.device.pause();
+          // await this.deviceManager.device.call('app_pause', [], refreshStateArgument);
           break;
         case 1: {
           // Cleaning
           const selectedAreas = this.selectedAreas;
           if (selectedAreas.length === 0) {
             this.log.info(`Initiating full cleaning...`);
-            await this.deviceManager.device.activateCleaning();
+            await this.deviceManager.device.call('app_start', [], refreshStateArgument);
           } else {
             this.log.info(`Initiating room cleaning...`);
             await this.deviceManager.device.call('app_segment_clean', selectedAreas, {
@@ -116,28 +122,27 @@ export class VacuumDeviceAccessory {
       }
     });
     this.endpoint.addCommandHandler('stop', async () => {
-      await this.deviceManager.device.deactivateCleaning();
+      await this.deviceManager.device.call('app_stop', [], refreshStateArgument);
     });
     this.endpoint.addCommandHandler('pause', async () => {
-      await this.deviceManager.device.pause();
+      await this.deviceManager.device.call('app_pause', [], refreshStateArgument);
     });
     this.endpoint.addCommandHandler('resume', async () => {
       const selectedAreas = this.selectedAreas;
       if (selectedAreas.length > 0) {
-        await this.deviceManager.device.call('resume_segment_clean', selectedAreas, {
-          refresh: ['state'],
-          refreshDelay: 1000,
-        });
+        await this.deviceManager.device.call('resume_segment_clean', selectedAreas, refreshStateArgument);
       } else {
-        await this.deviceManager.device.activateCleaning();
+        await this.deviceManager.device.call('app_start', [], refreshStateArgument);
       }
     });
     this.endpoint.addCommandHandler('goHome', async () => {
       await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
-      await this.deviceManager.device.activateCharging();
+      await this.deviceManager.device.call('app_stop', [], refreshStateArgument).catch(() => {});
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await this.deviceManager.device.call('app_charge', [], refreshStateArgument);
     });
     this.endpoint.addCommandHandler('identify', async () => {
-      await this.deviceManager.device.find();
+      await this.deviceManager.device.call('find_me', ['']);
     });
     this.endpoint.addCommandHandler('selectAreas', async (data) => {
       this.log.debug(`Select areas command received: ${JSON.stringify(data)}`);
@@ -295,6 +300,10 @@ export class VacuumDeviceAccessory {
 
   private get selectedAreas(): string[] {
     const selectedAreas = (this.endpoint?.getAttribute(ServiceArea.Cluster.id, 'selectedAreas') as number[] | undefined) ?? [];
+    if (selectedAreas.length === this.serviceAreas.length) {
+      // If all selected, return empty array to trigger full cleaning
+      return [];
+    }
     return selectedAreas.map((areaId) => areaId.toString());
   }
 }
