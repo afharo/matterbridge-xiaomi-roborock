@@ -33,7 +33,7 @@
           },
           "token": {
             "type": "string",
-            "description": "The token of the robot vacuum."
+            "description": "The token of the robot vacuum. Can be extracted using https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor"
           },
           "roomNames": {
             "type": "array",
