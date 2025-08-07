@@ -104,7 +104,6 @@ describe('DeviceManager', () => {
       deviceManager.stop();
     });
 
-    // TODO: Write this test
     test('Triggers a getState cycle', async () => {
       const getStateSpy = jest.spyOn(deviceManager, 'getState');
       miio.device.matches.mockReturnValue(true);
@@ -122,6 +121,16 @@ describe('DeviceManager', () => {
         }
       `);
       expect(error).toMatchInlineSnapshot(`"full"`);
+    });
+
+    test('Handles errors', async () => {
+      const getStateSpy = jest.spyOn(deviceManager, 'getState');
+      miio.device.matches.mockReturnValue(true);
+      miio.device.property.mockReturnValue('cleaning');
+      miio.device.state.mockRejectedValueOnce(new Error('test'));
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      expect(getStateSpy).toHaveBeenCalledTimes(1);
     });
   });
 });
