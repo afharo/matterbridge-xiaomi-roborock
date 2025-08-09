@@ -1,6 +1,8 @@
-# <img src="matterbridge.svg" alt="Matterbridge Logo" width="64px" height="64px">&nbsp;&nbsp;&nbsp;Matterbridge Xiaomi Roborock Plugin changelog
+# <img src="matterbridge.svg" alt="Matterbridge Logo" width="64px" height="64px"> <img src="xiaomi-home.png" alt="Xiaomi Home app logo" width="64px" height="64px">&nbsp;&nbsp;&nbsp;Matterbridge Xiaomi Roborock Plugin changelog
 
 All notable changes to this project will be documented in this file.
+
+---
 
 <!-- Commented out section
 ## [1.0.0] - 2025-07-01
