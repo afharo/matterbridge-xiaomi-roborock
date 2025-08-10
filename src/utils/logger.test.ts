@@ -5,13 +5,13 @@ import { getLogger } from './logger.js';
 
 describe('getLogger', () => {
   const mockLog: jest.Mocked<Logger> = {
-    fatal: jest.fn((_message: string, ..._parameters: any[]) => {}),
-    error: jest.fn((_message: string, ..._parameters: any[]) => {}),
-    warn: jest.fn((_message: string, ..._parameters: any[]) => {}),
-    notice: jest.fn((_message: string, ..._parameters: any[]) => {}),
-    info: jest.fn((_message: string, ..._parameters: any[]) => {}),
-    debug: jest.fn((_message: string, ..._parameters: any[]) => {}),
-    log: jest.fn((_message: string, ..._parameters: any[]) => {}),
+    fatal: jest.fn(() => {}),
+    error: jest.fn(() => {}),
+    warn: jest.fn(() => {}),
+    notice: jest.fn(() => {}),
+    info: jest.fn(() => {}),
+    debug: jest.fn(() => {}),
+    log: jest.fn(() => {}),
   };
 
   beforeEach(() => {

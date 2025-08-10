@@ -15,12 +15,12 @@ jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
 import type { XiaomiRoborockVacuumPlatform } from './xiaomi_roborock_vacuum_platform.js';
 
 const mockLog = {
-  fatal: jest.fn((_message: string, ..._parameters: any[]) => {}),
-  error: jest.fn((_message: string, ..._parameters: any[]) => {}),
-  warn: jest.fn((_message: string, ..._parameters: any[]) => {}),
-  notice: jest.fn((_message: string, ..._parameters: any[]) => {}),
-  info: jest.fn((_message: string, ..._parameters: any[]) => {}),
-  debug: jest.fn((_message: string, ..._parameters: any[]) => {}),
+  fatal: jest.fn(() => {}),
+  error: jest.fn(() => {}),
+  warn: jest.fn(() => {}),
+  notice: jest.fn(() => {}),
+  info: jest.fn(() => {}),
+  debug: jest.fn(() => {}),
 } as unknown as AnsiLogger;
 
 const mockMatterbridge = {
@@ -35,9 +35,9 @@ const mockMatterbridge = {
   getPlugins: jest.fn(() => {
     return [];
   }),
-  addBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {}),
-  removeBridgedEndpoint: jest.fn(async (pluginName: string, device: MatterbridgeEndpoint) => {}),
-  removeAllBridgedEndpoints: jest.fn(async (pluginName: string) => {}),
+  addBridgedEndpoint: jest.fn(async () => {}),
+  removeBridgedEndpoint: jest.fn(async () => {}),
+  removeAllBridgedEndpoints: jest.fn(async () => {}),
 } as unknown as Matterbridge;
 
 const mockConfig = {
@@ -48,7 +48,7 @@ const mockConfig = {
   unregisterOnShutdown: false,
 } as PlatformConfig;
 
-const loggerLogSpy = jest.spyOn(AnsiLogger.prototype, 'log').mockImplementation((level: string, message: string, ...parameters: any[]) => {});
+jest.spyOn(AnsiLogger.prototype, 'log').mockImplementation(() => {});
 
 describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
   let instance: XiaomiRoborockVacuumPlatform;
