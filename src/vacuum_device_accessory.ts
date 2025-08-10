@@ -54,13 +54,12 @@ export class VacuumDeviceAccessory {
     await firstValueFrom(this.deviceManager.deviceConnected$);
     this.log.info(`Connected to device!`);
 
-    const serial = await this.deviceManager.device.call<{ serial_number: string }[]>('get_serial_number');
-    const serialNumber = serial[0].serial_number;
-    const firmware = await this.deviceManager.device.call<{ fw_ver: string }>('miIO.info');
+    const serialNumber = await this.deviceManager.device.getSerialNumber();
+    const deviceInfo = await this.deviceManager.device.getDeviceInfo();
     this.log.info(`Serial number: ${serialNumber}`);
-    this.log.info(`Firmware: ${firmware.fw_ver}`);
+    this.log.info(`Firmware: ${deviceInfo.fw_ver}`);
 
-    const modelSpeeds = findSpeedModes(this.deviceManager.model, firmware.fw_ver);
+    const modelSpeeds = findSpeedModes(this.deviceManager.model, deviceInfo.fw_ver);
     const supportedCleanModes = modelSpeeds.waterspeed ? SUPPORTED_CLEAN_MODES : [SUPPORTED_CLEAN_MODES[0]];
 
     this.serviceAreas = await this.getServiceAreas();
@@ -86,7 +85,7 @@ export class VacuumDeviceAccessory {
 
     this.endpoint.vendorName = 'Xiaomi';
     this.endpoint.productName = this.deviceManager.model;
-    this.endpoint.softwareVersionString = firmware.fw_ver;
+    this.endpoint.softwareVersionString = deviceInfo.fw_ver;
     this.endpoint.productUrl = 'https://github.com/afharo/matterbridge-xiaomi-roborock';
     this.endpoint.hardwareVersionString = this.deviceManager.model;
 
@@ -99,20 +98,17 @@ export class VacuumDeviceAccessory {
       switch (data.request.newMode) {
         case 0: // Idle
           // TODO: Confirm what to do here
-          // await this.deviceManager.device.call('app_pause', [], refreshStateArgument);
+          // await this.deviceManager.device.pause();
           break;
         case 1: {
           // Cleaning
           const selectedAreas = this.selectedAreas;
           if (selectedAreas.length === 0) {
             this.log.info(`Initiating full cleaning...`);
-            await this.deviceManager.device.call('app_start', [], refreshStateArgument);
+            await this.deviceManager.device.activateCleaning();
           } else {
             this.log.info(`Initiating room cleaning...`);
-            await this.deviceManager.device.call('app_segment_clean', selectedAreas, {
-              refresh: ['state'],
-              refreshDelay: 1000,
-            });
+            await this.deviceManager.device.cleanRooms(selectedAreas);
           }
           break;
         }
@@ -122,27 +118,25 @@ export class VacuumDeviceAccessory {
       }
     });
     this.endpoint.addCommandHandler('stop', async () => {
-      await this.deviceManager.device.call('app_stop', [], refreshStateArgument);
+      await this.deviceManager.device.deactivateCleaning();
     });
     this.endpoint.addCommandHandler('pause', async () => {
-      await this.deviceManager.device.call('app_pause', [], refreshStateArgument);
+      await this.deviceManager.device.pause();
     });
     this.endpoint.addCommandHandler('resume', async () => {
       const selectedAreas = this.selectedAreas;
       if (selectedAreas.length > 0) {
-        await this.deviceManager.device.call('resume_segment_clean', selectedAreas, refreshStateArgument);
+        await this.deviceManager.device.resumeCleanRooms(selectedAreas);
       } else {
-        await this.deviceManager.device.call('app_start', [], refreshStateArgument);
+        await this.deviceManager.device.activateCleaning();
       }
     });
     this.endpoint.addCommandHandler('goHome', async () => {
       await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
-      await this.deviceManager.device.call('app_stop', [], refreshStateArgument).catch(() => {});
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      await this.deviceManager.device.call('app_charge', [], refreshStateArgument);
+      await this.deviceManager.device.activateCharging();
     });
     this.endpoint.addCommandHandler('identify', async () => {
-      await this.deviceManager.device.call('find_me', ['']);
+      await this.deviceManager.device.find();
     });
     this.endpoint.addCommandHandler('selectAreas', async (data) => {
       this.log.debug(`Select areas command received: ${JSON.stringify(data)}`);
@@ -239,7 +233,7 @@ export class VacuumDeviceAccessory {
     // If empty, try the timer workaround.
     // Else, return an empty array.
 
-    const roomMapping = await this.deviceManager.device.call<Array<[string, string]>>('get_room_mapping');
+    const roomMapping = await this.deviceManager.device.getRoomMap();
     if (roomMapping.length > 0) {
       this.log.info(`Room mapping found: ${JSON.stringify(roomMapping)}`);
       this.log.info(`Creating service areas from room mapping...`);
@@ -259,7 +253,7 @@ export class VacuumDeviceAccessory {
       );
     }
 
-    const timers = await this.deviceManager.device.call<GetTimerResponseTimer[]>('get_timer');
+    const timers = await this.deviceManager.device.getTimer();
     if (timers.length > 0) {
       const timer = timers.find(([id, status, definition]) => {
         if (['off', 'disabled'].includes(status)) {
@@ -307,29 +301,6 @@ export class VacuumDeviceAccessory {
     return selectedAreas.map((areaId) => areaId.toString());
   }
 }
-
-type GetTimerResponseTimer = [
-  string, // timer ID
-  'off' | 'disable' | 'on' | 'enable', // status
-  GetTimerResponseTimerDefinition, // timer definition
-];
-
-type GetTimerResponseTimerDefinition = [
-  string, // cron expression
-  GetTimerResponseTimerDefinitionAction, // action
-];
-
-type GetTimerResponseTimerDefinitionAction = [
-  string, // method
-  GetTimerResponseTimerDefinitionActionParams, // params
-];
-
-type GetTimerResponseTimerDefinitionActionParams = {
-  fan_power: number;
-  segments: string; // comma-separated list of segments (e.g.: '28,19,18,17,16,20,29,23,26,25,24')
-  repeat: number;
-  clean_order_mode: number;
-};
 
 /**
  *

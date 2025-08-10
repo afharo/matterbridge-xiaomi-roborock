@@ -33,7 +33,7 @@ declare module 'node-miio' {
     getDeviceInfo: () => Promise<MiioDeviceInfo>;
     getSerialNumber: () => Promise<string>;
     batteryLevel: () => Promise<number>;
-    getTimer: () => Promise<unknown>;
+    getTimer: () => Promise<GetTimerResponseTimer[]>;
     getRoomMap: () => Promise<[string, string][]>;
     activateCleaning: () => Promise<void>;
     deactivateCleaning: () => Promise<void>;
@@ -69,4 +69,27 @@ declare module 'node-miio' {
   export interface MiioDeviceInfo {
     fw_ver: string;
   }
+
+  export type GetTimerResponseTimer = [
+    string, // timer ID
+    'off' | 'disable' | 'on' | 'enable', // status
+    GetTimerResponseTimerDefinition, // timer definition
+  ];
+
+  export type GetTimerResponseTimerDefinition = [
+    string, // cron expression
+    GetTimerResponseTimerDefinitionAction, // action
+  ];
+
+  export type GetTimerResponseTimerDefinitionAction = [
+    string, // method
+    GetTimerResponseTimerDefinitionActionParams, // params
+  ];
+
+  export type GetTimerResponseTimerDefinitionActionParams = {
+    fan_power: number;
+    segments: string; // comma-separated list of segments (e.g.: '28,19,18,17,16,20,29,23,26,25,24')
+    repeat: number;
+    clean_order_mode: number;
+  };
 }

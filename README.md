@@ -27,8 +27,8 @@
     <a href="https://www.npmjs.com/package/matterbridge">
         <img src="https://img.shields.io/badge/powered%20by-matterbridge-blue" alt="powered by matterbridge">
     </a>
-    <a href="https://www.npmjs.com/package/miio">
-        <img src="https://img.shields.io/badge/powered%20by-miio-blue" alt="powered by miio">
+    <a href="https://www.npmjs.com/package/node-miio">
+        <img src="https://img.shields.io/badge/powered%20by-node-miio-blue" alt="powered by node-miio">
     </a>
     <a href="https://www.npmjs.com/package/rxjs">
         <img src="https://img.shields.io/badge/powered%20by-rxjs-blue" alt="powered by rxjs">
@@ -69,7 +69,6 @@ The plugin uses 2 methods to discover the rooms defined in the Xiaomi Home app, 
 ### TODO
 
 - [ ] Get/set the fan speed
-- [ ] Use a modernized version of `miio` (to be developed)
 - [ ] Add support for other models
 
 ---
