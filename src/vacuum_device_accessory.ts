@@ -29,11 +29,6 @@ const SUPPORTED_OPERATIONAL_STATES: RvcOperationalState.OperationalStateStruct[]
   { operationalStateId: RvcOperationalState.OperationalState.Error },
 ];
 
-const refreshStateArgument = {
-  refresh: ['state'],
-  refreshDelay: 1000,
-};
-
 export class VacuumDeviceAccessory {
   private readonly config: Config;
   private readonly log: ModelLogger;
