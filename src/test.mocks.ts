@@ -1,7 +1,7 @@
 import { Socket } from 'node:net';
 
 import { jest } from '@jest/globals';
-import { MiioDevice } from 'miio';
+import { MiioDevice } from 'node-miio';
 
 // ============= MIIO MOCKS ================
 const miioDevice: jest.Mocked<MiioDevice> = {
