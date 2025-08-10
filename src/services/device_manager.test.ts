@@ -69,6 +69,7 @@ describe('DeviceManager', () => {
       miio.device.matches.mockReturnValue(true);
       miio.device.property.mockReturnValue('cleaning');
       miio.device.properties = { state: 'cleaning', battery: 10 };
+      miio.device.state.mockResolvedValue({ state: 'cleaning', battery: 10 });
       deviceManager = new DeviceManager(log, {
         ip: '192.168.0.1',
         token: 'token',

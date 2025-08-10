@@ -27,13 +27,7 @@ export class DeviceManager {
   private readonly internalStateChanged$ = new Subject<StateChangedEvent>();
   private readonly stop$ = new Subject<void>();
   public readonly errorChanged$ = this.internalErrorChanged$.pipe(distinct());
-  public readonly stateChanged$ = concat(
-    defer(() => {
-      const allInitialProps = Object.entries(this.device.properties).map(([key, value]) => ({ key, value }));
-      return from(allInitialProps);
-    }),
-    this.internalStateChanged$,
-  );
+  public readonly stateChanged$ = this.internalStateChanged$.asObservable();
   public readonly deviceConnected$ = this.internalDevice$.pipe(filter(Boolean));
 
   private connectingPromise: Promise<void> | null = null;
