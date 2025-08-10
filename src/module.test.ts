@@ -15,12 +15,12 @@ jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
 import type { XiaomiRoborockVacuumPlatform } from './xiaomi_roborock_vacuum_platform.js';
 
 const mockLog = {
-  fatal: jest.fn((message: string, ...parameters: any[]) => {}),
-  error: jest.fn((message: string, ...parameters: any[]) => {}),
-  warn: jest.fn((message: string, ...parameters: any[]) => {}),
-  notice: jest.fn((message: string, ...parameters: any[]) => {}),
-  info: jest.fn((message: string, ...parameters: any[]) => {}),
-  debug: jest.fn((message: string, ...parameters: any[]) => {}),
+  fatal: jest.fn((_message: string, ..._parameters: any[]) => {}),
+  error: jest.fn((_message: string, ..._parameters: any[]) => {}),
+  warn: jest.fn((_message: string, ..._parameters: any[]) => {}),
+  notice: jest.fn((_message: string, ..._parameters: any[]) => {}),
+  info: jest.fn((_message: string, ..._parameters: any[]) => {}),
+  debug: jest.fn((_message: string, ..._parameters: any[]) => {}),
 } as unknown as AnsiLogger;
 
 const mockMatterbridge = {

@@ -1,4 +1,4 @@
-import { BehaviorSubject, concat, defer, distinct, exhaustMap, filter, from, Subject, takeUntil, timer } from 'rxjs';
+import { BehaviorSubject, distinct, exhaustMap, filter, Subject, takeUntil, timer } from 'rxjs';
 import * as miio from 'node-miio';
 import type { MiioDevice, MiioErrorChangedEvent, MiioState } from 'node-miio';
 

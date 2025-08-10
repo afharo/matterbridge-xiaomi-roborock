@@ -11,6 +11,7 @@ import pluginPromise from 'eslint-plugin-promise';
 import pluginJsdoc from 'eslint-plugin-jsdoc';
 import pluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import pluginJest from 'eslint-plugin-jest';
+import unusedImports from 'eslint-plugin-unused-imports';
 
 export default defineConfig([
   {
@@ -113,6 +114,24 @@ export default defineConfig([
 
       // Recommended Jest rules
       ...pluginJest.configs.recommended.rules,
+    },
+  },
+  {
+    plugins: {
+      'unused-imports': unusedImports,
+    },
+    rules: {
+      'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",
+      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          varsIgnorePattern: '^_',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+        },
+      ],
     },
   },
 ]);
