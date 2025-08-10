@@ -2,9 +2,9 @@
 
 import type { Socket } from 'node:net';
 
-// TODO: Move these to the `miio` library once it supports typescript
+// TODO: Move these to the `node-miio` library once it supports typescript
 
-declare module 'miio' {
+declare module 'node-miio' {
   export function device(options: MiioDeviceOptions): Promise<MiioDevice>;
 
   export interface MiioDeviceOptions {

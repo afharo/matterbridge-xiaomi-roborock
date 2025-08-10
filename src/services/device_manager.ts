@@ -1,6 +1,6 @@
 import { BehaviorSubject, concat, defer, distinct, exhaustMap, filter, from, Subject, takeUntil, timer } from 'rxjs';
-import * as miio from 'miio';
-import type { MiioDevice, MiioErrorChangedEvent, MiioState } from 'miio';
+import * as miio from 'node-miio';
+import type { MiioDevice, MiioErrorChangedEvent, MiioState } from 'node-miio';
 
 import { cleaningStatuses } from '../utils/constants.js';
 import type { ModelLogger } from '../utils/logger.ts';
