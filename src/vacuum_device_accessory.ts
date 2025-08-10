@@ -172,6 +172,14 @@ export class VacuumDeviceAccessory {
         'batChargeState',
         charging === true ? PowerSource.BatChargeState.IsCharging : PowerSource.BatChargeState.IsNotCharging,
       );
+      if (charging === true) {
+        await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
+      }
+    },
+    cleaning: async (cleaning: boolean) => {
+      if (cleaning === false) {
+        await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
+      }
     },
     state: async (state: string) => {
       await this.stateChangedHandlers.charging(state === 'charging');
