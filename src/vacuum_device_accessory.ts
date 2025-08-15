@@ -160,6 +160,10 @@ export class VacuumDeviceAccessory {
       .subscribe();
   }
 
+  public stop() {
+    this.deviceManager.stop();
+  }
+
   private readonly stateChangedHandlers = {
     batteryLevel: async (level: number) => {
       this.log.debug(`Battery level: ${level}`);
