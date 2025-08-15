@@ -7,6 +7,7 @@ jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
     return {
       initializeMatterbridgeEndpoint: jest.fn(() => Promise.resolve({})),
       postRegister: jest.fn(() => {}),
+      stop: jest.fn(() => {}),
     };
   }),
 }));
