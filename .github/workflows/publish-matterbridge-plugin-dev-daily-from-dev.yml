@@ -14,7 +14,7 @@ jobs:
     steps:
       # Always check out the dev branch, even for scheduled runs
       - name: Checkout dev
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: dev
           fetch-depth: 0
