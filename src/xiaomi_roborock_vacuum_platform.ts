@@ -10,6 +10,8 @@ export interface XiaomiRoborockVacuumPluginConfig extends PlatformConfig {
 }
 
 export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
+  private readonly vacuumDevices = new Set<VacuumDeviceAccessory>();
+
   constructor(
     matterbridge: Matterbridge,
     log: AnsiLogger,
@@ -69,6 +71,8 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
 
     this.log.info(`onShutdown called with reason: ${reason ?? 'none'}`);
     if (this.config.unregisterOnShutdown === true) await this.unregisterAllDevices();
+
+    this.vacuumDevices.forEach((vacuum) => vacuum.stop());
   }
 
   private async discoverDevices() {
@@ -84,6 +88,7 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
         const vacuum = await vacuumDevice.initializeMatterbridgeEndpoint();
         await this.registerDevice(vacuum);
         vacuumDevice.postRegister();
+        this.vacuumDevices.add(vacuumDevice);
       }),
     );
   }
