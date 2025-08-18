@@ -13,7 +13,6 @@ node_modules/
 screenshot/
 src/
 temp/
-test/
 
 # Specific files that should be ignored
 .gitattributes
@@ -24,7 +23,6 @@ test/
 .npmlocalignore
 .prettierignore
 .prettierlocalignore
-CODEOWNERS
 eslint.config.*
 install-matterbridge-dev.sh
 install-matterbridge-main.sh
@@ -44,3 +42,5 @@ vite.config.*
 # Package specific directories and files that should be ignored
 types/
 *.mocks.js
+*.mock.js
+*.test.js
