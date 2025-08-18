@@ -16,7 +16,7 @@ jobs:
         node-version:
           - 20.x
           - 22.x
-#          - 24.x # Disabled for now because it's failing on jest mocked modules
+        # - 24.x # Disabled for now because it's failing on jest mocked modules
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:

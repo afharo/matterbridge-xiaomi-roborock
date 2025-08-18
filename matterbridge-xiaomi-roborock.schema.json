@@ -2,9 +2,7 @@
   "title": "Matterbridge Xiaomi Roborock Robot Vacuum",
   "description": "Xiaomi Roborock Robot",
   "type": "object",
-  "required": [
-    "devices"
-  ],
+  "required": ["devices"],
   "properties": {
     "name": {
       "description": "Plugin name",
@@ -43,10 +41,7 @@
             }
           }
         },
-        "required": [
-          "ip",
-          "token"
-        ]
+        "required": ["ip", "token"]
       },
       "minItems": 1,
       "default": []

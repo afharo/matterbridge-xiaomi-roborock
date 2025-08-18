@@ -24,7 +24,7 @@
     "noImplicitOverride": true,
     "skipLibCheck": true,
     "paths": {
-      "node-miio": ["./types/node-miio.d.ts"],
+      "node-miio": ["./types/node-miio.d.ts"]
     }
   },
   "include": ["src/**/*.ts", "types/*.d.ts"],
