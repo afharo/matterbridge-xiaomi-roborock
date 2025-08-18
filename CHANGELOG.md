@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2025-08-18
+
+### Fixed
+
+- [Errors when no rooms]: Handle the situation when no rooms are found.
+
 ## [0.1.0] - 2025-08-18
+
+### Added
 
 Initial release including basic full cleaning support ported from [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum/).
 
