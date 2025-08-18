@@ -1,21 +1,3 @@
-# <img src="matterbridge.svg" alt="Matterbridge Logo" width="64px" height="64px"> <img src="xiaomi-home.png" alt="Xiaomi Home app logo" width="64px" height="64px">&nbsp;&nbsp;&nbsp;Matterbridge Xiaomi Roborock Plugin changelog
-
-All notable changes to this project will be documented in this file.
-
-## [0.1.1] - 2025-08-18
-
-### Fixed
-
-- [Errors when no rooms]: Handle the situation when no rooms are found.
-
-## [0.1.0] - 2025-08-18
-
-### Added
-
-Initial release including basic full cleaning support ported from [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum/).
-
----
-
 <!-- Commented out section
 ## [1.0.0] - 2025-07-01
 
@@ -47,3 +29,21 @@ Initial release including basic full cleaning support ported from [homebridge-xi
 - [Security 1]: Description of the security improvement.
 
 -->
+
+# <img src="matterbridge.svg" alt="Matterbridge Logo" width="64px" height="64px"> <img src="xiaomi-home.png" alt="Xiaomi Home app logo" width="64px" height="64px">&nbsp;&nbsp;&nbsp;Matterbridge Xiaomi Roborock Plugin changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Next] - ??
+
+## [0.1.1] - 2025-08-18
+
+### Fixed
+
+- [Errors when no rooms]: Handle the situation when no rooms are found.
+
+## [0.1.0] - 2025-08-18
+
+### Added
+
+Initial release including basic full cleaning support ported from [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum/).
