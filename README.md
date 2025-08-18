@@ -60,20 +60,18 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 > list of [supported models](#supported-models).
 
 <!-- TOC -->
-
-* [Features](#features)
-    * [Room cleaning and discovery](#room-cleaning-and-discovery)
-    * [TODO](#todo)
-* [Supported models](#supported-models)
-* [Known issues](#known-issues)
-
+- [Features](#features)
+  - [Room cleaning and discovery](#room-cleaning-and-discovery)
+  - [TODO](#todo)
+- [Supported models](#supported-models)
+- [Known issues](#known-issues)
 <!-- TOC -->
 
 ## Features
 
-* Basic RVC operations (start/stop/pause/resume/go back to dock)
-* Battery information
-* Room cleaning and discovery
+- Basic RVC operations (start/stop/pause/resume/go back to dock)
+- Battery information
+- Room cleaning and discovery
 
 ### Room cleaning and discovery
 
@@ -83,11 +81,11 @@ the model (and shown in the Xiaomi Home app):
 1. For supported models where the app allows to add names in the rooms, it is capable of retrieving the names from the
    app.
 2. For other models, it needs a workaround:
-    1. In the Xiaomi Home app, while in the vacuum view, open the options by clicking on the 3 dots in the top right
-       corner.
-    2. Then, in "Timer", define a cleaning timer for midnight (00:00). Make sure to select all the rooms individually.
-    3. Finally, set up the `roomNames` in this plugin's configuration. Make sure to follow the same order as you
-       selected the rooms in the app.
+   1. In the Xiaomi Home app, while in the vacuum view, open the options by clicking on the 3 dots in the top right
+      corner.
+   2. Then, in "Timer", define a cleaning timer for midnight (00:00). Make sure to select all the rooms individually.
+   3. Finally, set up the `roomNames` in this plugin's configuration. Make sure to follow the same order as you
+      selected the rooms in the app.
 
 > ‼️ If you need to rely on the 2nd approach, chances are that the vacuum does not support the command to run room
 > cleaning (`app_segment_clean`). This is the case for the Roborock S5 (`roborock.vacuum.s5`).
@@ -107,11 +105,11 @@ the model (and shown in the Xiaomi Home app):
 ## Supported models
 
 | Model       | Code name            | Basic info (battery, serial, firmware) | Full cleaning | Room cleaning |
-|-------------|----------------------|:--------------------------------------:|:-------------:|:-------------:|
-| Roborock S5 | `roborock.vacuum.s5` |                   ✅                    |       ✅       |       ❌       |
+| ----------- | -------------------- | :------------------------------------: | :-----------: | :-----------: |
+| Roborock S5 | `roborock.vacuum.s5` |                   ✅                   |      ✅       |      ❌       |
 
 ## Known issues
 
 | Issue                                                             | Comment                                                                                 |
-|-------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | The name of the device is not automatically placed in Apple Home. | AFAIK, this happens to all Matterbridge devices (all show as `Matterbridge Accessory`). |
