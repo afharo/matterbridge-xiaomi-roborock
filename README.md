@@ -60,6 +60,7 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 > list of [supported models](#supported-models).
 
 <!-- TOC -->
+
 - [Features](#features)
   - [Room cleaning and discovery](#room-cleaning-and-discovery)
   - [TODO](#todo)
