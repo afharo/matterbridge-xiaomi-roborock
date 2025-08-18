@@ -4,7 +4,10 @@
 
 ## Checklist
 
-<!-- Make sure to check the following and tick the boxes once they are done. -->
+<!-- 
+  Make sure to check the following and tick the boxes once they are done.
+  Strike them through (wrap them in between ~) if you don't think that these are necessary for this PR. 
+-->
 
 - [ ] Update the CHANGELOG.md file, including a description of the changes, following the convention commented at the
   top of the file.
