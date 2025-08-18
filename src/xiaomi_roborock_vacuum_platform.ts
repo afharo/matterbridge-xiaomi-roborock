@@ -87,7 +87,7 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
         const vacuumDevice = new VacuumDeviceAccessory(cfg, this.log);
         const vacuum = await vacuumDevice.initializeMatterbridgeEndpoint();
         await this.registerDevice(vacuum);
-        vacuumDevice.postRegister();
+        await vacuumDevice.postRegister();
         this.vacuumDevices.add(vacuumDevice);
       }),
     );

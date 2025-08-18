@@ -1,7 +1,7 @@
 import { MatterbridgeEndpoint } from 'matterbridge';
 import { RoboticVacuumCleaner } from 'matterbridge/devices';
 import type { Logger } from 'matterbridge/logger';
-import { firstValueFrom, mergeMap } from 'rxjs';
+import { firstValueFrom, mergeMap, Subject, takeUntil } from 'rxjs';
 import { PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea } from 'matterbridge/matter/clusters';
 
 import { applyConfigDefaults, type Config } from './services/config_service.js';
@@ -33,6 +33,7 @@ export class VacuumDeviceAccessory {
   private readonly config: Config;
   private readonly log: ModelLogger;
   private readonly deviceManager: DeviceManager;
+  private readonly stop$ = new Subject<void>();
   private endpoint?: RoboticVacuumCleaner;
   private serviceAreas: ServiceArea.Area[] = [];
 
@@ -49,15 +50,24 @@ export class VacuumDeviceAccessory {
     await firstValueFrom(this.deviceManager.deviceConnected$);
     this.log.info(`Connected to device!`);
 
-    const serialNumber = await this.deviceManager.device.getSerialNumber();
-    const deviceInfo = await this.deviceManager.device.getDeviceInfo();
+    const serialNumber = await this.deviceManager.device.getSerialNumber().catch((error) => {
+      this.log.warn(`Failed to retrieve serial number: ${error}`);
+      return 'Unknown';
+    });
+    const deviceInfo = await this.deviceManager.device.getDeviceInfo().catch((error) => {
+      this.log.warn(`Failed to retrieve device info: ${error}`);
+      return { fw_ver: 'Unknown' };
+    });
     this.log.info(`Serial number: ${serialNumber}`);
     this.log.info(`Firmware: ${deviceInfo.fw_ver}`);
 
     const modelSpeeds = findSpeedModes(this.deviceManager.model, deviceInfo.fw_ver);
     const supportedCleanModes = modelSpeeds.waterspeed ? SUPPORTED_CLEAN_MODES : [SUPPORTED_CLEAN_MODES[0]];
 
-    this.serviceAreas = await this.getServiceAreas();
+    this.serviceAreas = await this.getServiceAreas().catch((error) => {
+      this.log.warn(`Failed to retrieve service areas: ${error}`);
+      return [];
+    });
 
     this.endpoint = new RoboticVacuumCleaner(
       this.config.name,
@@ -73,7 +83,7 @@ export class VacuumDeviceAccessory {
       undefined,
       RvcOperationalState.OperationalState.Docked,
       SUPPORTED_OPERATIONAL_STATES,
-      this.serviceAreas,
+      this.serviceAreas.length > 0 ? this.serviceAreas : undefined,
       [],
       this.serviceAreas[0]?.areaId,
     );
@@ -145,7 +155,7 @@ export class VacuumDeviceAccessory {
     return this.endpoint;
   }
 
-  public postRegister() {
+  public async postRegister() {
     this.deviceManager.stateChanged$
       .pipe(
         mergeMap(async ({ key, value }) => {
@@ -156,12 +166,22 @@ export class VacuumDeviceAccessory {
             await this.stateChangedHandlers[key](value);
           }
         }),
+        takeUntil(this.stop$),
       )
       .subscribe();
+
+    // If no areas are found, we need to clear the serviceAreas and the currentArea attributes
+    // (the constructor doesn't allow setting them to null as it fallbacks to defaults).
+    if (this.serviceAreas.length === 0) {
+      await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'currentArea', null);
+      await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'supportedAreas', []);
+    }
   }
 
   public stop() {
     this.deviceManager.stop();
+    this.stop$.next();
+    this.stop$.complete();
   }
 
   private readonly stateChangedHandlers = {
