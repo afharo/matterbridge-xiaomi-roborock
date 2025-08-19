@@ -270,7 +270,7 @@ export class VacuumDeviceAccessory {
           mapId: null,
           areaInfo: {
             locationInfo: {
-              locationName: roomName,
+              locationName: `${roomName}`,
               floorNumber: null,
               areaType: null,
             },
