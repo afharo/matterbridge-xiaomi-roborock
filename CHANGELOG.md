@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Fixed
+
+- [`locationName` must be a string](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/64): Makes sure to stringify the room name in case the RV returns a number.
+
 ## [0.1.1] - 2025-08-18
 
 ### Fixed
