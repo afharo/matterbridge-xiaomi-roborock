@@ -265,7 +265,7 @@ export class VacuumDeviceAccessory {
       this.log.info(`Room mapping found: ${JSON.stringify(roomMapping)}`);
       this.log.info(`Creating service areas from room mapping...`);
       return roomMapping.map(
-        ([roomName, roomId]): ServiceArea.Area => ({
+        ([roomId, roomName]): ServiceArea.Area => ({
           areaId: parseInt(roomId),
           mapId: null,
           areaInfo: {
