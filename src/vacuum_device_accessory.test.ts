@@ -106,19 +106,10 @@ describe('VacuumDeviceAccessory', () => {
       test('should retrieve service areas via timer', async () => {
         deviceManagerMock.device.getRoomMap.mockResolvedValue([]);
         deviceManagerMock.device.getTimer.mockResolvedValue([
-          [
-            'timer-id',
-            'off',
-            [
-              '0 0 * * *',
-              [
-                'action',
-                {
-                  segments: '16,17',
-                },
-              ],
-            ],
-          ],
+          // This one will be discarded because it's ON
+          ['timer-id', 'on', ['0 0 * * *', ['action', { segments: '16,17' }]]],
+          // This one is taken
+          ['timer-id', 'off', ['0 0 * * *', ['action', { segments: '16,17' }]]],
         ]);
 
         const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
@@ -153,6 +144,75 @@ describe('VacuumDeviceAccessory', () => {
                     "areaType": null,
                     "floorNumber": null,
                     "locationName": "Room 17",
+                  },
+                },
+                "mapId": null,
+              },
+            ],
+            "supportedMaps": [],
+          }
+        `);
+      });
+      test("should return 0 areas and assign the default ones (they'll be cleared after registration)", async () => {
+        deviceManagerMock.device.getRoomMap.mockResolvedValue([]);
+        deviceManagerMock.device.getTimer.mockResolvedValue([]);
+
+        const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+
+        const endpoint = await endpointPromise;
+        expect(endpoint).toBeInstanceOf(RoboticVacuumCleaner);
+        expect(endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps))).toMatchInlineSnapshot(`
+          {
+            "currentArea": 1,
+            "estimatedEndTime": null,
+            "selectedAreas": [],
+            "supportedAreas": [
+              {
+                "areaId": 1,
+                "areaInfo": {
+                  "landmarkInfo": null,
+                  "locationInfo": {
+                    "areaType": 50,
+                    "floorNumber": 0,
+                    "locationName": "Living",
+                  },
+                },
+                "mapId": null,
+              },
+              {
+                "areaId": 2,
+                "areaInfo": {
+                  "landmarkInfo": null,
+                  "locationInfo": {
+                    "areaType": 46,
+                    "floorNumber": 0,
+                    "locationName": "Kitchen",
+                  },
+                },
+                "mapId": null,
+              },
+              {
+                "areaId": 3,
+                "areaInfo": {
+                  "landmarkInfo": null,
+                  "locationInfo": {
+                    "areaType": 7,
+                    "floorNumber": 1,
+                    "locationName": "Bedroom",
+                  },
+                },
+                "mapId": null,
+              },
+              {
+                "areaId": 4,
+                "areaInfo": {
+                  "landmarkInfo": null,
+                  "locationInfo": {
+                    "areaType": 6,
+                    "floorNumber": 1,
+                    "locationName": "Bathroom",
                   },
                 },
                 "mapId": null,
