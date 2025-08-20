@@ -1,3 +1,5 @@
+import { RvcCleanMode } from 'matterbridge/matter/clusters';
+
 import { speedmodes } from './speedmodes.js';
 import { watermodes } from './watermodes.js';
 
@@ -7,6 +9,7 @@ export interface ModesHomekitVsMiLevel {
   homekitTopLevel: number;
   miLevel: number;
   name: string;
+  label: RvcCleanMode.ModeTag;
 }
 
 export interface ModelDefinition {
