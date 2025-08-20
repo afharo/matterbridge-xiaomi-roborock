@@ -1,12 +1,14 @@
+import { RvcCleanMode } from 'matterbridge/matter/clusters';
+
 import { speedmodes } from './speedmodes.js';
 import { watermodes } from './watermodes.js';
 
-export type SpeedModes = Record<string, ModesHomekitVsMiLevel[]>;
+export type SpeedModes = Record<string, ModesWithMiLevel[]>;
 
-export interface ModesHomekitVsMiLevel {
-  homekitTopLevel: number;
+export interface ModesWithMiLevel {
   miLevel: number;
   name: string;
+  label: RvcCleanMode.ModeTag;
 }
 
 export interface ModelDefinition {

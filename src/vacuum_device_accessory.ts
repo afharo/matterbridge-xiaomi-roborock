@@ -8,15 +8,19 @@ import { applyConfigDefaults, type Config } from './services/config_service.js';
 import { DeviceManager } from './services/device_manager.js';
 import { getLogger, type ModelLogger } from './utils/logger.js';
 import { findSpeedModes } from './utils/find_speed_modes.js';
+import type { ModelDefinition } from './models/types.js';
+import { MODELS } from './models/models.js';
+
+type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum: number; mop?: number } };
 
 const SUPPORTED_MODES: RvcRunMode.ModeOption[] = [
-  { label: 'Idle', mode: 0, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
-  { label: 'Cleaning', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }] },
-];
+  { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
+  { label: 'Cleaning', mode: 2, modeTags: [{ value: RvcRunMode.ModeTag.Cleaning }] },
 
-const SUPPORTED_CLEAN_MODES: RvcCleanMode.ModeOption[] = [
-  { label: 'Vacuum', mode: 0, modeTags: [{ value: RvcCleanMode.ModeTag.Vacuum }] },
-  { label: 'Mop', mode: 1, modeTags: [{ value: RvcCleanMode.ModeTag.Mop }] },
+  // I noticed that the matterbridge code has hardcoded 1 and 2 for Idle and Cleaning.
+  // However, upgrading from a pre-existing version will fail if 0 is not a valid mode (because of its persisted state).
+  // TODO: remove it in a few versions.
+  { label: 'Deprecated Idle', mode: 0, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
 ];
 
 const SUPPORTED_OPERATIONAL_STATES: RvcOperationalState.OperationalStateStruct[] = [
@@ -36,6 +40,7 @@ export class VacuumDeviceAccessory {
   private readonly stop$ = new Subject<void>();
   private endpoint?: RoboticVacuumCleaner;
   private serviceAreas: ServiceArea.Area[] = [];
+  private modelSpeeds: ModelDefinition = MODELS.default[0];
 
   constructor(config: Partial<Config>, logger: Logger) {
     this.config = applyConfigDefaults(config);
@@ -61,8 +66,8 @@ export class VacuumDeviceAccessory {
     this.log.info(`Serial number: ${serialNumber}`);
     this.log.info(`Firmware: ${deviceInfo.fw_ver}`);
 
-    const modelSpeeds = findSpeedModes(this.deviceManager.model, deviceInfo.fw_ver);
-    const supportedCleanModes = modelSpeeds.waterspeed ? SUPPORTED_CLEAN_MODES : [SUPPORTED_CLEAN_MODES[0]];
+    this.modelSpeeds = findSpeedModes(this.deviceManager.model, deviceInfo.fw_ver);
+    const supportedCleanModes = this.supportedCleanModes;
 
     this.serviceAreas = await this.getServiceAreas().catch((error) => {
       this.log.warn(`Failed to retrieve service areas: ${error}`);
@@ -100,25 +105,40 @@ export class VacuumDeviceAccessory {
 
     this.endpoint.addCommandHandler('changeToMode', async (data) => {
       this.log.debug(`Start command received: ${JSON.stringify(data)}`);
-      switch (data.request.newMode) {
-        case 0: // Idle
-          // TODO: Confirm what to do here
-          // await this.deviceManager.device.pause();
-          break;
-        case 1: {
-          // Cleaning
-          const selectedAreas = this.selectedAreas;
-          if (selectedAreas.length === 0) {
-            this.log.info(`Initiating full cleaning...`);
-            await this.deviceManager.device.activateCleaning();
-          } else {
-            this.log.info(`Initiating room cleaning...`);
-            await this.deviceManager.device.cleanRooms(selectedAreas);
+      switch (data.cluster) {
+        case 'rvcCleanMode': {
+          // Defines the selected cleaning mode (mop or vacuum)
+          const newCleanMode = supportedCleanModes[data.request.newMode - 1];
+          await this.deviceManager.device.changeFanSpeed(newCleanMode.miLevels.vacuum);
+          if (typeof newCleanMode.miLevels.mop === 'number') {
+            await this.deviceManager.device.setWaterBoxMode(newCleanMode.miLevels.mop);
           }
           break;
         }
-        default:
-          this.log.warn(`Unknown mode ${data.request.newMode}`);
+
+        case 'rvcRunMode':
+          // Actual start command
+          switch (data.request.newMode) {
+            case 1: // Idle
+              // TODO: Confirm what to do here
+              // await this.deviceManager.device.pause();
+              break;
+            case 2: {
+              // Cleaning
+              const selectedAreas = this.selectedAreas;
+              if (selectedAreas.length === 0) {
+                this.log.info(`Initiating full cleaning...`);
+                await this.deviceManager.device.activateCleaning();
+              } else {
+                this.log.info(`Initiating room cleaning...`);
+                await this.deviceManager.device.cleanRooms(selectedAreas);
+              }
+              break;
+            }
+            default:
+              this.log.warn(`Unknown mode ${data.request.newMode}`);
+              break;
+          }
           break;
       }
     });
@@ -201,15 +221,39 @@ export class VacuumDeviceAccessory {
       }
     },
     cleaning: async (cleaning: boolean) => {
-      if (cleaning === false) {
-        await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
+      await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', cleaning === false ? SUPPORTED_MODES[0].mode : SUPPORTED_MODES[1].mode);
+      if (cleaning) {
+        await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
+      }
+    },
+    in_cleaning: async (inCleaning: number) => {
+      await this.stateChangedHandlers.cleaning(!!inCleaning);
+    },
+    fanSpeed: async (miLevel: number) => {
+      const currentMopLevel = this.deviceManager.property<number>('water_box_mode');
+      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.vacuum === miLevel && miLevels.mop === currentMopLevel);
+      if (cleanMode) {
+        await this.endpoint?.updateAttribute(RvcCleanMode.Cluster.id, 'currentMode', cleanMode.mode);
+      }
+    },
+    water_box_mode: async (miLevel: number) => {
+      const currentVacuumLevel = this.deviceManager.property<number>('fanSpeed');
+      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.mop === miLevel && miLevels.vacuum === currentVacuumLevel);
+      if (cleanMode) {
+        await this.endpoint?.updateAttribute(RvcCleanMode.Cluster.id, 'currentMode', cleanMode.mode);
       }
     },
     state: async (state: string) => {
       await this.stateChangedHandlers.charging(state === 'charging');
       switch (state) {
+        case 'paused':
+          await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
+          await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Paused);
+          break;
+
         case 'cleaning':
         case 'spot-cleaning':
+        case 'room-cleaning':
         case 'zone-cleaning':
           await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[1].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
@@ -217,7 +261,7 @@ export class VacuumDeviceAccessory {
 
         case 'returning': // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
         case 'docking':
-          await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[1].mode);
+          await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
           break;
 
@@ -226,6 +270,7 @@ export class VacuumDeviceAccessory {
           // await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.CommandInvalidInState);
           // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
           break;
+
         case 'full':
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.DustBinFull);
@@ -326,6 +371,41 @@ export class VacuumDeviceAccessory {
       return [];
     }
     return selectedAreas.map((areaId) => areaId.toString());
+  }
+
+  private get supportedCleanModes(): Array<SupportedCleanMode> {
+    const [vacuumSpeedOff, ...vacuumSpeedModes] = this.modelSpeeds.speed;
+    const [mopSpeedOff, ...mopSpeedModes] = this.modelSpeeds.waterspeed ?? [];
+
+    let mode = 1;
+
+    const supportedCleanModes: SupportedCleanMode[] = vacuumSpeedModes.map(({ name, miLevel, label }) => ({
+      label: `${name} Vacuum`,
+      mode: mode++,
+      modeTags: [
+        // If the label is "Mop", do not add "Vacuum" as a mode tag.
+        ...(label === RvcCleanMode.ModeTag.Mop ? [] : [{ value: RvcCleanMode.ModeTag.Vacuum }]),
+        { value: label },
+      ],
+      miLevels: {
+        vacuum: miLevel,
+        mop: mopSpeedOff?.miLevel,
+      },
+    }));
+
+    mopSpeedModes.forEach(({ name, miLevel, label }) => {
+      supportedCleanModes.push({
+        label: `${name} Mop`,
+        mode: mode++,
+        modeTags: [{ value: RvcCleanMode.ModeTag.Mop }, { value: label }],
+        miLevels: {
+          vacuum: vacuumSpeedOff.miLevel,
+          mop: miLevel,
+        },
+      });
+    });
+
+    return supportedCleanModes;
   }
 }
 
