@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [0.2.1] - 2025-08-21
+
 ### Fixed
 
 - [Room cleaning](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/72): It returned _Method `app_segment_clean` is not supported_. The reason was the format of the parameters (Room IDs must be numbers, not strings).
