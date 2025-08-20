@@ -299,7 +299,7 @@ describe('VacuumDeviceAccessory', () => {
             endpoint.commandHandler.executeHandler('changeToMode', { request: { newMode: 2 }, cluster: 'rvcRunMode' });
             expect(logger.info).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Initiating room cleaning...');
             expect(deviceManagerMock.device.activateCleaning).not.toHaveBeenCalled();
-            expect(deviceManagerMock.device.cleanRooms).toHaveBeenCalledWith(['16', '17']);
+            expect(deviceManagerMock.device.cleanRooms).toHaveBeenCalledWith([16, 17]);
           });
         });
       });
@@ -327,7 +327,7 @@ describe('VacuumDeviceAccessory', () => {
         test('resumes the current room cleaning if areas were previously selected', async () => {
           jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce([16, 17]);
           endpoint.commandHandler.executeHandler('resume');
-          expect(deviceManagerMock.device.resumeCleanRooms).toHaveBeenCalledWith(['16', '17']);
+          expect(deviceManagerMock.device.resumeCleanRooms).toHaveBeenCalledWith([16, 17]);
         });
       });
 
