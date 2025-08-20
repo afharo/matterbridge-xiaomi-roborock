@@ -12,6 +12,7 @@ changelog:
       exclude:
         labels:
           - dependencies
+          - release
     - title: 👒 Dependencies
       labels:
         - dependencies
