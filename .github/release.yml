@@ -1,4 +1,7 @@
 changelog:
+  exclude:
+    labels:
+      - release
   categories:
     - title: 🏕 New Features
       labels:
@@ -12,7 +15,6 @@ changelog:
       exclude:
         labels:
           - dependencies
-          - release
     - title: 👒 Dependencies
       labels:
         - dependencies
