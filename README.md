@@ -28,7 +28,7 @@
         <img src="https://img.shields.io/badge/powered%20by-matterbridge-blue" alt="powered by matterbridge">
     </a>
     <a href="https://www.npmjs.com/package/node-miio">
-        <img src="https://img.shields.io/badge/powered%20by-node-miio-blue" alt="powered by node-miio">
+        <img src="https://img.shields.io/badge/powered%20by-node--miio-blue" alt="powered by node-miio">
     </a>
     <a href="https://www.npmjs.com/package/rxjs">
         <img src="https://img.shields.io/badge/powered%20by-rxjs-blue" alt="powered by rxjs">
