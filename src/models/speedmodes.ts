@@ -1,10 +1,8 @@
 import { RvcCleanMode } from 'matterbridge/matter/clusters';
 
-import type { ModesHomekitVsMiLevel } from './types.js';
+import type { SpeedModes } from './types.js';
 
-type SimplifiedSpeedModes = Record<string, Array<Omit<ModesHomekitVsMiLevel, 'homekitTopLevel'>>>;
-
-const SPEEDMODES: SimplifiedSpeedModes = {
+const SPEEDMODES: SpeedModes = {
   'gen1': [
     // 0%      = Off / Aus
     {
@@ -342,22 +340,4 @@ const SPEEDMODES: SimplifiedSpeedModes = {
   ],
 };
 
-/**
- *  Formats the SPEEDMODES into a Matter-compatible mode
- *  TODO
- *
- *  @returns {SimplifiedSpeedModes} The formatted speedmodes
- */
-function getMatterSupportedSpeedModes() {
-  // return Object.values(SPEEDMODES).reduce((acc, [gen, modes]) => {
-  //   acc[gen] = modes.map(({ miLevel, name }) => ({
-  //     label: name,
-  //     mode: miLevel,
-  //   }));
-  //
-  //   return acc;
-  // }, {});
-  return SPEEDMODES;
-}
-
-export const speedmodes = getMatterSupportedSpeedModes();
+export const speedmodes = SPEEDMODES;

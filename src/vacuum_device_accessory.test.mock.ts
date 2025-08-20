@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 
 import type { DeviceManager, StateChangedEvent } from './services/device_manager.js';
 import { miio } from './test.mocks.js';
+import { findSpeedModes as originalFindSpeedModes } from './utils/find_speed_modes.js';
 
 type PublicMethodsOf<T> = { [K in keyof T]: T[K] };
 
@@ -29,4 +30,11 @@ export const deviceManagerMock: jest.Mocked<PublicMethodsOf<Omit<DeviceManager, 
 
 jest.unstable_mockModule('./services/device_manager.js', () => {
   return { DeviceManager: jest.fn(() => deviceManagerMock) };
+});
+
+export const findSpeedModesMock = jest.fn(originalFindSpeedModes);
+jest.unstable_mockModule('./utils/find_speed_modes.js', () => {
+  return {
+    findSpeedModes: findSpeedModesMock,
+  };
 });

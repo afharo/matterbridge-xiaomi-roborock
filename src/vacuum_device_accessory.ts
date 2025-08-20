@@ -230,13 +230,15 @@ export class VacuumDeviceAccessory {
       await this.stateChangedHandlers.cleaning(!!inCleaning);
     },
     fanSpeed: async (miLevel: number) => {
-      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.vacuum === miLevel);
+      const currentMopLevel = this.deviceManager.property<number>('water_box_mode');
+      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.vacuum === miLevel && miLevels.mop === currentMopLevel);
       if (cleanMode) {
         await this.endpoint?.updateAttribute(RvcCleanMode.Cluster.id, 'currentMode', cleanMode.mode);
       }
     },
     water_box_mode: async (miLevel: number) => {
-      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.mop === miLevel);
+      const currentVacuumLevel = this.deviceManager.property<number>('fanSpeed');
+      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.mop === miLevel && miLevels.vacuum === currentVacuumLevel);
       if (cleanMode) {
         await this.endpoint?.updateAttribute(RvcCleanMode.Cluster.id, 'currentMode', cleanMode.mode);
       }
@@ -244,6 +246,11 @@ export class VacuumDeviceAccessory {
     state: async (state: string) => {
       await this.stateChangedHandlers.charging(state === 'charging');
       switch (state) {
+        case 'paused':
+          await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
+          await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Paused);
+          break;
+
         case 'cleaning':
         case 'spot-cleaning':
         case 'room-cleaning':
@@ -254,6 +261,7 @@ export class VacuumDeviceAccessory {
 
         case 'returning': // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
         case 'docking':
+          await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
           break;
 
@@ -262,6 +270,7 @@ export class VacuumDeviceAccessory {
           // await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.CommandInvalidInState);
           // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
           break;
+
         case 'full':
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.DustBinFull);

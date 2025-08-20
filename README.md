@@ -71,8 +71,10 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 ## Features
 
 - Basic RVC operations (start/stop/pause/resume/go back to dock)
+- Fan speed control
+- Water level control (only in supported models)
+- Room cleaning and discovery (only in supported models)
 - Battery information
-- Room cleaning and discovery
 
 ### Room cleaning and discovery
 
@@ -96,7 +98,6 @@ the model (and shown in the Xiaomi Home app):
 ### TODO
 
 - [ ] Improve state control
-- [ ] Get/set the fan speed
 - [ ] Additional controls like initiate dust collection are missing
 - [ ] Add information about the Maintenance counters (sensors, filter, brush)
 - [ ] Add better error handling (expose the errors to the user if possible)
