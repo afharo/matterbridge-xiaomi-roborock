@@ -364,13 +364,13 @@ export class VacuumDeviceAccessory {
     return [];
   }
 
-  private get selectedAreas(): string[] {
+  private get selectedAreas(): number[] {
     const selectedAreas = (this.endpoint?.getAttribute(ServiceArea.Cluster.id, 'selectedAreas') as number[] | undefined) ?? [];
     if (selectedAreas.length === this.serviceAreas.length) {
       // If all selected, return empty array to trigger full cleaning
       return [];
     }
-    return selectedAreas.map((areaId) => areaId.toString());
+    return selectedAreas;
   }
 
   private get supportedCleanModes(): Array<SupportedCleanMode> {

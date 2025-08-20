@@ -91,7 +91,7 @@ the model (and shown in the Xiaomi Home app):
       selected the rooms in the app.
 
 > ‼️ If you need to rely on the 2nd approach, chances are that the vacuum does not support the command to run room
-> cleaning (`app_segment_clean`). This is the case for the Roborock S5 (`roborock.vacuum.s5`).
+> cleaning (`app_segment_clean`).
 > If you find the command that works for these models (testing via `node-miio` or `python-miio`), please open an issue
 > or a PR to add this support.
 
@@ -108,7 +108,7 @@ the model (and shown in the Xiaomi Home app):
 
 | Model       | Code name            | Basic info (battery, serial, firmware) | Full cleaning | Room cleaning |
 | ----------- | -------------------- | :------------------------------------: | :-----------: | :-----------: |
-| Roborock S5 | `roborock.vacuum.s5` |                   ✅                   |      ✅       |      ❌       |
+| Roborock S5 | `roborock.vacuum.s5` |                   ✅                   |      ✅       |      ✅       |
 
 ## Known issues
 

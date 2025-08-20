@@ -39,8 +39,8 @@ declare module 'node-miio' {
     deactivateCleaning: () => Promise<void>;
     activateCharging: () => Promise<void>;
     pause: () => Promise<void>;
-    cleanRooms: (roomIds: string[]) => Promise<void>;
-    resumeCleanRooms: (roomIds: string[]) => Promise<void>;
+    cleanRooms: (roomIds: number[]) => Promise<void>;
+    resumeCleanRooms: (roomIds: number[]) => Promise<void>;
     fanSpeed: () => Promise<number>;
     changeFanSpeed: (miLevel: number) => Promise<void>;
     getWaterBoxMode: () => Promise<number>;
