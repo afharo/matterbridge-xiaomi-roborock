@@ -211,18 +211,18 @@ export class VacuumDeviceAccessory {
       await this.endpoint?.updateAttribute(PowerSource.Cluster.id, 'batChargeLevel', getBatteryChargeLevel(level));
     },
     charging: async (charging: boolean) => {
-      const batteryLevel = this.deviceManager.property<number>('batteryLevel') ?? 0;
-      const isChargingAndNotFull = charging === true && batteryLevel < 100;
+      const isCharging = charging === true;
+      const isChargingAndFull = isCharging && this.deviceManager.property<number>('batteryLevel') === 100;
 
       await this.endpoint?.updateAttribute(
         PowerSource.Cluster.id,
         'batChargeState',
-        isChargingAndNotFull ? PowerSource.BatChargeState.IsCharging : PowerSource.BatChargeState.IsNotCharging,
+        isChargingAndFull ? PowerSource.BatChargeState.IsAtFullCharge : isCharging ? PowerSource.BatChargeState.IsCharging : PowerSource.BatChargeState.IsNotCharging,
       );
-      if (isChargingAndNotFull) {
-        await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
-      } else if (charging === true) {
+      if (isChargingAndFull) {
         await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
+      } else if (isCharging) {
+        await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
       }
     },
     cleaning: async (cleaning: boolean) => {
