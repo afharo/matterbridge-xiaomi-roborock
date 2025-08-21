@@ -1,6 +1,6 @@
 import { BehaviorSubject, distinct, exhaustMap, filter, Subject, takeUntil, timer } from 'rxjs';
 import * as miio from 'node-miio';
-import type { MiioDevice, MiioErrorChangedEvent, MiioState } from 'node-miio';
+import type { MiioDevice, MiioErrorChangedEvent } from 'node-miio';
 
 import { cleaningStatuses } from '../utils/constants.js';
 import type { ModelLogger } from '../utils/logger.ts';
@@ -23,7 +23,7 @@ export class DeviceManager {
   private readonly ip: string;
   private readonly token: string;
 
-  private readonly internalErrorChanged$ = new Subject<MiioErrorChangedEvent>();
+  private readonly internalErrorChanged$ = new Subject<MiioErrorChangedEvent | null>();
   private readonly internalStateChanged$ = new Subject<StateChangedEvent>();
   private readonly stop$ = new Subject<void>();
   public readonly errorChanged$ = this.internalErrorChanged$.pipe(distinct());
@@ -148,8 +148,6 @@ export class DeviceManager {
       this.log.info(`STA getDevice | FanSpeed: ${this.property('fanSpeed')}`);
       this.log.info(`STA getDevice | BatteryLevel: ${this.property('batteryLevel')}`);
 
-      Object.entries(this.device.properties).forEach(([key, value]) => this.internalStateChanged$.next({ key, value }));
-
       this.device.on<MiioErrorChangedEvent>('errorChanged', (error) => this.internalErrorChanged$.next(error));
       this.device.on<StateChangedEvent>('stateChanged', (state) => this.internalStateChanged$.next(state));
 
@@ -178,13 +176,15 @@ export class DeviceManager {
       const state = await this.device.state();
       this.log.debug(`DEB getState | ${this.model} | State ${JSON.stringify(state)} | Props ${JSON.stringify(this.device.properties)}`);
 
-      for (const key in state) {
-        if (key === 'error' && state[key]) {
-          this.internalErrorChanged$.next(state[key]);
+      Object.entries(state).forEach(([key, value]) => {
+        if (key === 'error') {
+          this.internalErrorChanged$.next(value);
         } else {
-          this.internalStateChanged$.next({ key, value: state[key as keyof MiioState] });
+          this.internalStateChanged$.next({ key, value });
         }
-      }
+      });
+
+      Object.entries(this.device.properties).forEach(([key, value]) => this.internalStateChanged$.next({ key, value }));
     } catch (err) {
       this.log.error(`getState | ${err}`, err);
     }
