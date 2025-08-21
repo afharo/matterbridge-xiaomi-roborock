@@ -12,3 +12,4 @@
 - [ ] Update the CHANGELOG.md file, including a description of the changes, following the convention commented at the
       top of the file.
 - [ ] Add tests for the new code that you just changed. We'd like to keep the coverage as close to 100% as possible.
+- [ ] Add the appropriate labels to the PR.
