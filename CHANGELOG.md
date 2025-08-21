@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Changed
+
+- [Battery reports `IsAtFullCharge` when fully charged](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/88): Follow up to the previous version's change. But mostly for consistency and completeness (since iOS makes no visual distinction between `IsAtFullCharge` and `IsNotCharging`).
+
 ## [0.3.0] - 2025-08-22
 
 ### Changed
