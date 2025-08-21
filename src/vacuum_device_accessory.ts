@@ -211,13 +211,18 @@ export class VacuumDeviceAccessory {
       await this.endpoint?.updateAttribute(PowerSource.Cluster.id, 'batChargeLevel', getBatteryChargeLevel(level));
     },
     charging: async (charging: boolean) => {
+      const batteryLevel = this.deviceManager.property<number>('batteryLevel') ?? 0;
+      const isChargingAndNotFull = charging === true && batteryLevel < 100;
+
       await this.endpoint?.updateAttribute(
         PowerSource.Cluster.id,
         'batChargeState',
-        charging === true ? PowerSource.BatChargeState.IsCharging : PowerSource.BatChargeState.IsNotCharging,
+        isChargingAndNotFull ? PowerSource.BatChargeState.IsCharging : PowerSource.BatChargeState.IsNotCharging,
       );
-      if (charging === true) {
+      if (isChargingAndNotFull) {
         await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
+      } else if (charging === true) {
+        await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
       }
     },
     cleaning: async (cleaning: boolean) => {
@@ -251,6 +256,11 @@ export class VacuumDeviceAccessory {
     state: async (state: string) => {
       await this.stateChangedHandlers.charging(state === 'charging');
       switch (state) {
+        case 'charging':
+          // No need to call it again, as it's called 3 lines above.
+          // await this.stateChangedHandlers.charging(true);
+          break;
+
         case 'paused':
           await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Paused);
@@ -289,11 +299,6 @@ export class VacuumDeviceAccessory {
         case 'sleeping':
           await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Stopped);
-          break;
-
-        case 'charging':
-          await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
-          await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
           break;
 
         default:

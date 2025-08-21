@@ -433,6 +433,15 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
         });
 
+        test('when charging == true and battery level is 100%', async () => {
+          deviceManagerMock.property.mockReturnValueOnce(100);
+          deviceManagerMock.stateChanged$.next({ key: 'charging', value: true });
+          await Promise.resolve(); // Just waiting for the pending promises to run
+          expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsNotCharging);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
+        });
+
         test('when charging == false', async () => {
           deviceManagerMock.stateChanged$.next({ key: 'charging', value: false });
           await Promise.resolve(); // Just waiting for the pending promises to run
@@ -597,11 +606,11 @@ describe('VacuumDeviceAccessory', () => {
 
         test('charging', async () => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value: 'charging' });
-          const expectedCalls = 4; // 2 + the charging "true" updates (2).
+          const expectedCalls = 2; // the charging "true" updates (2).
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsCharging);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
         });
       });
