@@ -106,9 +106,9 @@ the model (and shown in the Xiaomi Home app):
 
 ## Supported models
 
-| Model       | Code name            | Basic info (battery, serial, firmware) | Full cleaning | Room cleaning |
-| ----------- | -------------------- | :------------------------------------: | :-----------: | :-----------: |
-| Roborock S5 | `roborock.vacuum.s5` |                   ✅                   |      ✅       |      ✅       |
+| Model       | Code name            | Basic info (battery, serial, firmware) | Full cleaning | Room cleaning | Tested by |
+| ----------- | -------------------- | :------------------------------------: | :-----------: | :-----------: |:---------:|
+| Roborock S5 | `roborock.vacuum.s5` |                   ✅                   |      ✅       |      ✅       |  @afharo  |
 
 ## Known issues
 
