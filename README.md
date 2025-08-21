@@ -112,6 +112,6 @@ the model (and shown in the Xiaomi Home app):
 
 ## Known issues
 
-| Issue                                                             | Comment                                                                                 |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| The name of the device is not automatically placed in Apple Home. | AFAIK, this happens to all Matterbridge devices (all show as `Matterbridge Accessory`). |
+| Issue                                                             | Comment                                                                                 | Workaround                                  |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------- |
+| The name of the device is not automatically placed in Apple Home. | AFAIK, this happens to all Matterbridge devices (all show as `Matterbridge Accessory`). | The device must be renamed in the Home App. |
