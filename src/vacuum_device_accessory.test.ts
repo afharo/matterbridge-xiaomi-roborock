@@ -473,8 +473,7 @@ describe('VacuumDeviceAccessory', () => {
         ])('when %s == %s', async (key, value) => {
           deviceManagerMock.stateChanged$.next({ key, value });
           await Promise.resolve();
-          expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
         });
 
@@ -551,11 +550,10 @@ describe('VacuumDeviceAccessory', () => {
 
         test.each(['returning', 'docking'])('%s', async (value) => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value });
-          const expectedCalls = 3; // 2 + the charging update.
+          const expectedCalls = 2; // 1 + the charging update.
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
         });
 
