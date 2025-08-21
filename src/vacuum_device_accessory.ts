@@ -229,6 +229,12 @@ export class VacuumDeviceAccessory {
     in_cleaning: async (inCleaning: number) => {
       await this.stateChangedHandlers.cleaning(!!inCleaning);
     },
+    in_returning: async (inReturning: number) => {
+      if (inReturning) {
+        await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
+        await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
+      }
+    },
     fanSpeed: async (miLevel: number) => {
       const currentMopLevel = this.deviceManager.property<number>('water_box_mode');
       const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.vacuum === miLevel && miLevels.mop === currentMopLevel);
@@ -271,19 +277,18 @@ export class VacuumDeviceAccessory {
           // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
           break;
 
-        case 'full':
-          await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
-          await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.DustBinFull);
+        case 'fully-charged':
+          await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
           break;
 
         case 'charging-error':
-        case 'charger-offline':
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.FailedToFindChargingDock);
           break;
 
         case 'initializing':
-        case 'waiting':
+        case 'idle':
+        case 'sleeping':
           await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[0].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Stopped);
           break;
