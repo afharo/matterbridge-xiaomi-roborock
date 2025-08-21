@@ -466,6 +466,27 @@ describe('VacuumDeviceAccessory', () => {
         });
       });
 
+      describe('in_returning', () => {
+        test.each([
+          ['in_returning', 1],
+          ['in_returning', true],
+        ])('when %s == %s', async (key, value) => {
+          deviceManagerMock.stateChanged$.next({ key, value });
+          await Promise.resolve();
+          expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
+        });
+
+        test.each([
+          ['in_returning', 0],
+          ['in_returning', false],
+        ])('when %s == %s', async (key, value) => {
+          deviceManagerMock.stateChanged$.next({ key, value });
+          await Promise.resolve();
+          expect(updateAttributeSpy).toHaveBeenCalledTimes(0);
+        });
+      });
+
       describe('fanSpeed', () => {
         test('when fanSpeed is known', async () => {
           deviceManagerMock.device.property.mockReturnValueOnce(200);
@@ -529,11 +550,10 @@ describe('VacuumDeviceAccessory', () => {
 
         test.each(['returning', 'docking'])('%s', async (value) => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value });
-          const expectedCalls = 3; // 2 + the charging update.
+          const expectedCalls = 2; // 1 + the charging update.
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
         });
 
@@ -546,17 +566,16 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
         });
 
-        test('full', async () => {
-          deviceManagerMock.stateChanged$.next({ key: 'state', value: 'full' });
-          const expectedCalls = 3; // 2 + the charging update.
+        test('fully-charged', async () => {
+          deviceManagerMock.stateChanged$.next({ key: 'state', value: 'fully-charged' });
+          const expectedCalls = 2; // 1 + the charging update.
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.DustBinFull);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
         });
 
-        test.each(['charging-error', 'charger-offline'])('%s', async (value) => {
+        test.each(['charging-error'])('%s', async (value) => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value });
           const expectedCalls = 3; // 2 + the charging update.
           await awaitNPromises(expectedCalls + 1);
@@ -566,7 +585,7 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.FailedToFindChargingDock);
         });
 
-        test.each(['initializing', 'waiting'])('%s', async (value) => {
+        test.each(['initializing', 'idle', 'sleeping'])('%s', async (value) => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value });
           const expectedCalls = 3; // 2 + the charging update.
           await awaitNPromises(expectedCalls + 1);

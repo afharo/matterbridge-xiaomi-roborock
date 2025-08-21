@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Added
+
+- [React to `in_returning` state](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/80): This should make the plugin aware of when the vacuum is returning to its dock.
+
 ## [0.2.1] - 2025-08-21
 
 ### Fixed
