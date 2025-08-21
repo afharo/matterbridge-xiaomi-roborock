@@ -438,7 +438,7 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key: 'charging', value: true });
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsNotCharging);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsAtFullCharge);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
         });
 
