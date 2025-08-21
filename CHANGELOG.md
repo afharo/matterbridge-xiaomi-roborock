@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [0.2.3] - 2025-08-21
+
 ### Fixed
 
 - [Emit changes in properties](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/84): The plugin now emits changes in the properties of the vacuum. This means that many handlers that were not running before will run now.
