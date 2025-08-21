@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [0.3.0] - 2025-08-22
+
 ### Changed
 
 - [Report `ready` when fully charged](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/86): When the vacuum is fully charged, it will report `ready` instead of `charging`.
