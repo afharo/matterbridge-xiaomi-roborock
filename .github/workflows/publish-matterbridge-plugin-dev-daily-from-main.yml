@@ -2,13 +2,13 @@
 name: Plugin daily dev publish to npm from main branch
 
 on:
-  push:
-    branches: [main]
-  # # Daily at midnight UTC
-  # schedule:
-  #   - cron: '0 0 * * *'
   # Allow manual dispatch
   workflow_dispatch:
+#  push:
+#    branches: [main]
+# # Daily at midnight UTC
+# schedule:
+#   - cron: '0 0 * * *'
 
 jobs:
   publish-dev:
