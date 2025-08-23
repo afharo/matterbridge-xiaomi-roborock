@@ -86,8 +86,9 @@ the model (and shown in the Xiaomi Home app):
 2. For other models, it needs a workaround:
    1. In the Xiaomi Home app, while in the vacuum view, open the options by clicking on the 3 dots in the top right
       corner.
-   2. Then, in "Timer", define a cleaning timer for midnight (00:00). Make sure to select all the rooms individually.
-   3. Finally, set up the `roomNames` in this plugin's configuration. Make sure to follow the same order as you
+   2. Then, in "Timer", define a cleaning timer for midnight (00:00) that repeats every day. Make sure to select all the rooms individually.
+   3. Make sure to disable the timer (nobody wants to kick off a cleaning at midnight every day 🙈).
+   4. Finally, set up the `roomNames` in this plugin's configuration. Make sure to follow the same order as you
       selected the rooms in the app.
 
 > ‼️ If you need to rely on the 2nd approach, chances are that the vacuum does not support the command to run room
