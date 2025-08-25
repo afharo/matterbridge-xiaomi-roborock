@@ -468,6 +468,14 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
         });
 
+        test('when in_cleaning == 1 but the state is "paused"', async () => {
+          deviceManagerMock.property.mockReturnValueOnce('paused');
+          deviceManagerMock.stateChanged$.next({ key: 'in_cleaning', value: 1 });
+          await Promise.resolve();
+          expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
+        });
+
         test.each([
           ['cleaning', false],
           ['in_cleaning', 0],
