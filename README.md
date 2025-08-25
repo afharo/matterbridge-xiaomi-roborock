@@ -59,17 +59,18 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 > the
 > list of [supported models](#supported-models).
 
+<!-- prettier-ignore-start -->
 <!-- TOC -->
-
-- [Features](#features)
-  - [Room cleaning and discovery](#room-cleaning-and-discovery)
-  - [TODO](#todo)
-- [Supported models](#supported-models)
-- [Known issues](#known-issues)
-- [Installation](#installation)
-_ [Prerequisites](#prerequisites)
-_ [Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)](#add-the-plugin-to-matterbridge-and-your-devices-to-apple-home-or-any-other-matter-compatible-app)
+  * [Features](#features)
+    * [Room cleaning and discovery](#room-cleaning-and-discovery)
+    * [TODO](#todo)
+  * [Supported models](#supported-models)
+  * [Known issues](#known-issues)
+  * [Installation](#installation)
+    * [Prerequisites](#prerequisites)
+    * [Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)](#add-the-plugin-to-matterbridge-and-your-devices-to-apple-home-or-any-other-matter-compatible-app)
 <!-- TOC -->
+<!-- prettier-ignore-end -->
 
 ## Features
 
