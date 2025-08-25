@@ -35,13 +35,13 @@
           },
           "roomNames": {
             "type": "array",
-            "description": "(Optional) If your robot doesn't support for named rooms in the app, the rooms are discovered by looking for a cleaning timer scheduled for 00:00 with the rooms explicitly selected (in the Robot's settings in the Xiaomi app). This room discovery method cannot obtain the name of the rooms, and need to be specified here in the same order as the rooms were selected. If not provided, the rooms will show up as \"Room 16\", \"Room 17\", etc.",
+            "description": "(Optional) If your robot supports named rooms in the Xiaomi Home app but the RVC still returns it as numeric IDs, you can list the room names in the same order as shown in the log entry <<Room mapping found:>> and the plugin will override the names. If the robot doesn't support named rooms in the app, the rooms are discovered by looking for a cleaning timer scheduled for every day at 00:00 with the rooms explicitly selected (in the Robot's settings in the Xiaomi app). This room discovery method cannot obtain the name of the rooms, and need to be specified here in the same order as the rooms were selected. If not provided, the rooms will show up as \"Room 16\", \"Room 17\", etc.",
             "items": {
               "type": "string"
             }
           }
         },
-        "required": ["ip", "token"]
+        "required": ["name", "ip", "token"]
       },
       "minItems": 1,
       "default": []

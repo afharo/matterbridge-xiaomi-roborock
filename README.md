@@ -60,12 +60,14 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 > list of [supported models](#supported-models).
 
 <!-- TOC -->
-
-- [Features](#features)
-  - [Room cleaning and discovery](#room-cleaning-and-discovery)
-  - [TODO](#todo)
-- [Supported models](#supported-models)
-- [Known issues](#known-issues)
+  * [Features](#features)
+    * [Room cleaning and discovery](#room-cleaning-and-discovery)
+    * [TODO](#todo)
+  * [Supported models](#supported-models)
+  * [Known issues](#known-issues)
+  * [Installation](#installation)
+    * [Prerequisites](#prerequisites)
+    * [Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)](#add-the-plugin-to-matterbridge-and-your-devices-to-apple-home-or-any-other-matter-compatible-app)
 <!-- TOC -->
 
 ## Features
@@ -117,3 +119,26 @@ the model (and shown in the Xiaomi Home app):
 | Issue                                                             | Comment                                                                                 | Workaround                                  |
 | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------- |
 | The name of the device is not automatically placed in Apple Home. | AFAIK, this happens to all Matterbridge devices (all show as `Matterbridge Accessory`). | The device must be renamed in the Home App. |
+
+## Installation
+
+This plugin leverages the Matterbridge ecosystem, so you can install it in the same way as any other Matterbridge
+plugin.
+
+> ℹ️ This is not a Homebridge plugin. You need to install Matterbridge instead.
+
+### Prerequisites
+
+You need to have [Matterbridge](https://github.com/Luligu/matterbridge) installed. Refer to their [installation guide](https://github.com/Luligu/matterbridge?tab=readme-ov-file#prerequisites) for more details.
+
+Additionally, you need the IP and token of the RVC. I recommend using the [Xiaomi Cloud Tokens Extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor), as I find it the easiest way to get the token.
+
+> ⚠️ If the RVC's Wi-Fi connection is reconfigured, a new token is generated, and you will need to retrieve it again, and update this plugin's configuration.
+> 
+> The same happens if the RVC is paired/controlled via the Roborock app.
+> 
+> If you already use [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum), the same IP and token can be used.
+
+### Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)
+
+Once on the Matterbridge UI, install this plugin using the name `matterbridge-xiaomi-roborock`, and configure it. After restarting Matterbridge, a new device should appear in the list of Devices in the Matterbridge UI, scan the QR code with the Apple Home app (or any other Matter-compatible app), and you should be good to go!
