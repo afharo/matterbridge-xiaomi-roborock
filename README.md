@@ -60,14 +60,15 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 > list of [supported models](#supported-models).
 
 <!-- TOC -->
-  * [Features](#features)
-    * [Room cleaning and discovery](#room-cleaning-and-discovery)
-    * [TODO](#todo)
-  * [Supported models](#supported-models)
-  * [Known issues](#known-issues)
-  * [Installation](#installation)
-    * [Prerequisites](#prerequisites)
-    * [Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)](#add-the-plugin-to-matterbridge-and-your-devices-to-apple-home-or-any-other-matter-compatible-app)
+
+- [Features](#features)
+  - [Room cleaning and discovery](#room-cleaning-and-discovery)
+  - [TODO](#todo)
+- [Supported models](#supported-models)
+- [Known issues](#known-issues)
+- [Installation](#installation)
+_ [Prerequisites](#prerequisites)
+_ [Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)](#add-the-plugin-to-matterbridge-and-your-devices-to-apple-home-or-any-other-matter-compatible-app)
 <!-- TOC -->
 
 ## Features
@@ -134,9 +135,9 @@ You need to have [Matterbridge](https://github.com/Luligu/matterbridge) installe
 Additionally, you need the IP and token of the RVC. I recommend using the [Xiaomi Cloud Tokens Extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor), as I find it the easiest way to get the token.
 
 > ⚠️ If the RVC's Wi-Fi connection is reconfigured, a new token is generated, and you will need to retrieve it again, and update this plugin's configuration.
-> 
+>
 > The same happens if the RVC is paired/controlled via the Roborock app.
-> 
+>
 > If you already use [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum), the same IP and token can be used.
 
 ### Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)
