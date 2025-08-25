@@ -382,11 +382,13 @@ describe('VacuumDeviceAccessory', () => {
     describe('serviceAreas hack', () => {
       test('when no serviceAreas have been discovered, it should enforce empty values', async () => {
         await deviceAccessory.postRegister();
-        expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'currentArea', null);
-        expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'supportedAreas', []);
+        expect(updateAttributeSpy).toHaveBeenCalledTimes(3);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(1, ServiceArea.Cluster.id, 'currentArea', null);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(2, ServiceArea.Cluster.id, 'currentArea', null);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(3, ServiceArea.Cluster.id, 'supportedAreas', []);
       });
 
-      test("when serviceAreas have been discovered, it shouldn't enforce empty values", async () => {
+      test('when serviceAreas have been discovered, it should only force an empty currentArea', async () => {
         deviceManagerMock.device.getRoomMap.mockResolvedValue([
           ['16', 'Living room'],
           ['17', 'Kitchen'],
@@ -395,15 +397,18 @@ describe('VacuumDeviceAccessory', () => {
         const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
         deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
         endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+        updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
 
         await deviceAccessory.postRegister();
-        expect(updateAttributeSpy).not.toHaveBeenCalled();
+        expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(1, ServiceArea.Cluster.id, 'currentArea', null);
       });
     });
 
     describe('stateChangedHandlers', () => {
       beforeEach(async () => {
         await deviceAccessory.postRegister();
+        updateAttributeSpy.mockClear();
       });
 
       describe('batteryLevel', () => {
