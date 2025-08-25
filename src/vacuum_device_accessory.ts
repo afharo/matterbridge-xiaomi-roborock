@@ -235,7 +235,11 @@ export class VacuumDeviceAccessory {
       }
     },
     in_cleaning: async (inCleaning: number) => {
-      await this.stateChangedHandlers.cleaning(!!inCleaning);
+      if (this.deviceManager.property<string>('state') === 'paused') {
+        await this.stateChangedHandlers.cleaning(false);
+      } else {
+        await this.stateChangedHandlers.cleaning(!!inCleaning);
+      }
     },
     in_returning: async (inReturning: number) => {
       if (inReturning) {
