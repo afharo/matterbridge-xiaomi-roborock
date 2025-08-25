@@ -190,6 +190,9 @@ export class VacuumDeviceAccessory {
       )
       .subscribe();
 
+    // Force-set the currentArea attribute to null, as we're not able to retrieve the current area at the moment.
+    await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'currentArea', null);
+
     // If no areas are found, we need to clear the serviceAreas and the currentArea attributes
     // (the constructor doesn't allow setting them to null as it fallbacks to defaults).
     if (this.serviceAreas.length === 0) {
