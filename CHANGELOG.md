@@ -39,7 +39,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - [Battery reports `IsAtFullCharge` when fully charged](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/88): Follow up to the previous version's change. But mostly for consistency and completeness (since iOS makes no visual distinction between `IsAtFullCharge` and `IsNotCharging`).
-- [Remove Current Room information](TBD): Retrieving the current room is not available yet. Always reporting the first room (even when not cleaning it) is not a great experience. I think that it's better to not report it at all.
+- [Remove Current Room information](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/94): Retrieving the current room is not available yet. Always reporting the first room (even when not cleaning it) is not a great experience. I think that it's better to not report it at all.
 
 ## [0.3.0] - 2025-08-22
 
