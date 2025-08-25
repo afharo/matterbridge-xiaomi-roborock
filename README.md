@@ -83,6 +83,7 @@ the model (and shown in the Xiaomi Home app):
 
 1. For supported models where the app allows to add names in the rooms, it is capable of retrieving the names from the
    app.
+   * In some cases, the names configured in the app are not returned by this API (instead, it shows a long numeric value). In this case, you can use the `roomNames` configuration option to manually define the names. 
 2. For other models, it needs a workaround:
    1. In the Xiaomi Home app, while in the vacuum view, open the options by clicking on the 3 dots in the top right
       corner.

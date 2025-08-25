@@ -59,7 +59,7 @@ describe('VacuumDeviceAccessory', () => {
     describe('serviceAreas', () => {
       test('should retrieve service areas via room mappings', async () => {
         deviceManagerMock.device.getRoomMap.mockResolvedValue([
-          ['16', 'Living room'],
+          ['16', '1234567890'],
           ['17', 'Kitchen'],
         ]);
 
