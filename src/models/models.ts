@@ -150,7 +150,6 @@ export const MODELS: Record<string, ModelDefinition[]> = {
   'dreame.vacuum.mc1808': [
     {
       speed: speedmodes['dreame.vacuum.mc1808'],
-      waterspeed: watermodes.dreame,
     },
   ],
 };
