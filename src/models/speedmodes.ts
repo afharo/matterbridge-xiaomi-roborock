@@ -20,7 +20,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 60,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 51-75%  = "Turbo / Stark"
     {
@@ -58,7 +58,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 60,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 61-80%  = "Turbo / Stark"
     {
@@ -90,7 +90,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 60,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 51-75%  = "Turbo / Stark"
     {
@@ -128,7 +128,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 68,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 60-80%  = "Turbo / Stark"
     {
@@ -160,7 +160,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 102,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 51-75%  = "Turbo / Stark"
     {
@@ -199,7 +199,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 102,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 61-80%  = "Turbo / Stark"
     {
@@ -238,7 +238,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 102,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 49-64%  = "Turbo / Stark"
     {
@@ -277,7 +277,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 102,
       name: 'Balanced',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 33-49%  = "Turbo"
     {
@@ -323,7 +323,7 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 1,
       name: 'Standard',
-      label: RvcCleanMode.ModeTag.Auto,
+      label: RvcCleanMode.ModeTag.Min,
     },
     // 75%      = Medium
     {
@@ -335,6 +335,63 @@ const SPEEDMODES: SpeedModes = {
     {
       miLevel: 3,
       name: 'Turbo',
+      label: RvcCleanMode.ModeTag.Max,
+    },
+  ],
+
+  // From https://python-miio.readthedocs.io/en/latest/api/miio.integrations.dreame.vacuum.dreamevacuum_miot.html#miio.integrations.dreame.vacuum.dreamevacuum_miot.CleaningModeDreameF9
+  'dreame': [
+    {
+      miLevel: -1,
+      name: 'Off',
+      label: RvcCleanMode.ModeTag.Vacuum, // Just setting anything. It doesn't "matter" (pun intended).
+    },
+    {
+      miLevel: 0,
+      name: 'Quiet',
+      label: RvcCleanMode.ModeTag.LowNoise,
+    },
+    {
+      miLevel: 1,
+      name: 'Standard',
+      label: RvcCleanMode.ModeTag.Min,
+    },
+    {
+      miLevel: 2,
+      name: 'Strong',
+      label: RvcCleanMode.ModeTag.Day,
+    },
+    {
+      miLevel: 3,
+      name: 'Turbo',
+      label: RvcCleanMode.ModeTag.Max,
+    },
+  ],
+
+  'dreame.vacuum.mc1808': [
+    {
+      miLevel: -1,
+      name: 'Off',
+      label: RvcCleanMode.ModeTag.Vacuum, // Just setting anything. It doesn't "matter" (pun intended).
+    },
+    {
+      miLevel: 0,
+      name: 'Quiet',
+      label: RvcCleanMode.ModeTag.LowNoise,
+    },
+    {
+      miLevel: 1,
+      name: 'Default',
+      label: RvcCleanMode.ModeTag.Min,
+    },
+    {
+      miLevel: 2,
+      name: 'Medium',
+      label: RvcCleanMode.ModeTag.Day,
+    },
+    {
+      miLevel: 3,
+      name: 'Strong',
       label: RvcCleanMode.ModeTag.Max,
     },
   ],

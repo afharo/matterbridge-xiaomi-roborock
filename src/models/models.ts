@@ -130,11 +130,6 @@ export const MODELS: Record<string, ModelDefinition[]> = {
       speed: speedmodes.viomi,
     },
   ],
-  'dreame.vacuum.mc1808': [
-    {
-      speed: speedmodes.viomi,
-    },
-  ],
   'viomi.vacuum.v7': [
     {
       speed: speedmodes.viomi,
@@ -143,6 +138,19 @@ export const MODELS: Record<string, ModelDefinition[]> = {
   'viomi.vacuum.v8': [
     {
       speed: speedmodes.viomi,
+    },
+  ],
+  // Dreame
+  'dreame': [
+    {
+      speed: speedmodes.dreame,
+      waterspeed: watermodes.dreame,
+    },
+  ],
+  'dreame.vacuum.mc1808': [
+    {
+      speed: speedmodes['dreame.vacuum.mc1808'],
+      waterspeed: watermodes.dreame,
     },
   ],
 };

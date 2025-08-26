@@ -234,11 +234,11 @@ export class VacuumDeviceAccessory {
         await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
       }
     },
-    in_cleaning: async (inCleaning: number) => {
+    cleaningMode: async (cleaningMode: string) => {
       if (this.deviceManager.property<string>('state') === 'paused') {
         await this.stateChangedHandlers.cleaning(false);
       } else {
-        await this.stateChangedHandlers.cleaning(!!inCleaning);
+        await this.stateChangedHandlers.cleaning(['cleaning', 'zone-cleaning', 'spot-cleaning', 'room-cleaning', 'manual-cleaning'].includes(cleaningMode));
       }
     },
     in_returning: async (inReturning: number) => {
@@ -277,6 +277,9 @@ export class VacuumDeviceAccessory {
         case 'spot-cleaning':
         case 'room-cleaning':
         case 'zone-cleaning':
+        case 'sweeping':
+        case 'mopping':
+        case 'sweeping-and-mopping':
           await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', SUPPORTED_MODES[1].mode);
           await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
           break;

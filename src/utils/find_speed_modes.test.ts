@@ -6,6 +6,12 @@ describe('findSpeedModes', () => {
   test("should assign the viomi model for any model starting with 'viomi.'", () => {
     expect(findSpeedModes('viomi.one')).toStrictEqual(MODELS.viomi[0]);
     expect(findSpeedModes('viomi.two')).toStrictEqual(MODELS.viomi[0]);
+    expect(findSpeedModes('viomi.vacuum.v8')).toStrictEqual(MODELS['viomi.vacuum.v8'][0]);
+  });
+
+  test('Dreame models', () => {
+    expect(findSpeedModes('dreame.vacuum.one')).toStrictEqual(MODELS.dreame[0]);
+    expect(findSpeedModes('dreame.vacuum.mc1808')).toStrictEqual(MODELS['dreame.vacuum.mc1808'][0]);
   });
 
   test('should return the default model for unlisted models', () => {
