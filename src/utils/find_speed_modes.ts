@@ -12,7 +12,11 @@ import { MODELS } from '../models/models.js';
  */
 export function findSpeedModes(model: string, firmware?: string) {
   if (model.startsWith('viomi.')) {
-    return MODELS.viomi[0];
+    return (MODELS[model] || MODELS.viomi)[0];
+  }
+
+  if (model.startsWith('dreame.')) {
+    return (MODELS[model] || MODELS.dreame)[0];
   }
 
   return (MODELS[model] || []).reduce((acc, option) => {
