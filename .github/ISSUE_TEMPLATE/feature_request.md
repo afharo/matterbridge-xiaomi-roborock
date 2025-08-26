@@ -6,6 +6,9 @@ labels: ""
 assignees: ""
 ---
 
+**What is your RVC model?**
+Example: `roborock.vacuum.s5`
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
