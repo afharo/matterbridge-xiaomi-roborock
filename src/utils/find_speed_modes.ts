@@ -11,13 +11,7 @@ import { MODELS } from '../models/models.js';
  * @returns {ModelDefinition} The speed modes that apply to the robot.
  */
 export function findSpeedModes(model: string, firmware?: string) {
-  if (model.startsWith('viomi.')) {
-    return (MODELS[model] || MODELS.viomi)[0];
-  }
-
-  if (model.startsWith('dreame.')) {
-    return (MODELS[model] || MODELS.dreame)[0];
-  }
+  const baseModel = model.startsWith('viomi.') ? MODELS.viomi : model.startsWith('dreame.') ? MODELS.dreame : MODELS.default;
 
   return (MODELS[model] || []).reduce((acc, option) => {
     if (option.firmware) {
@@ -26,5 +20,5 @@ export function findSpeedModes(model: string, firmware?: string) {
     } else {
       return option;
     }
-  }, MODELS.default[0]);
+  }, baseModel[0]);
 }
