@@ -63,4 +63,31 @@ export const watermodes: SpeedModes = {
       label: RvcCleanMode.ModeTag.Vacation,
     },
   ],
+  // Dreame
+  'dreame': [
+    // Off
+    {
+      miLevel: 0,
+      name: 'Off',
+      label: RvcCleanMode.ModeTag.Mop, // Just setting anything. It doesn't "matter" (pun intended).
+    },
+    // "Light"
+    {
+      miLevel: 1,
+      name: 'Light',
+      label: RvcCleanMode.ModeTag.Min,
+    },
+    // "Medium"
+    {
+      miLevel: 2,
+      name: 'Medium',
+      label: RvcCleanMode.ModeTag.Day,
+    },
+    // "High"
+    {
+      miLevel: 3,
+      name: 'High',
+      label: RvcCleanMode.ModeTag.Max,
+    },
+  ],
 };

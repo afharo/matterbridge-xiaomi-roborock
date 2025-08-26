@@ -455,11 +455,11 @@ describe('VacuumDeviceAccessory', () => {
         });
       });
 
-      describe('cleaning/in_cleaning', () => {
+      describe('cleaning/cleaningMode', () => {
         test.each([
           ['cleaning', true],
-          ['in_cleaning', 1],
-          ['in_cleaning', true],
+          ['cleaningMode', 'cleaning'],
+          ['cleaningMode', 'room-cleaning'],
         ])('when %s == %s', async (key, value) => {
           deviceManagerMock.stateChanged$.next({ key, value });
           await Promise.resolve();
@@ -468,9 +468,9 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
         });
 
-        test('when in_cleaning == 1 but the state is "paused"', async () => {
+        test('when cleaningMode == 1 but the state is "paused"', async () => {
           deviceManagerMock.property.mockReturnValueOnce('paused');
-          deviceManagerMock.stateChanged$.next({ key: 'in_cleaning', value: 1 });
+          deviceManagerMock.stateChanged$.next({ key: 'cleaningMode', value: 'cleaning' });
           await Promise.resolve();
           expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
@@ -478,8 +478,8 @@ describe('VacuumDeviceAccessory', () => {
 
         test.each([
           ['cleaning', false],
-          ['in_cleaning', 0],
-          ['in_cleaning', false],
+          ['cleaningMode', 'idle'],
+          ['cleaningMode', 'paused'],
         ])('when %s == %s', async (key, value) => {
           deviceManagerMock.stateChanged$.next({ key, value });
           await Promise.resolve();
@@ -560,7 +560,7 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Paused);
         });
 
-        test.each(['cleaning', 'spot-cleaning', 'room-cleaning', 'zone-cleaning'])('%s', async (value) => {
+        test.each(['cleaning', 'spot-cleaning', 'room-cleaning', 'zone-cleaning', 'sweeping', 'mopping', 'sweeping-and-mopping'])('%s', async (value) => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value });
           const expectedCalls = 3; // 2 + the charging update.
           await awaitNPromises(expectedCalls + 1);
