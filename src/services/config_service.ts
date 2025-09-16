@@ -1,6 +1,7 @@
 import { PlatformConfig } from 'matterbridge';
 
 import type { CustomLoggerConfig } from '../utils/logger.ts';
+import pkg from '../../package.json' with { type: 'json' };
 
 import type { DeviceManagerConfig } from './device_manager.ts';
 
@@ -26,6 +27,10 @@ export interface Config extends PlatformConfig, DeviceManagerConfig, CustomLogge
 export function applyConfigDefaults(config: Partial<Config>): Config {
   return {
     name: 'Roborock vacuum cleaner',
+    type: 'DynamicPlatform',
+    version: pkg.version,
+    unregisterOnShutdown: false,
+    debug: false,
     serviceType: 'fan',
     cleanword: 'cleaning',
     pause: false,

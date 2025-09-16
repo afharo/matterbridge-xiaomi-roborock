@@ -6,7 +6,7 @@ import { VacuumDeviceAccessory } from './vacuum_device_accessory.js';
 
 export interface XiaomiRoborockVacuumPluginConfig extends PlatformConfig {
   devices?: Partial<Config>[];
-  debug?: boolean;
+  debug: boolean;
 }
 
 export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
