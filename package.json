@@ -117,6 +117,6 @@
     "shx": "0.4.0",
     "ts-jest": "29.4.2",
     "typescript": "^5.8.3",
-    "typescript-eslint": "8.43.0"
+    "typescript-eslint": "8.44.0"
   }
 }
