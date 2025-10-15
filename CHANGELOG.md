@@ -42,7 +42,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- [Simplified CI and dependencies](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/195): Removing some unnecessary dependencies coming from the original template and simplifying the CI to install matterbridge globally before linking instead of git-cloning and building it. 
+- [Simplified CI and dependencies](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/195): Removing some unnecessary dependencies coming from the original template and simplifying the CI to install matterbridge globally before linking instead of git-cloning and building it.
 
 ### Fixed
 
