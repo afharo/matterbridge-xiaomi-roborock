@@ -40,6 +40,10 @@ All notable changes to this project will be documented in this file.
 
 - [Support for Dreame](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/102): As requested in [#83](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/83), there's an initial support for Dreame vacuums.
 
+### Fixed
+
+- [Compatibility with `matterbridge`'s new architecture coming in v3.3.0](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/184).
+
 ## [0.4.0] - 2025-08-25
 
 ### Changed

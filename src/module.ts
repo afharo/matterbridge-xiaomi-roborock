@@ -1,4 +1,4 @@
-import { Matterbridge } from 'matterbridge';
+import { PlatformMatterbridge } from 'matterbridge';
 import { type AnsiLogger } from 'matterbridge/logger';
 
 import { XiaomiRoborockVacuumPlatform, type XiaomiRoborockVacuumPluginConfig } from './xiaomi_roborock_vacuum_platform.js';
@@ -12,6 +12,6 @@ import { XiaomiRoborockVacuumPlatform, type XiaomiRoborockVacuumPluginConfig } f
  * @param {XiaomiRoborockVacuumPluginConfig} config - The platform configuration.
  * @returns {XiaomiRoborockVacuumPlatform} - An instance of the MatterbridgeAccessory or MatterbridgeDynamicPlatform class. This is the main interface for interacting with the Matterbridge system.
  */
-export default function initializePlugin(matterbridge: Matterbridge, log: AnsiLogger, config: XiaomiRoborockVacuumPluginConfig): XiaomiRoborockVacuumPlatform {
+export default function initializePlugin(matterbridge: PlatformMatterbridge, log: AnsiLogger, config: XiaomiRoborockVacuumPluginConfig): XiaomiRoborockVacuumPlatform {
   return new XiaomiRoborockVacuumPlatform(matterbridge, log, config);
 }
