@@ -115,7 +115,7 @@
     "npm-check-updates": "19.0.0",
     "prettier": "3.6.2",
     "shx": "0.4.0",
-    "ts-jest": "29.4.4",
+    "ts-jest": "29.4.5",
     "typescript": "^5.8.3",
     "typescript-eslint": "8.45.0"
   }
