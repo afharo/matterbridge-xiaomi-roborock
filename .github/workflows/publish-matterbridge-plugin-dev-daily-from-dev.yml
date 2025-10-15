@@ -28,20 +28,8 @@ jobs:
       - name: Clean npm cache
         run: npm cache clean --force
 
-      - name: Clone matterbridge repo branch dev
-        run: git clone -b dev https://github.com/Luligu/matterbridge.git ../matterbridge
-
-      - name: Install matterbridge dependencies
-        working-directory: ../matterbridge
-        run: npm ci
-
-      - name: Build matterbridge
-        working-directory: ../matterbridge
-        run: npm run build
-
-      - name: Link matterbridge globally
-        working-directory: ../matterbridge
-        run: npm link
+      - name: Install matterbridge@dev globally
+        run: npm install -g matterbridge@dev
 
       - name: Lint & test & build the plugin
         run: |
