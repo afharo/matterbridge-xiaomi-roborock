@@ -46,20 +46,6 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
     await this.discoverDevices();
   }
 
-  override async onConfigure() {
-    // Always call super.onConfigure()
-    await super.onConfigure();
-
-    this.log.info('onConfigure called');
-
-    // Configure all your devices. The persisted attributes need to be updated.
-    for (const device of this.getDevices()) {
-      this.log.info(`Configuring device: ${device.uniqueId}`);
-      // You can update the device configuration here, for example:
-      // device.updateConfiguration({ key: 'value' });
-    }
-  }
-
   override async onChangeLoggerLevel(logLevel: LogLevel) {
     this.log.info(`onChangeLoggerLevel called with: ${logLevel}`);
     // Change here the logger level of the api you use or of your devices
