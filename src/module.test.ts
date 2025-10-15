@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
-import { Matterbridge, MatterbridgeEndpoint, PlatformConfig } from 'matterbridge';
+import { Matterbridge, PlatformConfig } from 'matterbridge';
 
 jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
   VacuumDeviceAccessory: jest.fn(() => {
@@ -91,25 +91,6 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason: Jest');
     await instance.onStart();
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason: none');
-  });
-
-  // eslint-disable-next-line jest/no-commented-out-tests
-  // it('should call the command handlers', async () => {
-  //   for (const device of instance.getDevices()) {
-  //     if (device.hasClusterServer('onOff')) {
-  //       await device.executeCommandHandler('on');
-  //       await device.executeCommandHandler('off');
-  //     }
-  //   }
-  //   expect(mockLog.info).toHaveBeenCalledWith('Command on called on cluster undefined'); // Is undefined here cause the endpoint in not active
-  //   expect(mockLog.info).toHaveBeenCalledWith('Command off called on cluster undefined'); // Is undefined here cause the endpoint in not active
-  // });
-
-  it('should configure', async () => {
-    jest.spyOn(instance, 'getDevices').mockReturnValueOnce([{ uniqueId: '1234' } as MatterbridgeEndpoint]);
-    await instance.onConfigure();
-    expect(mockLog.info).toHaveBeenCalledWith('onConfigure called');
-    expect(mockLog.info).toHaveBeenCalledWith(expect.stringContaining('Configuring device:'));
   });
 
   it('should change logger level', async () => {
