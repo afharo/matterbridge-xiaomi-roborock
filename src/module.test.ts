@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
-import { Matterbridge, PlatformConfig } from 'matterbridge';
+import { PlatformConfig, PlatformMatterbridge } from 'matterbridge';
 
 jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
   VacuumDeviceAccessory: jest.fn(() => {
@@ -39,7 +39,7 @@ const mockMatterbridge = {
   addBridgedEndpoint: jest.fn(async () => {}),
   removeBridgedEndpoint: jest.fn(async () => {}),
   removeAllBridgedEndpoints: jest.fn(async () => {}),
-} as unknown as Matterbridge;
+} as unknown as PlatformMatterbridge;
 
 const mockConfig = {
   name: 'matterbridge-plugin-template',
@@ -66,9 +66,9 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     mockMatterbridge.matterbridgeVersion = '2.0.0'; // Simulate an older version
     const initializePlugin = (await import('./module.js')).default;
     expect(() => initializePlugin(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.0.7". Please update Matterbridge from 2.0.0 to the latest version in the frontend.',
+      'This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from 2.0.0 to the latest version.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.0.7';
+    mockMatterbridge.matterbridgeVersion = '3.3.0';
   });
 
   it('should create an instance of the platform', async () => {
@@ -82,7 +82,7 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     expect(instance.matterbridge).toBe(mockMatterbridge);
     expect(instance.log).toBe(mockLog);
     expect(instance.config).toBe(configWithDevices);
-    expect(instance.matterbridge.matterbridgeVersion).toBe('3.0.7');
+    expect(instance.matterbridge.matterbridgeVersion).toBe('3.3.0');
     expect(mockLog.info).toHaveBeenCalledWith('Initializing Platform...');
   });
 

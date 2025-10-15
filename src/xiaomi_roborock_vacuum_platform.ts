@@ -1,4 +1,4 @@
-import { Matterbridge, MatterbridgeDynamicPlatform, PlatformConfig } from 'matterbridge';
+import { MatterbridgeDynamicPlatform, PlatformConfig, PlatformMatterbridge } from 'matterbridge';
 import { type AnsiLogger, LogLevel } from 'matterbridge/logger';
 
 import { type Config } from './services/config_service.js';
@@ -13,7 +13,7 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
   private readonly vacuumDevices = new Set<VacuumDeviceAccessory>();
 
   constructor(
-    matterbridge: Matterbridge,
+    matterbridge: PlatformMatterbridge,
     log: AnsiLogger,
     override config: XiaomiRoborockVacuumPluginConfig,
   ) {
@@ -23,10 +23,8 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
     log.logLevel = this.config.debug ? LogLevel.DEBUG : LogLevel.INFO;
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.0.7')) {
-      throw new Error(
-        `This plugin requires Matterbridge version >= "3.0.7". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version in the frontend."`,
-      );
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.3.0')) {
+      throw new Error(`This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version."`);
     }
 
     this.log.info(`Initializing Platform...`);
