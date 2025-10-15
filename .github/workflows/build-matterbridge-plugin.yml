@@ -37,20 +37,8 @@ jobs:
       - name: Verify Npm version
         run: npm -v
 
-      - name: Clone matterbridge repo
-        run: git clone https://github.com/Luligu/matterbridge.git ../matterbridge
-
-      - name: Install matterbridge dependencies
-        working-directory: ../matterbridge
-        run: npm ci
-
-      - name: Build matterbridge
-        working-directory: ../matterbridge
-        run: npm run build
-
-      - name: Link matterbridge globally
-        working-directory: ../matterbridge
-        run: npm link
+      - name: Install matterbridge globally
+        run: npm install -g matterbridge@latest
 
       - name: Install plugin dependencies
         run: npm ci
