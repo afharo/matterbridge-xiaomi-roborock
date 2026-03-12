@@ -167,7 +167,11 @@ export class VacuumDeviceAccessory {
     });
     this.endpoint.addCommandHandler('selectAreas', async (data) => {
       this.log.debug(`Select areas command received: ${JSON.stringify(data)}`);
-      await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'selectedAreas', data.request.newAreas);
+      let selectedAreas = data.request.newAreas;
+      if ((data.attributes.supportedAreas as ServiceArea.Area[])?.length === selectedAreas.length) {
+        selectedAreas = []; // Force empty if all areas are selected
+      }
+      await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'selectedAreas', selectedAreas);
     });
 
     return this.endpoint;

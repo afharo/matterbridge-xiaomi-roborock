@@ -354,10 +354,10 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', [17]);
         });
 
-        test('keeps the array as selected areas when all rooms are selected', async () => {
+        test('sets an empty array as selected areas when all rooms are selected', async () => {
           const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
           endpoint.commandHandler.executeHandler('selectAreas', { request: { newAreas: [16, 17] }, attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] } });
-          expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', [16, 17]);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', []);
         });
       });
     });
