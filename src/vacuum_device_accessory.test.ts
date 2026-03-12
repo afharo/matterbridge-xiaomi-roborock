@@ -176,7 +176,7 @@ describe('VacuumDeviceAccessory', () => {
                 "areaInfo": {
                   "landmarkInfo": null,
                   "locationInfo": {
-                    "areaType": 50,
+                    "areaType": 52,
                     "floorNumber": 0,
                     "locationName": "Living",
                   },
@@ -188,7 +188,7 @@ describe('VacuumDeviceAccessory', () => {
                 "areaInfo": {
                   "landmarkInfo": null,
                   "locationInfo": {
-                    "areaType": 46,
+                    "areaType": 47,
                     "floorNumber": 0,
                     "locationName": "Kitchen",
                   },
