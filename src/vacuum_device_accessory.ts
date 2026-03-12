@@ -132,6 +132,8 @@ export class VacuumDeviceAccessory {
               } else {
                 this.log.info(`Initiating room cleaning...`);
                 await this.deviceManager.device.cleanRooms(selectedAreas);
+                // HACK: Assign the first selected area as the current area so that we can control speeds while room cleaning
+                await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'currentArea', selectedAreas[0]);
               }
               break;
             }
@@ -165,11 +167,7 @@ export class VacuumDeviceAccessory {
     });
     this.endpoint.addCommandHandler('selectAreas', async (data) => {
       this.log.debug(`Select areas command received: ${JSON.stringify(data)}`);
-      let selectedAreas = data.request.newAreas;
-      if ((data.attributes.supportedAreas as ServiceArea.Area[])?.length === selectedAreas.length) {
-        selectedAreas = []; // Force empty if all areas are selected
-      }
-      await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'selectedAreas', selectedAreas);
+      await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'selectedAreas', data.request.newAreas);
     });
 
     return this.endpoint;
