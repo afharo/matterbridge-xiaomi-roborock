@@ -4,6 +4,9 @@ on:
   release:
     types: [created]
 
+permissions:
+  id-token: write # Required for OIDC
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -47,5 +50,3 @@ jobs:
 
       - name: Publish the plugin to npm
         run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
