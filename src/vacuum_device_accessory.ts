@@ -132,6 +132,8 @@ export class VacuumDeviceAccessory {
               } else {
                 this.log.info(`Initiating room cleaning...`);
                 await this.deviceManager.device.cleanRooms(selectedAreas);
+                // HACK: Assign the first selected area as the current area so that we can control speeds while room cleaning
+                await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'currentArea', selectedAreas[0]);
               }
               break;
             }

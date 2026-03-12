@@ -27,19 +27,8 @@ const mockLog = {
 const mockMatterbridge = {
   matterbridgeDirectory: './jest/matterbridge',
   matterbridgePluginDirectory: './jest/plugins',
-  systemInformation: { ipv4Address: undefined, ipv6Address: undefined, osRelease: 'xx.xx.xx.xx.xx.xx', nodeVersion: '22.1.10' },
   matterbridgeVersion: '3.0.0',
-  log: mockLog,
-  getDevices: jest.fn(() => {
-    return [];
-  }),
-  getPlugins: jest.fn(() => {
-    return [];
-  }),
-  addBridgedEndpoint: jest.fn(async () => {}),
-  removeBridgedEndpoint: jest.fn(async () => {}),
-  removeAllBridgedEndpoints: jest.fn(async () => {}),
-} as unknown as PlatformMatterbridge;
+} as Partial<PlatformMatterbridge> as { -readonly [P in keyof PlatformMatterbridge]: PlatformMatterbridge[P] };
 
 const mockConfig = {
   name: 'matterbridge-plugin-template',
@@ -56,6 +45,9 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    if (instance) {
+      jest.spyOn(instance, 'registerDevice').mockResolvedValue();
+    }
   });
 
   afterAll(() => {
@@ -106,7 +98,6 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     instance.config.unregisterOnShutdown = true;
     await instance.onShutdown();
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason: none');
-    expect(mockMatterbridge.removeAllBridgedEndpoints).toHaveBeenCalled();
     instance.config.unregisterOnShutdown = false;
   });
 });

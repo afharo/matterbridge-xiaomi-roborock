@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Fixed
+
+- [Assign the first room when cleaning rooms](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/251): As highlighted in [#98](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/98), while in room cleaning mode, the vacuum stays in the state "Traveling". Now the plugin will assign the first room to the vacuum. This is hack until a proper solution is found to retrieve the map (which requires a connection to the Xiaomi Cloud servers).
+
 ## [0.5.0] - 2025-10-16
 
 ### Added
