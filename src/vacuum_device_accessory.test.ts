@@ -351,13 +351,19 @@ describe('VacuumDeviceAccessory', () => {
       describe('selectAreas', () => {
         test('sets the selected areas', async () => {
           const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
-          endpoint.commandHandler.executeHandler('selectAreas', { request: { newAreas: [17] }, attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] } } as unknown as CommandHandlerPayload<'selectAreas'>);
+          endpoint.commandHandler.executeHandler('selectAreas', {
+            request: { newAreas: [17] },
+            attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] },
+          } as unknown as CommandHandlerPayload<'selectAreas'>);
           expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', [17]);
         });
 
         test('sets an empty array as selected areas when all rooms are selected', async () => {
           const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
-          endpoint.commandHandler.executeHandler('selectAreas', { request: { newAreas: [16, 17] }, attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] } } as unknown as CommandHandlerPayload<'selectAreas'>);
+          endpoint.commandHandler.executeHandler('selectAreas', {
+            request: { newAreas: [16, 17] },
+            attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] },
+          } as unknown as CommandHandlerPayload<'selectAreas'>);
           expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', []);
         });
       });
