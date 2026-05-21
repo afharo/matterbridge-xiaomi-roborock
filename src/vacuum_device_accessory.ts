@@ -103,47 +103,42 @@ export class VacuumDeviceAccessory {
       this.deviceManager.stop();
     });
 
-    this.endpoint.addCommandHandler('changeToMode', async (data) => {
-      this.log.debug(`Start command received: ${JSON.stringify(data)}`);
-      switch (data.cluster) {
-        case 'rvcCleanMode': {
-          // Defines the selected cleaning mode (mop or vacuum)
-          const newCleanMode = supportedCleanModes[data.request.newMode - 1];
-          await this.deviceManager.device.changeFanSpeed(newCleanMode.miLevels.vacuum);
-          if (typeof newCleanMode.miLevels.mop === 'number') {
-            await this.deviceManager.device.setWaterBoxMode(newCleanMode.miLevels.mop);
+    this.endpoint.addCommandHandler('RvcCleanMode.changeToMode', async (data) => {
+      // Defines the selected cleaning mode (mop or vacuum)
+      const newCleanMode = supportedCleanModes[data.request.newMode - 1];
+      await this.deviceManager.device.changeFanSpeed(newCleanMode.miLevels.vacuum);
+      if (typeof newCleanMode.miLevels.mop === 'number') {
+        await this.deviceManager.device.setWaterBoxMode(newCleanMode.miLevels.mop);
+      }
+    });
+
+    this.endpoint.addCommandHandler('RvcRunMode.changeToMode', async (data) => {
+      // Actual start command
+      switch (data.request.newMode) {
+        case 1: // Idle
+          // TODO: Confirm what to do here
+          // await this.deviceManager.device.pause();
+          break;
+        case 2: {
+          // Cleaning
+          const selectedAreas = this.selectedAreas;
+          if (selectedAreas.length === 0) {
+            this.log.info(`Initiating full cleaning...`);
+            await this.deviceManager.device.activateCleaning();
+          } else {
+            this.log.info(`Initiating room cleaning...`);
+            await this.deviceManager.device.cleanRooms(selectedAreas);
+            // HACK: Assign the first selected area as the current area so that we can control speeds while room cleaning
+            await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'currentArea', selectedAreas[0]);
           }
           break;
         }
-
-        case 'rvcRunMode':
-          // Actual start command
-          switch (data.request.newMode) {
-            case 1: // Idle
-              // TODO: Confirm what to do here
-              // await this.deviceManager.device.pause();
-              break;
-            case 2: {
-              // Cleaning
-              const selectedAreas = this.selectedAreas;
-              if (selectedAreas.length === 0) {
-                this.log.info(`Initiating full cleaning...`);
-                await this.deviceManager.device.activateCleaning();
-              } else {
-                this.log.info(`Initiating room cleaning...`);
-                await this.deviceManager.device.cleanRooms(selectedAreas);
-                // HACK: Assign the first selected area as the current area so that we can control speeds while room cleaning
-                await this.endpoint?.updateAttribute(ServiceArea.Cluster.id, 'currentArea', selectedAreas[0]);
-              }
-              break;
-            }
-            default:
-              this.log.warn(`Unknown mode ${data.request.newMode}`);
-              break;
-          }
+        default:
+          this.log.warn(`Unknown mode ${data.request.newMode}`);
           break;
       }
     });
+
     this.endpoint.addCommandHandler('stop', async () => {
       await this.deviceManager.device.deactivateCleaning();
     });
@@ -166,7 +161,7 @@ export class VacuumDeviceAccessory {
       await this.deviceManager.device.find();
     });
     this.endpoint.addCommandHandler('selectAreas', async (data) => {
-      this.log.debug(`Select areas command received: ${JSON.stringify(data)}`);
+      this.log.debug(`Select areas command received: ${data.request.newAreas}`);
       let selectedAreas = data.request.newAreas;
       if ((data.attributes.supportedAreas as ServiceArea.Area[])?.length === selectedAreas.length) {
         selectedAreas = []; // Force empty if all areas are selected
@@ -231,6 +226,9 @@ export class VacuumDeviceAccessory {
       }
     },
     cleaning: async (cleaning: boolean) => {
+      if (this.deviceManager.property('state') === 'error' || this.deviceManager.property('state') === 'paused') {
+        return; // Do not update the state if there is an error or paused
+      }
       await this.endpoint?.updateAttribute(RvcRunMode.Cluster.id, 'currentMode', cleaning === false ? SUPPORTED_MODES[0].mode : SUPPORTED_MODES[1].mode);
       if (cleaning) {
         await this.endpoint?.updateAttribute(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);

@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 import type { Logger } from 'matterbridge/logger';
 import { RoboticVacuumCleaner } from 'matterbridge/devices';
 import { PowerSource, RvcCleanMode, RvcOperationalState, RvcRunMode, ServiceArea } from 'matterbridge/matter/clusters';
-import { MatterbridgeServiceAreaServer } from 'matterbridge';
+import { MatterbridgeServiceAreaServer, type CommandHandlerPayload } from 'matterbridge';
 
 import { deviceManagerMock, findSpeedModesMock } from './vacuum_device_accessory.test.mock.js';
 import type { VacuumDeviceAccessory } from './vacuum_device_accessory.js';
@@ -248,12 +248,13 @@ describe('VacuumDeviceAccessory', () => {
 
       describe('changeToMode', () => {
         test('should have a changeToMode handler', async () => {
-          expect(endpoint.commandHandler.hasHandler('changeToMode')).toBe(true);
+          expect(endpoint.commandHandler.hasHandler('RvcCleanMode.changeToMode')).toBe(true);
+          expect(endpoint.commandHandler.hasHandler('RvcRunMode.changeToMode')).toBe(true);
         });
 
-        describe('rvcCleanMode', () => {
+        describe('RvcCleanMode.changeToMode', () => {
           test('sets the fan speed (but not the water level)', async () => {
-            endpoint.commandHandler.executeHandler('changeToMode', { request: { newMode: 1 }, cluster: 'rvcCleanMode' });
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode: 1 } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
             expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(105);
             expect(deviceManagerMock.device.setWaterBoxMode).not.toHaveBeenCalled();
           });
@@ -268,26 +269,26 @@ describe('VacuumDeviceAccessory', () => {
             deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
             endpoint = (await endpointPromise) as RoboticVacuumCleaner;
 
-            endpoint.commandHandler.executeHandler('changeToMode', { request: { newMode: 1 }, cluster: 'rvcCleanMode' });
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode: 1 } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
             await Promise.resolve(); // Just waiting for the pending promises to run
             expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(105);
             expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledWith(200);
           });
         });
 
-        describe('rvcRunMode', () => {
+        describe('RvcRunMode.changeToMode', () => {
           test('on Idle, it does nothing', async () => {
-            endpoint.commandHandler.executeHandler('changeToMode', { request: { newMode: 1 }, cluster: 'rvcRunMode' });
+            endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 1 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
             expect(logger.warn).not.toHaveBeenCalled();
           });
 
           test('on unknown mode, it logs a warning', async () => {
-            endpoint.commandHandler.executeHandler('changeToMode', { request: { newMode: 3 }, cluster: 'rvcRunMode' });
+            endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 3 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
             expect(logger.warn).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Unknown mode 3');
           });
 
           test('on Cleaning, it starts a full cleaning if no rooms are selected', async () => {
-            endpoint.commandHandler.executeHandler('changeToMode', { request: { newMode: 2 }, cluster: 'rvcRunMode' });
+            endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 2 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
             expect(logger.info).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Initiating full cleaning...');
             expect(deviceManagerMock.device.activateCleaning).toHaveBeenCalled();
             expect(deviceManagerMock.device.cleanRooms).not.toHaveBeenCalled();
@@ -296,7 +297,7 @@ describe('VacuumDeviceAccessory', () => {
           test('on Cleaning, it starts a room cleaning if any rooms are selected', async () => {
             jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce([16, 17]);
 
-            endpoint.commandHandler.executeHandler('changeToMode', { request: { newMode: 2 }, cluster: 'rvcRunMode' });
+            endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 2 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
             expect(logger.info).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Initiating room cleaning...');
             expect(deviceManagerMock.device.activateCleaning).not.toHaveBeenCalled();
             expect(deviceManagerMock.device.cleanRooms).toHaveBeenCalledWith([16, 17]);
@@ -306,27 +307,27 @@ describe('VacuumDeviceAccessory', () => {
 
       describe('stop', () => {
         test('calls deactivate cleaning when triggered', async () => {
-          endpoint.commandHandler.executeHandler('stop');
+          endpoint.commandHandler.executeHandler('stop', { request: {} } as unknown as CommandHandlerPayload<'stop'>);
           expect(deviceManagerMock.device.deactivateCleaning).toHaveBeenCalled();
         });
       });
 
       describe('pause', () => {
         test('pauses the current cleaning', async () => {
-          endpoint.commandHandler.executeHandler('pause');
+          endpoint.commandHandler.executeHandler('pause', { request: {} } as unknown as CommandHandlerPayload<'pause'>);
           expect(deviceManagerMock.device.pause).toHaveBeenCalled();
         });
       });
 
       describe('resume', () => {
         test('resumes the current full cleaning', async () => {
-          endpoint.commandHandler.executeHandler('resume');
+          endpoint.commandHandler.executeHandler('resume', { request: {} } as unknown as CommandHandlerPayload<'resume'>);
           expect(deviceManagerMock.device.activateCleaning).toHaveBeenCalled();
         });
 
         test('resumes the current room cleaning if areas were previously selected', async () => {
           jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce([16, 17]);
-          endpoint.commandHandler.executeHandler('resume');
+          endpoint.commandHandler.executeHandler('resume', { request: {} } as unknown as CommandHandlerPayload<'resume'>);
           expect(deviceManagerMock.device.resumeCleanRooms).toHaveBeenCalledWith([16, 17]);
         });
       });
@@ -334,7 +335,7 @@ describe('VacuumDeviceAccessory', () => {
       describe('goHome', () => {
         test('sends the RVC to the charger', async () => {
           jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
-          endpoint.commandHandler.executeHandler('goHome');
+          endpoint.commandHandler.executeHandler('goHome', { request: {} } as unknown as CommandHandlerPayload<'goHome'>);
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(deviceManagerMock.device.activateCharging).toHaveBeenCalled();
         });
@@ -342,7 +343,7 @@ describe('VacuumDeviceAccessory', () => {
 
       describe('identify', () => {
         test('triggers the findme action', async () => {
-          endpoint.commandHandler.executeHandler('identify');
+          endpoint.commandHandler.executeHandler('identify', { request: {} } as unknown as CommandHandlerPayload<'identify'>);
           expect(deviceManagerMock.device.find).toHaveBeenCalled();
         });
       });
@@ -350,13 +351,13 @@ describe('VacuumDeviceAccessory', () => {
       describe('selectAreas', () => {
         test('sets the selected areas', async () => {
           const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
-          endpoint.commandHandler.executeHandler('selectAreas', { request: { newAreas: [17] }, attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] } });
+          endpoint.commandHandler.executeHandler('selectAreas', { request: { newAreas: [17] }, attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] } } as unknown as CommandHandlerPayload<'selectAreas'>);
           expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', [17]);
         });
 
         test('sets an empty array as selected areas when all rooms are selected', async () => {
           const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
-          endpoint.commandHandler.executeHandler('selectAreas', { request: { newAreas: [16, 17] }, attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] } });
+          endpoint.commandHandler.executeHandler('selectAreas', { request: { newAreas: [16, 17] }, attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] } } as unknown as CommandHandlerPayload<'selectAreas'>);
           expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', []);
         });
       });
