@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.6.1] - 2026-05-22
+
 ### Fixed
 
 - [Error that impeded selecting rooms](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/274).
