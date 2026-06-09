@@ -105,7 +105,7 @@
     "eslint-plugin-promise": "7.3.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "jest": "30.4.2",
-    "prettier": "3.8.3",
+    "prettier": "3.8.4",
     "shx": "0.4.0",
     "ts-jest": "29.4.11",
     "typescript": "^5.8.3",
