@@ -327,20 +327,18 @@ export class VacuumDeviceAccessory {
     if (roomMapping.length > 0) {
       this.log.info(`Room mapping found: ${JSON.stringify(roomMapping)}`);
       this.log.info(`Creating service areas from room mapping...`);
-      return roomMapping.map(
-        ([roomId, roomName], index): ServiceArea.Area => ({
-          areaId: parseInt(roomId),
-          mapId: null,
-          areaInfo: {
-            locationInfo: {
-              locationName: this.config.roomNames?.[index] || `${roomName}`,
-              floorNumber: null,
-              areaType: null,
-            },
-            landmarkInfo: null,
+      return roomMapping.map(([roomId, roomName], index): ServiceArea.Area => ({
+        areaId: parseInt(roomId),
+        mapId: null,
+        areaInfo: {
+          locationInfo: {
+            locationName: this.config.roomNames?.[index] || `${roomName}`,
+            floorNumber: null,
+            areaType: null,
           },
-        }),
-      );
+          landmarkInfo: null,
+        },
+      }));
     }
 
     const timers = await this.deviceManager.device.getTimer();
@@ -361,21 +359,19 @@ export class VacuumDeviceAccessory {
       });
       if (timer) {
         const segments = timer[2][1][1].segments.split(',');
-        return segments.map(
-          (roomId, index): ServiceArea.Area => ({
-            areaId: parseInt(roomId),
-            mapId: null,
-            areaInfo: {
-              locationInfo: {
-                // Can't know the name in these models. Users will need to rename it in their apps.
-                locationName: this.config.roomNames?.[index] || `Room ${roomId}`,
-                floorNumber: null,
-                areaType: null,
-              },
-              landmarkInfo: null,
+        return segments.map((roomId, index): ServiceArea.Area => ({
+          areaId: parseInt(roomId),
+          mapId: null,
+          areaInfo: {
+            locationInfo: {
+              // Can't know the name in these models. Users will need to rename it in their apps.
+              locationName: this.config.roomNames?.[index] || `Room ${roomId}`,
+              floorNumber: null,
+              areaType: null,
             },
-          }),
-        );
+            landmarkInfo: null,
+          },
+        }));
       }
     }
 
