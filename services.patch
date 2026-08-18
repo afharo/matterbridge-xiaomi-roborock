@@ -1,0 +1,68 @@
+diff --git a/src/services/config_service.ts b/src/services/config_service.ts
+index 9a88660..a3ee097 100644
+--- a/src/services/config_service.ts
++++ b/src/services/config_service.ts
+@@ -14,6 +14,10 @@ export interface Config extends PlatformConfig, DeviceManagerConfig, CustomLogge
+    * The room names in case the alternative timer approach is used to identify the rooms.
+    */
+   roomNames?: string[];
++  /**
++   * The segment IDs, for models that cannot report their rooms (currently Dreame).
++   */
++  roomIds?: number[];
+ }
+ 
+ /**
+diff --git a/src/services/device_manager.ts b/src/services/device_manager.ts
+index 4c2d3fd..f4b175b 100644
+--- a/src/services/device_manager.ts
++++ b/src/services/device_manager.ts
+@@ -2,12 +2,18 @@ import { BehaviorSubject, distinct, exhaustMap, filter, Subject, takeUntil, time
+ import * as miio from 'node-miio';
+ import type { MiioDevice, MiioErrorChangedEvent } from 'node-miio';
+ 
++import { isDreame, wrapDreame } from '../devices/dreame_device.js';
++import type { DreameRoomsConfig } from '../devices/dreame_device.ts';
+ import { cleaningStatuses } from '../utils/constants.js';
+ import type { ModelLogger } from '../utils/logger.ts';
+ 
+ export interface DeviceManagerConfig {
+   ip?: string;
+   token?: string;
++  /** Segment IDs for Dreame models, which cannot discover their rooms over MIoT. */
++  roomIds?: number[];
++  /** Room names, applied in the same order as `roomIds`. */
++  roomNames?: string[];
+ }
+ 
+ export interface StateChangedEvent {
+@@ -22,6 +28,7 @@ export class DeviceManager {
+ 
+   private readonly ip: string;
+   private readonly token: string;
++  private readonly rooms: DreameRoomsConfig;
+ 
+   private readonly internalErrorChanged$ = new Subject<MiioErrorChangedEvent | null>();
+   private readonly internalStateChanged$ = new Subject<StateChangedEvent>();
+@@ -45,6 +52,7 @@ export class DeviceManager {
+       throw new Error('You must provide a token of the vacuum cleaner.');
+     }
+     this.token = config.token;
++    this.rooms = { roomIds: config.roomIds, roomNames: config.roomNames };
+ 
+     this.connect().catch(() => {
+       // Do nothing in the catch because this function already logs the error internally and retries after 2 minutes.
+@@ -135,7 +143,12 @@ export class DeviceManager {
+   private async initializeDevice() {
+     this.log.debug('DEB getDevice | Discovering vacuum cleaner');
+ 
+-    const device = await miio.device({ address: this.ip, token: this.token });
++    let device = await miio.device({ address: this.ip, token: this.token });
++
++    if (isDreame(device.miioModel)) {
++      this.log.info(`STA getDevice | Dreame detected (${device.miioModel}), using MIoT adapter`);
++      device = wrapDreame(device, this.log, this.rooms);
++    }
+ 
+     if (device.matches('type:vaccuum')) {
+       this.internalDevice$.next(device);

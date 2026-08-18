@@ -3,25 +3,7 @@
     <img src="xiaomi-home.png" alt="Xiaomi Home app logo" width="64px" height="64px">
 </p>
 
-<h1 align="center">Matterbridge Xiaomi Roborock Plugin</h1>
-
-<p align="center">
-    <a href="https://www.npmjs.com/package/matterbridge-xiaomi-roborock">
-        <img src="https://img.shields.io/npm/v/matterbridge-xiaomi-roborock.svg" alt="npm version">
-    </a>
-    <a href="https://www.npmjs.com/package/matterbridge-xiaomi-roborock">
-        <img src="https://img.shields.io/npm/dt/matterbridge-xiaomi-roborock.svg" alt="npm downloads">
-    </a>
-    <a href="https://github.com/afharo/matterbridge-xiaomi-roborock/actions/workflows/build-matterbridge-plugin.yml">
-        <img src="https://github.com/afharo/matterbridge-xiaomi-roborock/actions/workflows/build-matterbridge-plugin.yml/badge.svg" alt="Node.js CI">   
-    </a>
-    <a href="https://github.com/afharo/matterbridge-xiaomi-roborock/actions/workflows/codeql.yml">
-        <img src="https://github.com/afharo/matterbridge-xiaomi-roborock/actions/workflows/codeql.yml/badge.svg" alt="CodeQL">  
-    </a>
-    <a href="https://codecov.io/gh/afharo/matterbridge-xiaomi-roborock">
-        <img src="https://codecov.io/gh/afharo/matterbridge-xiaomi-roborock/branch/main/graph/badge.svg" alt="Codecov">
-    </a>
-</p>
+<h1 align="center">Matterbridge Xiaomi Dreame Plugin</h1>
 
 <p align="center">
     <a href="https://www.npmjs.com/package/matterbridge">
@@ -33,115 +15,194 @@
     <a href="https://www.npmjs.com/package/rxjs">
         <img src="https://img.shields.io/badge/powered%20by-rxjs-blue" alt="powered by rxjs">
     </a>
-    <a href="https://www.npmjs.com/package/semver">
-        <img src="https://img.shields.io/badge/powered%20by-semver-blue" alt="powered by semver">
-    </a>
 </p>
 
 ---
 
-**Matterbridge Xiaomi Roborock Plugin** is a dynamic platform plugin
-for [Matterbridge](https://www.npmjs.com/package/matterbridge) that integrates with Roborock vacuum cleaners
-**controlled via the Xiaomi Home app**, enabling control via Apple Home and other Matter-compatible apps. If you use the
-Roborock app, refer to
-the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matterbridge-roborock-vacuum-plugin) instead.
+**Matterbridge Xiaomi Dreame Plugin** is a dynamic platform plugin
+for [Matterbridge](https://www.npmjs.com/package/matterbridge) that exposes **Dreame robot vacuums** as native Matter
+robotic vacuum cleaners (RVC) in Apple Home and other Matter-compatible controllers.
 
-> ⭐️ If you like this project and find it useful, please consider giving it a star on GitHub
-> at [Matterbridge Xiaomi Roborock Plugin](https://github.com/afharo/matterbridge-xiaomi-roborock).
+Everything runs **locally over the miIO/MIoT protocol** — the plugin talks to the vacuum directly on your LAN using its
+IP and token. No Xiaomi cloud session, no cloud tokens to refresh, and it keeps working when your internet connection
+does not.
 
-> ⚠️ **Disclaimer**
->
-> This project is in a very early stage of development. I'm initially building it to integrate with my Roborock S5, and
-> will be extending the support once the basic features are implemented.
->
-> Other models might work at this stage, but I cannot guarantee that (mostly because I haven't been able to test them).
-> Any help testing other models is welcome. If you find a model that works, please open an issue or a PR to add it to
-> the
-> list of [supported models](#supported-models).
+> ℹ️ This is a fork of [afharo/matterbridge-xiaomi-roborock](https://github.com/afharo/matterbridge-xiaomi-roborock),
+> which targets Roborock vacuums. The Matter layer, speed tables and platform code are theirs; this fork adds the MIoT
+> transport that Dreame models need. The change has been submitted upstream — if it lands there, use the original plugin
+> instead of this one.
 
-<!-- TOC -->
+## Why a separate transport?
 
-- [Features](#features)
-  - [Room cleaning and discovery](#room-cleaning-and-discovery)
-  - [TODO](#todo)
-- [Supported models](#supported-models)
-- [Known issues](#known-issues)
-- [Installation](#installation)
-  - [Prerequisites](#prerequisites)
-  - [Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)](#add-the-plugin-to-matterbridge-and-your-devices-to-apple-home-or-any-other-matter-compatible-app)
+Dreame vacuums connect fine over miIO, but they do not implement the Roborock RPCs (`app_start`, `get_status`, …). Sending
+them makes the robot reply with:
 
-<!-- TOC -->
+    { code: -9999, message: 'user ack timeout' }
+
+which surfaces in Matterbridge as `Could not complete call to device`, thrown from `node-miio`'s `checkResult`.
+
+This fork adds an adapter that keeps the same `node-miio` connection (handshake, encryption, socket reuse) but routes every
+read and command through MIoT (`get_properties` / `set_properties` / `action`) using the
+[`dreame.vacuum.p2008` spec](https://home.miot-spec.com/spec/dreame.vacuum.p2008). Roborock devices are untouched: the
+adapter only kicks in when the reported model starts with `dreame.`.
 
 ## Features
 
-- Basic RVC operations (start/stop/pause/resume/go back to dock)
-- Fan speed control
-- Water level control (only in supported models)
-- Room cleaning and discovery (only in supported models)
-- Battery information
+- Basic RVC operations: start, stop, pause, return to dock
+- Suction power control: Quiet, Standard, Strong, Turbo
+- Water level control: Low, Medium, High
+- Battery level and charging state
+- Operational state reporting (idle, cleaning, mopping, returning, charging, error)
+- Identify (locate the robot by playing a sound)
+- Rooms shown as Matter service areas, declared through the configuration
 
-### Room cleaning and discovery
+Everything above works locally. There is no cloud fallback.
 
-The plugin uses 2 methods to discover the rooms defined in the Xiaomi Home app, depending on the features supported by
-the model (and shown in the Xiaomi Home app):
+### Rooms
 
-1. For supported models where the app allows to add names in the rooms, it is capable of retrieving the names from the
-   app.
-   - In some cases, the names configured in the app are not returned by this API (instead, it shows a long numeric value). In this case, you can use the `roomNames` configuration option to manually define the names.
-2. For other models, it needs a workaround:
-   1. In the Xiaomi Home app, while in the vacuum view, open the options by clicking on the 3 dots in the top right
-      corner.
-   2. Then, in "Timer", define a cleaning timer for midnight (00:00) that repeats every day. Make sure to select all the rooms individually.
-   3. Make sure to disable the timer (nobody wants to kick off a cleaning at midnight every day 🙈).
-   4. Finally, set up the `roomNames` in this plugin's configuration. Make sure to follow the same order as you
-      selected the rooms in the app.
+The F9 family does not expose its segment list over MIoT — the map is only available as an opaque blob — so rooms cannot
+be discovered automatically. Declare them in the configuration instead, using `roomIds` and `roomNames`.
 
-> ‼️ If you need to rely on the 2nd approach, chances are that the vacuum does not support the command to run room
-> cleaning (`app_segment_clean`).
-> If you find the command that works for these models (testing via `node-miio` or `python-miio`), please open an issue
-> or a PR to add this support.
+To find the segment IDs, either check the Xiaomi Home app or use
+[`mibridge`](https://www.npmjs.com/package/@mibridge/cli):
+
+    XIAOMI_REGION=<your-region> mibridge rooms <device-id>
+
+    Rooms:
+      ID 1    Laundry
+      ID 2    Bathroom
+      ID 3    Study
+
+> ⚠️ Matter requires every service area to have a unique name. If two rooms share a name (two bathrooms, for example),
+> pairing fails with `Areas must have a unique AreaInfo field`. Give them distinct names in `roomNames`.
+
+### Limitations
+
+- **Selecting a room starts a full clean.** Service areas are advertised so the rooms show up in your controller, but
+  segment cleaning needs a vendor-specific payload that is not part of the shared MIoT spec. Until that is
+  reverse-engineered, a room request logs a warning and cleans everything.
+- **Pause maps to `stop_clean`.** The F9 spec has no dedicated pause action, so the robot halts in place.
+- Maintenance counters (filter, brush, sieve) are read from the device but not yet exposed as Matter attributes.
 
 ### TODO
 
-- [ ] Improve state control
-- [ ] Additional controls like initiate dust collection are missing
-- [ ] Add information about the Maintenance counters (sensors, filter, brush)
-- [ ] Add better error handling (expose the errors to the user if possible)
+- [ ] Segment cleaning (needs the vendor payload for `start_clean` with segment arguments)
+- [ ] Automatic room discovery (requires decoding the `map_view` blob)
+- [ ] Expose maintenance counters
+- [ ] Surface device faults as Matter `OperationalError` events
 
 ---
 
 ## Supported models
 
-| Model            | Code name             | Basic info (battery, serial, firmware) | Full cleaning | Room cleaning |  Tested by  |
-| ---------------- | --------------------- | :------------------------------------: | :-----------: | :-----------: | :---------: |
-| Roborock S5      | `roborock.vacuum.s5`  |                   ✅                   |      ✅       |      ✅       |   @afharo   |
-| Roborock S6 MaxV | `roborock.vacuum.a10` |                   ✅                   |      ✅       |      ✅       | @alexh-name |
+The MIoT property/action map is shared across the F9 family, so these models are all expected to work. Only the F9 has
+been verified.
+
+| Model                | Code name              | Basic info (battery, serial, firmware) | Full cleaning | Room cleaning |  Tested by  |
+| -------------------- | ---------------------- | :------------------------------------: | :-----------: | :-----------: | :---------: |
+| Dreame F9            | `dreame.vacuum.p2008`  |                   ✅                   |      ✅       |   ⚠️ shown    |  @lirik44   |
+| Dreame D9            | `dreame.vacuum.p2009`  |                   ❔                   |      ❔       |   ⚠️ shown    |             |
+| Dreame Z10 Pro       | `dreame.vacuum.p2028`  |                   ❔                   |      ❔       |   ⚠️ shown    |             |
+| Dreame Mop 2 Pro+    | `dreame.vacuum.p2041o` |                   ❔                   |      ❔       |   ⚠️ shown    |             |
+| Dreame Mop 2 Ultra   | `dreame.vacuum.p2150a` |                   ❔                   |      ❔       |   ⚠️ shown    |             |
+| Dreame Mop 2         | `dreame.vacuum.p2150o` |                   ❔                   |      ❔       |   ⚠️ shown    |             |
+
+⚠️ *shown* = rooms appear as service areas, but selecting one triggers a full clean (see [Limitations](#limitations)).
+
+Tested with firmware `4.1.8_1107` on Matterbridge 3.10.5 (Node 22, Raspberry Pi OS).
+
+If you get another model working, please open an issue or a PR to add it to this table.
+
+> ⚠️ The Dreame 1C (`dreame.vacuum.mc1808`) uses a **different** MIoT map and is not supported yet.
 
 ## Known issues
 
-| Issue                                                             | Comment                                                                                 | Workaround                                  |
-| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------- |
-| The name of the device is not automatically placed in Apple Home. | AFAIK, this happens to all Matterbridge devices (all show as `Matterbridge Accessory`). | The device must be renamed in the Home App. |
+| Issue                                                              | Comment                                                                                                | Workaround                                                                                              |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| The device name is not carried over to Apple Home.                 | This affects all Matterbridge devices.                                                                 | Rename the device in the Home app.                                                                      |
+| Apple Home misbehaves when an RVC shares a bridge with other devices. | A known Apple limitation — the whole bridge can become unstable.                                        | This plugin already exposes the vacuum as its own Matter node (`server` mode) with a separate QR code.   |
+| The vacuum shows without controls on macOS.                        | The Home app on macOS occasionally fails to render the RVC tile.                                        | Restart the Home app or the Mac; controls also always work from iPhone and Siri.                        |
 
 ## Installation
 
-This plugin leverages the Matterbridge ecosystem, so you can install it in the same way as any other Matterbridge
-plugin.
+This plugin leverages the Matterbridge ecosystem, so you can install it like any other Matterbridge plugin.
 
-> ℹ️ This is not a Homebridge plugin. You need to install Matterbridge instead.
+> ℹ️ This is not a Homebridge plugin. You need Matterbridge.
 
 ### Prerequisites
 
-You need to have [Matterbridge](https://github.com/Luligu/matterbridge) installed. Refer to their [installation guide](https://github.com/Luligu/matterbridge?tab=readme-ov-file#prerequisites) for more details.
+You need [Matterbridge](https://github.com/Luligu/matterbridge) installed — see
+their [installation guide](https://github.com/Luligu/matterbridge?tab=readme-ov-file#prerequisites).
 
-Additionally, you need the IP and token of the RVC. I recommend using the [Xiaomi Cloud Tokens Extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor), as I find it the easiest way to get the token.
+You also need the **IP address and token** of the vacuum. The
+[Xiaomi Cloud Tokens Extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor) is the easiest way to
+get them.
 
-> ⚠️ If the RVC's Wi-Fi connection is reconfigured, a new token is generated, and you will need to retrieve it again, and update this plugin's configuration.
+> ⚠️ The vacuum must be paired in the **Xiaomi Home** app. Tokens cannot be extracted for robots that live only in the
+> Dreamehome app.
 >
-> The same happens if the RVC is paired/controlled via the Roborock app.
->
-> If you already use [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum), the same IP and token can be used.
+> Reconfiguring the vacuum's Wi-Fi generates a new token, and you will need to update the plugin configuration.
 
-### Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)
+To verify the IP and token before configuring the plugin, `python-miio` is handy:
 
-Once on the Matterbridge UI, install this plugin using the name `matterbridge-xiaomi-roborock`, and configure it. After restarting Matterbridge, a new device should appear in the list of Devices in the Matterbridge UI, scan the QR code with the Apple Home app (or any other Matter-compatible app), and you should be good to go!
+    miiocli dreamevacuum --ip <IP> --token <TOKEN> status
+
+If that prints the battery level and status, the plugin will work too.
+
+### Install
+
+    npm install -g matterbridge-xiaomi-dreame --omit=dev
+    matterbridge --add matterbridge-xiaomi-dreame
+
+### Configuration
+
+Add your vacuum to the `devices` array, either through the Matterbridge UI or directly in
+`~/.matterbridge/matterbridge-xiaomi-dreame.config.json`:
+
+```json
+{
+  "name": "matterbridge-xiaomi-dreame",
+  "type": "DynamicPlatform",
+  "devices": [
+    {
+      "name": "Vacuum",
+      "ip": "192.168.1.50",
+      "token": "0123456789abcdef0123456789abcdef",
+      "roomIds": [1, 2, 3, 4, 5, 6],
+      "roomNames": ["Laundry", "Bathroom", "Study", "Living Room", "Master Bedroom", "Corridor"]
+    }
+  ],
+  "debug": false,
+  "unregisterOnShutdown": false
+}
+```
+
+`roomIds` and `roomNames` are optional — omit both and the vacuum is exposed without service areas.
+
+### Pair with Apple Home
+
+Restart Matterbridge. The vacuum is exposed as its **own Matter node**, so it gets a **separate QR code** in the
+Matterbridge UI — scan that one, not the QR code of the Matterbridge bridge itself.
+
+    sudo systemctl restart matterbridge
+
+Look for these lines in the log to confirm the adapter is active:
+
+    STA getDevice | Dreame detected (dreame.vacuum.p2008), using MIoT adapter
+    STA getDevice | Connected to: 192.168.1.50
+
+If pairing gets stuck on "Connecting", remove the accessory from Apple Home, then reset the commissioning state and try
+again:
+
+    matterbridge -reset matterbridge-xiaomi-dreame
+
+## Credits
+
+- [afharo/matterbridge-xiaomi-roborock](https://github.com/afharo/matterbridge-xiaomi-roborock) — the plugin this fork is
+  based on
+- [Luligu/matterbridge](https://github.com/Luligu/matterbridge) — the Matter bridge itself
+- [rytilahti/python-miio](https://github.com/rytilahti/python-miio) — reference implementation of the Dreame MIoT mapping
+
+## License
+
+Apache-2.0, same as the upstream project.

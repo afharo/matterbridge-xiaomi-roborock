@@ -66,6 +66,14 @@ const CHARGING_STATE: Record<number, boolean> = {
 
 const CLEANING_STATES = ['cleaning', 'mopping', 'manual-cleaning'];
 
+/** Room configuration used to advertise service areas. */
+export interface DreameRoomsConfig {
+  /** The segment IDs as reported by the Xiaomi Home app. */
+  roomIds?: number[];
+  /** Optional names, applied in the same order as `roomIds`. */
+  roomNames?: string[];
+}
+
 /**
  * Whether the connected device is a Dreame vacuum and needs the MIoT adapter.
  *
@@ -81,10 +89,11 @@ export function isDreame(model: string | undefined): boolean {
  *
  * @param {MiioDevice} raw The connected node-miio device.
  * @param {ModelLogger} log The plugin logger, used to report unsupported operations.
+ * @param {DreameRoomsConfig} rooms The room configuration, if the user declared any.
  * @returns {MiioDevice} A device exposing the same surface the accessory expects.
  */
-export function wrapDreame(raw: MiioDevice, log: ModelLogger): MiioDevice {
-  return new DreameDevice(raw, log) as unknown as MiioDevice;
+export function wrapDreame(raw: MiioDevice, log: ModelLogger, rooms: DreameRoomsConfig = {}): MiioDevice {
+  return new DreameDevice(raw, log, rooms) as unknown as MiioDevice;
 }
 
 interface MiotPropertyResult {
@@ -103,6 +112,7 @@ class DreameDevice {
   constructor(
     private readonly raw: MiioDevice,
     private readonly log: ModelLogger,
+    private readonly rooms: DreameRoomsConfig,
   ) {}
 
   // --- plumbing the DeviceManager relies on ---------------------------------
@@ -282,13 +292,21 @@ class DreameDevice {
     return this.setProperty('water_flow', level);
   }
 
-  // --- room cleaning --------------------------------------------------------
-  // Segment cleaning on the F9 family needs a vendor payload that is not part of
-  // the shared MIoT spec, so no service areas are advertised for now and a room
-  // request falls back to a full clean.
+  // --- rooms ----------------------------------------------------------------
+  // The F9 family does not expose its segment list over MIoT (the map is only
+  // available as an opaque blob), so rooms cannot be discovered automatically.
+  // They can instead be declared in the plugin configuration; run
+  // `mibridge rooms <did>` or check the Xiaomi Home app to find the IDs.
 
+  /** @returns {Promise<Array<[string, string]>>} The rooms declared in the configuration, if any. */
   async getRoomMap(): Promise<Array<[string, string]>> {
-    return [];
+    const { roomIds, roomNames } = this.rooms;
+
+    if (!roomIds?.length) {
+      return [];
+    }
+
+    return roomIds.map((id, index) => [String(id), roomNames?.[index] ?? `Room ${id}`]);
   }
 
   async getTimer(): Promise<unknown[]> {

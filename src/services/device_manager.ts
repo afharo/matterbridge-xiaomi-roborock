@@ -3,12 +3,17 @@ import * as miio from 'node-miio';
 import type { MiioDevice, MiioErrorChangedEvent } from 'node-miio';
 
 import { isDreame, wrapDreame } from '../devices/dreame_device.js';
+import type { DreameRoomsConfig } from '../devices/dreame_device.ts';
 import { cleaningStatuses } from '../utils/constants.js';
 import type { ModelLogger } from '../utils/logger.ts';
 
 export interface DeviceManagerConfig {
   ip?: string;
   token?: string;
+  /** Segment IDs for Dreame models, which cannot discover their rooms over MIoT. */
+  roomIds?: number[];
+  /** Room names, applied in the same order as `roomIds`. */
+  roomNames?: string[];
 }
 
 export interface StateChangedEvent {
@@ -23,6 +28,7 @@ export class DeviceManager {
 
   private readonly ip: string;
   private readonly token: string;
+  private readonly rooms: DreameRoomsConfig;
 
   private readonly internalErrorChanged$ = new Subject<MiioErrorChangedEvent | null>();
   private readonly internalStateChanged$ = new Subject<StateChangedEvent>();
@@ -46,6 +52,7 @@ export class DeviceManager {
       throw new Error('You must provide a token of the vacuum cleaner.');
     }
     this.token = config.token;
+    this.rooms = { roomIds: config.roomIds, roomNames: config.roomNames };
 
     this.connect().catch(() => {
       // Do nothing in the catch because this function already logs the error internally and retries after 2 minutes.
@@ -140,7 +147,7 @@ export class DeviceManager {
 
     if (isDreame(device.miioModel)) {
       this.log.info(`STA getDevice | Dreame detected (${device.miioModel}), using MIoT adapter`);
-      device = wrapDreame(device, this.log);
+      device = wrapDreame(device, this.log, this.rooms);
     }
 
     if (device.matches('type:vaccuum')) {

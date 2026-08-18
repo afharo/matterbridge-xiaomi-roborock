@@ -14,6 +14,10 @@ export interface Config extends PlatformConfig, DeviceManagerConfig, CustomLogge
    * The room names in case the alternative timer approach is used to identify the rooms.
    */
   roomNames?: string[];
+  /**
+   * The segment IDs, for models that cannot report their rooms (currently Dreame).
+   */
+  roomIds?: number[];
 }
 
 /**
