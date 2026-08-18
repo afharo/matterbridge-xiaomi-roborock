@@ -2,6 +2,7 @@ import { BehaviorSubject, distinct, exhaustMap, filter, Subject, takeUntil, time
 import * as miio from 'node-miio';
 import type { MiioDevice, MiioErrorChangedEvent } from 'node-miio';
 
+import { isDreame, wrapDreame } from '../devices/dreame_device.js';
 import { cleaningStatuses } from '../utils/constants.js';
 import type { ModelLogger } from '../utils/logger.ts';
 
@@ -135,7 +136,12 @@ export class DeviceManager {
   private async initializeDevice() {
     this.log.debug('DEB getDevice | Discovering vacuum cleaner');
 
-    const device = await miio.device({ address: this.ip, token: this.token });
+    let device = await miio.device({ address: this.ip, token: this.token });
+
+    if (isDreame(device.miioModel)) {
+      this.log.info(`STA getDevice | Dreame detected (${device.miioModel}), using MIoT adapter`);
+      device = wrapDreame(device, this.log);
+    }
 
     if (device.matches('type:vaccuum')) {
       this.internalDevice$.next(device);
