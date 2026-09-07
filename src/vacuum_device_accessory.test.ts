@@ -355,7 +355,7 @@ describe('VacuumDeviceAccessory', () => {
             request: { newAreas: [17] },
             attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] },
           } as unknown as CommandHandlerPayload<'selectAreas'>);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', [17]);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea, 'selectedAreas', [17]);
         });
 
         test('sets an empty array as selected areas when all rooms are selected', async () => {
@@ -364,7 +364,7 @@ describe('VacuumDeviceAccessory', () => {
             request: { newAreas: [16, 17] },
             attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] },
           } as unknown as CommandHandlerPayload<'selectAreas'>);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea.Cluster.id, 'selectedAreas', []);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(ServiceArea, 'selectedAreas', []);
         });
       });
     });
@@ -390,9 +390,9 @@ describe('VacuumDeviceAccessory', () => {
       test('when no serviceAreas have been discovered, it should enforce empty values', async () => {
         await deviceAccessory.postRegister();
         expect(updateAttributeSpy).toHaveBeenCalledTimes(3);
-        expect(updateAttributeSpy).toHaveBeenNthCalledWith(1, ServiceArea.Cluster.id, 'currentArea', null);
-        expect(updateAttributeSpy).toHaveBeenNthCalledWith(2, ServiceArea.Cluster.id, 'currentArea', null);
-        expect(updateAttributeSpy).toHaveBeenNthCalledWith(3, ServiceArea.Cluster.id, 'supportedAreas', []);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(1, ServiceArea, 'currentArea', null);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(2, ServiceArea, 'currentArea', null);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(3, ServiceArea, 'supportedAreas', []);
       });
 
       test('when serviceAreas have been discovered, it should only force an empty currentArea', async () => {
@@ -408,7 +408,7 @@ describe('VacuumDeviceAccessory', () => {
 
         await deviceAccessory.postRegister();
         expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
-        expect(updateAttributeSpy).toHaveBeenNthCalledWith(1, ServiceArea.Cluster.id, 'currentArea', null);
+        expect(updateAttributeSpy).toHaveBeenNthCalledWith(1, ServiceArea, 'currentArea', null);
       });
     });
 
@@ -423,16 +423,16 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key: 'batteryLevel', value: 100 });
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batPercentRemaining', 200);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeLevel', PowerSource.BatChargeLevel.Ok);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batPercentRemaining', 200);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeLevel', PowerSource.BatChargeLevel.Ok);
         });
 
         test('updates the battery level (<20% - Warning)', async () => {
           deviceManagerMock.stateChanged$.next({ key: 'batteryLevel', value: 10 });
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batPercentRemaining', 20);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeLevel', PowerSource.BatChargeLevel.Warning);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batPercentRemaining', 20);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeLevel', PowerSource.BatChargeLevel.Warning);
         });
       });
 
@@ -441,8 +441,8 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key: 'charging', value: true });
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsCharging);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeState', PowerSource.BatChargeState.IsCharging);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Charging);
         });
 
         test('when charging == true and battery level is 100%', async () => {
@@ -450,14 +450,14 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key: 'charging', value: true });
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsAtFullCharge);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeState', PowerSource.BatChargeState.IsAtFullCharge);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Docked);
         });
 
         test('when charging == false', async () => {
           deviceManagerMock.stateChanged$.next({ key: 'charging', value: false });
           await Promise.resolve(); // Just waiting for the pending promises to run
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsNotCharging);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeState', PowerSource.BatChargeState.IsNotCharging);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
         });
       });
@@ -471,8 +471,8 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key, value });
           await Promise.resolve();
           expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 2);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Running);
         });
 
         test('when cleaningMode == 1 but the state is "paused"', async () => {
@@ -480,7 +480,7 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key: 'cleaningMode', value: 'cleaning' });
           await Promise.resolve();
           expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 1);
         });
 
         test.each([
@@ -491,7 +491,7 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key, value });
           await Promise.resolve();
           expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 1);
         });
       });
 
@@ -503,7 +503,7 @@ describe('VacuumDeviceAccessory', () => {
           deviceManagerMock.stateChanged$.next({ key, value });
           await Promise.resolve();
           expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
         });
 
         test.each([
@@ -520,7 +520,7 @@ describe('VacuumDeviceAccessory', () => {
         test('when fanSpeed is known', async () => {
           deviceManagerMock.device.property.mockReturnValueOnce(200);
           deviceManagerMock.stateChanged$.next({ key: 'fanSpeed', value: 105 });
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcCleanMode.Cluster.id, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcCleanMode, 'currentMode', 1);
         });
 
         test('when fanSpeed is unknown', async () => {
@@ -533,7 +533,7 @@ describe('VacuumDeviceAccessory', () => {
         test('when water_box_mode is known', async () => {
           deviceManagerMock.device.property.mockReturnValueOnce(-1);
           deviceManagerMock.stateChanged$.next({ key: 'water_box_mode', value: 201 });
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcCleanMode.Cluster.id, 'currentMode', 6);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcCleanMode, 'currentMode', 6);
         });
 
         test('when water_box_mode is unknown', async () => {
@@ -563,8 +563,8 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Paused);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Paused);
         });
 
         test.each(['cleaning', 'spot-cleaning', 'room-cleaning', 'zone-cleaning', 'sweeping', 'mopping', 'sweeping-and-mopping'])('%s', async (value) => {
@@ -573,8 +573,8 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Running);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 2);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Running);
         });
 
         test.each(['returning', 'docking'])('%s', async (value) => {
@@ -583,7 +583,7 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
         });
 
         test('error', async () => {
@@ -592,7 +592,7 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Error);
         });
 
         test('fully-charged', async () => {
@@ -601,7 +601,7 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Docked);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Docked);
         });
 
         test.each(['charging-error'])('%s', async (value) => {
@@ -610,8 +610,8 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Error);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalError', RvcOperationalState.ErrorState.FailedToFindChargingDock);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Error);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', { errorStateId: RvcOperationalState.ErrorState.FailedToFindChargingDock });
         });
 
         test.each(['initializing', 'idle', 'sleeping'])('%s', async (value) => {
@@ -620,8 +620,8 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode.Cluster.id, 'currentMode', 1);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Stopped);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Stopped);
         });
 
         test('charging', async () => {
@@ -630,8 +630,8 @@ describe('VacuumDeviceAccessory', () => {
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
           expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource.Cluster.id, 'batChargeState', PowerSource.BatChargeState.IsCharging);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState.Cluster.id, 'operationalState', RvcOperationalState.OperationalState.Charging);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeState', PowerSource.BatChargeState.IsCharging);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Charging);
         });
       });
     });
