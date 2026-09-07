@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+- [Fix recent breaking changes from matterbridge](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/352)
+
 ## [v0.6.1] - 2026-05-22
 
 ### Fixed
