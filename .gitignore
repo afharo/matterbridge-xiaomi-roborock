@@ -3,6 +3,7 @@
 
 # Specific directories that should be ignored
 .vscode/
+.idea/
 coverage/
 dist/
 jest/
