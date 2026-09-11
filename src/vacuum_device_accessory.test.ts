@@ -110,8 +110,8 @@ describe('VacuumDeviceAccessory', () => {
         deviceManagerMock.device.getTimer.mockResolvedValue([
           // This one will be discarded because it's ON
           ['timer-id', 'on', ['0 0 * * *', ['action', { segments: '16,17' }]]],
-          // This one is taken
-          ['timer-id', 'off', ['0 0 * * *', ['action', { segments: '16,17' }]]],
+          // This one is taken (supports off, disabled, disable)
+          ['timer-id', 'disable', ['0 0 * * *', ['action', { segments: '16,17' }]]],
         ]);
 
         const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
@@ -287,6 +287,11 @@ describe('VacuumDeviceAccessory', () => {
             expect(logger.warn).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Unknown mode 3');
           });
 
+          test('on Idle, it sends the RVC to the charger', async () => {
+            endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 1 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
+            expect(deviceManagerMock.device.activateCharging).toHaveBeenCalled();
+          });
+
           test('on Cleaning, it starts a full cleaning if no rooms are selected', async () => {
             endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 2 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
             expect(logger.info).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Initiating full cleaning...');
@@ -333,11 +338,12 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       describe('goHome', () => {
-        test('sends the RVC to the charger', async () => {
-          jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
+        test('sends the RVC to the charger without deadlock from updating attributes directly', async () => {
+          const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute');
           endpoint.commandHandler.executeHandler('goHome', { request: {} } as unknown as CommandHandlerPayload<'goHome'>);
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(deviceManagerMock.device.activateCharging).toHaveBeenCalled();
+          expect(updateAttributeSpy).not.toHaveBeenCalled();
         });
       });
 
@@ -504,6 +510,13 @@ describe('VacuumDeviceAccessory', () => {
           await Promise.resolve();
           expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
+        });
+
+        test('when paused, in_returning does not override paused state', async () => {
+          deviceManagerMock.device.property.mockReturnValue('paused');
+          deviceManagerMock.stateChanged$.next({ key: 'in_returning', value: 1 });
+          await Promise.resolve();
+          expect(updateAttributeSpy).toHaveBeenCalledTimes(0);
         });
 
         test.each([
