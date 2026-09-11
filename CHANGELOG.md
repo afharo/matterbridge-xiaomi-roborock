@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.7.1] - 2026-09-11
+
 ### Fixed
 
 - Resolves Matter transaction deadlock on `goHome` command by removing redundant `await updateAttribute` call within the command handler, which blocked Matter interaction transactions (fixes [#273](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/273)).
