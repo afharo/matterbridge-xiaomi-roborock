@@ -112,8 +112,7 @@ export class VacuumDeviceAccessory {
       // Actual start command
       switch (data.request.newMode) {
         case 1: // Idle
-          // TODO: Confirm what to do here
-          // await this.deviceManager.device.pause();
+          await this.deviceManager.device.activateCharging();
           break;
         case 2: {
           // Cleaning
@@ -150,7 +149,6 @@ export class VacuumDeviceAccessory {
       }
     });
     this.endpoint.addCommandHandler('goHome', async () => {
-      await this.endpoint?.updateAttribute(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
       await this.deviceManager.device.activateCharging();
     });
     this.endpoint.addCommandHandler('identify', async () => {
@@ -238,6 +236,9 @@ export class VacuumDeviceAccessory {
       }
     },
     in_returning: async (inReturning: number) => {
+      if (this.deviceManager.property('state') === 'paused') {
+        return;
+      }
       if (inReturning) {
         await this.endpoint?.updateAttribute(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
       }
@@ -340,7 +341,7 @@ export class VacuumDeviceAccessory {
     const timers = await this.deviceManager.device.getTimer();
     if (timers.length > 0) {
       const timer = timers.find(([id, status, definition]) => {
-        if (['off', 'disabled'].includes(status)) {
+        if (['off', 'disabled', 'disable'].includes(status)) {
           const [cronExpression, action] = definition;
           // Who sets up a timer that runs at midnight for a Vacuum Cleaner? This should be it.
           if (cronExpression.startsWith('0 0 * *')) {

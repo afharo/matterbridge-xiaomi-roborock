@@ -36,6 +36,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Fixed
+
+- Resolves Matter transaction deadlock on `goHome` command by removing redundant `await updateAttribute` call within the command handler, which blocked Matter interaction transactions (fixes [#273](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/273)).
+- Implements `RvcRunMode.changeToMode` Idle mode (mode 1) to send the vacuum back to the dock rather than an empty `break`.
+- Fixes `in_returning` state handler unintentionally overriding paused status when the vacuum is paused while returning to the dock.
+- Adds support for `'disable'` status in timer definitions for room cleaning discovery on Roborock models.
+
 ## [v0.7.0] - 2026-09-08
 
 - [Fix recent breaking changes from matterbridge](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/352)
