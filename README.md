@@ -1,3 +1,13 @@
+<!-- prettier-ignore -->
+> [!WARNING]
+> **Looking for a new maintainer**
+>
+> I no longer own a device supported by this project (my new vacuum supports Matter natively), so I can't test changes against real hardware anymore.
+> I'm happy to hand over ownership of the repository and the npm package to anyone who wants to continue its development.
+>
+> In the meantime, I'll keep addressing the reported issues with AI-assisted development, relying on the automated tests and **your feedback**: please, try the beta releases and report back.
+> Interested in taking over? Please, comment on [this issue](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/387).
+
 <p align="center">
     <img src="matterbridge.svg" alt="Matterbridge Logo" width="64px" height="64px">
     <img src="xiaomi-home.png" alt="Xiaomi Home app logo" width="64px" height="64px">
