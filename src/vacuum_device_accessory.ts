@@ -7,11 +7,11 @@ import { PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea
 import { applyConfigDefaults, type Config } from './services/config_service.js';
 import { DeviceManager } from './services/device_manager.js';
 import { getLogger, type ModelLogger } from './utils/logger.js';
-import { findSpeedModes } from './utils/find_speed_modes.js';
+import { isSupportedLevel, resolveSpeedModes } from './utils/find_speed_modes.js';
 import type { ModelDefinition } from './models/types.js';
 import { MODELS } from './models/models.js';
 
-type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum: number; mop?: number } };
+type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum?: number; mop?: number } };
 
 const SUPPORTED_MODES: RvcRunMode.ModeOption[] = [
   { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
@@ -66,7 +66,7 @@ export class VacuumDeviceAccessory {
     this.log.info(`Serial number: ${serialNumber}`);
     this.log.info(`Firmware: ${deviceInfo.fw_ver}`);
 
-    this.modelSpeeds = findSpeedModes(this.deviceManager.model, deviceInfo.fw_ver);
+    this.modelSpeeds = await resolveSpeedModes(this.deviceManager.device, this.deviceManager.model, deviceInfo.fw_ver);
     const supportedCleanModes = this.supportedCleanModes;
 
     this.serviceAreas = await this.getServiceAreas().catch((error) => {
@@ -102,8 +102,11 @@ export class VacuumDeviceAccessory {
     this.endpoint.addCommandHandler('RvcCleanMode.changeToMode', async (data) => {
       // Defines the selected cleaning mode (mop or vacuum)
       const newCleanMode = supportedCleanModes[data.request.newMode - 1];
-      await this.deviceManager.device.changeFanSpeed(newCleanMode.miLevels.vacuum);
-      if (typeof newCleanMode.miLevels.mop === 'number') {
+      // Some devices (e.g. MIoT) can't turn off the vacuum or the water: skip unsupported levels
+      if (isSupportedLevel(newCleanMode.miLevels.vacuum)) {
+        await this.deviceManager.device.changeFanSpeed(newCleanMode.miLevels.vacuum);
+      }
+      if (isSupportedLevel(newCleanMode.miLevels.mop)) {
         await this.deviceManager.device.setWaterBoxMode(newCleanMode.miLevels.mop);
       }
     });

@@ -1,6 +1,10 @@
+import { jest } from '@jest/globals';
+import { RvcCleanMode } from 'matterbridge/matter/clusters';
+import type { MiioDevice } from 'node-miio';
+
 import { MODELS } from '../models/models.js';
 
-import { findSpeedModes } from './find_speed_modes.js';
+import { findSpeedModes, fromNodeMiioModes, isSupportedLevel, resolveSpeedModes, UNSUPPORTED_LEVEL } from './find_speed_modes.js';
 
 describe('findSpeedModes', () => {
   test("should assign the viomi model for any model starting with 'viomi.'", () => {
@@ -24,5 +28,109 @@ describe('findSpeedModes', () => {
 
   test('should apply the firmware version to choose a different set of speeds', () => {
     expect(findSpeedModes('roborock.vacuum.s5', '3.5.7')).toStrictEqual(MODELS['roborock.vacuum.s5'][1]);
+  });
+});
+
+describe('resolveSpeedModes', () => {
+  const device = (fanSpeeds?: Array<{ value: number; name: string }>, waterBoxModes?: Array<{ value: number; name: string }>) =>
+    ({
+      fanSpeeds: fanSpeeds && jest.fn(async () => fanSpeeds),
+      waterBoxModes: waterBoxModes && jest.fn(async () => waterBoxModes),
+    }) as unknown as MiioDevice;
+
+  test('models listed in MODELS keep the local definitions', async () => {
+    const d = device([{ value: 1, name: 'Ignored' }]);
+    await expect(resolveSpeedModes(d, 'roborock.vacuum.s5', '3.5.7')).resolves.toStrictEqual(MODELS['roborock.vacuum.s5'][1]);
+    expect(d.fanSpeeds).not.toHaveBeenCalled();
+  });
+
+  test('falls back to findSpeedModes when node-miio does not provide the modes (older versions)', async () => {
+    await expect(resolveSpeedModes(device(), 'xiaomi.vacuum.d110ch')).resolves.toStrictEqual(MODELS.default[0]);
+  });
+
+  test('falls back to findSpeedModes when node-miio reports no fan speeds', async () => {
+    await expect(resolveSpeedModes(device([]), 'xiaomi.vacuum.d110ch')).resolves.toStrictEqual(MODELS.default[0]);
+  });
+
+  test('falls back to findSpeedModes when node-miio fails', async () => {
+    const d = { fanSpeeds: jest.fn(async () => Promise.reject(new Error('boom'))) } as unknown as MiioDevice;
+    await expect(resolveSpeedModes(d, 'dreame.vacuum.p2008')).resolves.toStrictEqual(MODELS.dreame[0]);
+  });
+
+  test('uses the modes reported by node-miio for other models (e.g. MIoT)', async () => {
+    const modes = await resolveSpeedModes(
+      device(
+        [
+          { value: 0, name: 'Silent' },
+          { value: 1, name: 'Basic' },
+          { value: 2, name: 'Strong' },
+          { value: 3, name: 'Full Speed' },
+        ],
+        [
+          { value: 1, name: 'Level1' },
+          { value: 2, name: 'Level2' },
+          { value: 3, name: 'Level3' },
+        ],
+      ),
+      'xiaomi.vacuum.d110ch',
+    );
+    expect(modes.speed.map(({ miLevel, name, label }) => [miLevel, name, label])).toStrictEqual([
+      [UNSUPPORTED_LEVEL, 'Off', RvcCleanMode.ModeTag.Vacuum],
+      [0, 'Silent', RvcCleanMode.ModeTag.LowNoise],
+      [1, 'Basic', RvcCleanMode.ModeTag.Min],
+      [2, 'Strong', RvcCleanMode.ModeTag.Day],
+      [3, 'Full Speed', RvcCleanMode.ModeTag.Max],
+    ]);
+    // No "Off" water level: it can't be turned off
+    expect(modes.waterspeed?.map(({ miLevel, name, label }) => [miLevel, name, label])).toStrictEqual([
+      [UNSUPPORTED_LEVEL, 'Off', RvcCleanMode.ModeTag.Mop],
+      [1, 'Level1', RvcCleanMode.ModeTag.Min],
+      [2, 'Level2', RvcCleanMode.ModeTag.Day],
+      [3, 'Level3', RvcCleanMode.ModeTag.Max],
+    ]);
+  });
+});
+
+describe('fromNodeMiioModes', () => {
+  test('uses the "Off" water level when available', () => {
+    const { waterspeed } = fromNodeMiioModes(
+      [{ value: 1, name: 'Quiet' }],
+      [
+        { value: 200, name: 'Off' },
+        { value: 201, name: 'Light' },
+      ],
+    );
+    expect(waterspeed?.map(({ miLevel, name }) => [miLevel, name])).toStrictEqual([
+      [200, 'Off'],
+      [201, 'Light'],
+    ]);
+  });
+
+  test('labels unknown names by position', () => {
+    const { speed } = fromNodeMiioModes(
+      [
+        { value: 0, name: 'Whisper' },
+        { value: 1, name: 'Normal-ish' },
+        { value: 2, name: 'Hurricane' },
+      ],
+      [],
+    );
+    expect(speed.slice(1).map(({ label }) => label)).toStrictEqual([RvcCleanMode.ModeTag.LowNoise, RvcCleanMode.ModeTag.Day, RvcCleanMode.ModeTag.Max]);
+  });
+
+  test('no water levels', () => {
+    expect(fromNodeMiioModes([{ value: 1, name: 'Quiet' }], []).waterspeed).toBeUndefined();
+  });
+});
+
+describe('isSupportedLevel', () => {
+  test.each([
+    [0, true],
+    [105, true],
+    [-1, true],
+    [UNSUPPORTED_LEVEL, false],
+    [undefined, false],
+  ])('%p → %p', (level, expected) => {
+    expect(isSupportedLevel(level)).toBe(expected);
   });
 });

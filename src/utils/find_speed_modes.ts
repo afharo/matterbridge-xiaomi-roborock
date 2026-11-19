@@ -1,6 +1,25 @@
 import semver from 'semver';
+import { RvcCleanMode } from 'matterbridge/matter/clusters';
+import type { MiioDevice, MiioVacuumMode } from 'node-miio';
 
 import { MODELS } from '../models/models.js';
+import type { ModelDefinition, ModesWithMiLevel } from '../models/types.js';
+
+/**
+ * Placeholder level for "vacuum off" / "water off" when the device doesn't support it (e.g. MIoT devices).
+ * Use {@link isSupportedLevel} before sending it to the device.
+ */
+export const UNSUPPORTED_LEVEL = Number.NaN;
+
+/**
+ * Whether a level can be sent to the device.
+ *
+ * @param {number | undefined} level The level
+ * @returns {boolean} `true` if it's a real level
+ */
+export function isSupportedLevel(level: number | undefined): level is number {
+  return typeof level === 'number' && !Number.isNaN(level);
+}
 
 /**
  * Finds the speed modes that apply to the current model and firmware version
@@ -21,4 +40,110 @@ export function findSpeedModes(model: string, firmware?: string) {
       return option;
     }
   }, baseModel[0]);
+}
+
+/**
+ * Resolves the speed modes of a device:
+ * - Models listed in `MODELS` keep using the local definitions (unchanged behaviour).
+ * - Any other model uses the fan speeds / water levels reported by `node-miio` (e.g. from the device's MIoT spec).
+ * - Falls back to {@link findSpeedModes} if `node-miio` doesn't report any fan speed.
+ *
+ * @param {MiioDevice} device The connected device
+ * @param {string} model The Robot Vacuum's model
+ * @param {string?} firmware The firmware's version
+ * @returns {Promise<ModelDefinition>} The speed modes that apply to the robot.
+ */
+export async function resolveSpeedModes(device: MiioDevice, model: string, firmware?: string): Promise<ModelDefinition> {
+  if (MODELS[model] || typeof device.fanSpeeds !== 'function') {
+    return findSpeedModes(model, firmware);
+  }
+
+  const [fanSpeeds, waterBoxModes] = await Promise.all([
+    device.fanSpeeds().catch(() => []),
+    typeof device.waterBoxModes === 'function' ? device.waterBoxModes().catch(() => []) : Promise.resolve([]),
+  ]);
+  if (fanSpeeds.length === 0) {
+    return findSpeedModes(model, firmware);
+  }
+  return fromNodeMiioModes(fanSpeeds, waterBoxModes);
+}
+
+/** Labels by (lowercased) mode name, matching the ones used in `models/` */
+const SPEED_LABELS: Record<string, RvcCleanMode.ModeTag> = {
+  'quiet': RvcCleanMode.ModeTag.LowNoise,
+  'silent': RvcCleanMode.ModeTag.LowNoise,
+  'silence': RvcCleanMode.ModeTag.LowNoise,
+  'gentle': RvcCleanMode.ModeTag.LowEnergy,
+  'soft': RvcCleanMode.ModeTag.LowEnergy,
+  'balanced': RvcCleanMode.ModeTag.Min,
+  'standard': RvcCleanMode.ModeTag.Min,
+  'basic': RvcCleanMode.ModeTag.Min,
+  'default': RvcCleanMode.ModeTag.Min,
+  'medium': RvcCleanMode.ModeTag.Day,
+  'middle': RvcCleanMode.ModeTag.Day,
+  'strong': RvcCleanMode.ModeTag.Day,
+  'turbo': RvcCleanMode.ModeTag.Max,
+  'max': RvcCleanMode.ModeTag.Max,
+  'full speed': RvcCleanMode.ModeTag.Max,
+  'max+': RvcCleanMode.ModeTag.DeepClean,
+  'custom': RvcCleanMode.ModeTag.Vacation,
+  'mop': RvcCleanMode.ModeTag.Mop,
+  'auto': RvcCleanMode.ModeTag.Auto,
+};
+
+const WATER_LABELS: Record<string, RvcCleanMode.ModeTag> = {
+  light: RvcCleanMode.ModeTag.Min,
+  low: RvcCleanMode.ModeTag.Min,
+  level1: RvcCleanMode.ModeTag.Min,
+  medium: RvcCleanMode.ModeTag.Day,
+  middle: RvcCleanMode.ModeTag.Day,
+  level2: RvcCleanMode.ModeTag.Day,
+  high: RvcCleanMode.ModeTag.Max,
+  level3: RvcCleanMode.ModeTag.Max,
+  custom: RvcCleanMode.ModeTag.Vacation,
+};
+
+const OFF_NAMES = new Set(['off', 'close', 'closed', 'level0']);
+
+/**
+ * Picks a label by name, or by position when the name is unknown (first: low noise, last: max, others: day).
+ *
+ * @param {Record<string, RvcCleanMode.ModeTag>} labels Labels by name
+ * @param {string} name The mode name
+ * @param {number} index The position of the mode
+ * @param {number} count How many modes there are
+ * @returns {RvcCleanMode.ModeTag} The label
+ */
+function labelFor(labels: Record<string, RvcCleanMode.ModeTag>, name: string, index: number, count: number): RvcCleanMode.ModeTag {
+  const label = labels[name.trim().toLowerCase()];
+  if (label !== undefined) return label;
+  if (index === 0) return labels === SPEED_LABELS ? RvcCleanMode.ModeTag.LowNoise : RvcCleanMode.ModeTag.Min;
+  if (index === count - 1) return RvcCleanMode.ModeTag.Max;
+  return RvcCleanMode.ModeTag.Day;
+}
+
+/**
+ * Converts the modes reported by `node-miio` to a {@link ModelDefinition}.
+ * The first entry of each list is the "off" level (as in `models/`): if the device has no such level, {@link UNSUPPORTED_LEVEL} is used.
+ *
+ * @param {MiioVacuumMode[]} fanSpeeds The fan speeds
+ * @param {MiioVacuumMode[]} waterBoxModes The water levels (empty if not supported)
+ * @returns {ModelDefinition} The speed modes
+ */
+export function fromNodeMiioModes(fanSpeeds: MiioVacuumMode[], waterBoxModes: MiioVacuumMode[]): ModelDefinition {
+  const speed: ModesWithMiLevel[] = [
+    { miLevel: UNSUPPORTED_LEVEL, name: 'Off', label: RvcCleanMode.ModeTag.Vacuum },
+    ...fanSpeeds.map(({ value, name }, index) => ({ miLevel: value, name, label: labelFor(SPEED_LABELS, name, index, fanSpeeds.length) })),
+  ];
+  if (waterBoxModes.length === 0) {
+    return { speed };
+  }
+
+  const off = waterBoxModes.find(({ name }) => OFF_NAMES.has(name.trim().toLowerCase()));
+  const levels = waterBoxModes.filter((mode) => mode !== off);
+  const waterspeed: ModesWithMiLevel[] = [
+    { miLevel: off ? off.value : UNSUPPORTED_LEVEL, name: 'Off', label: RvcCleanMode.ModeTag.Mop },
+    ...levels.map(({ value, name }, index) => ({ miLevel: value, name, label: labelFor(WATER_LABELS, name, index, levels.length) })),
+  ];
+  return { speed, waterspeed };
 }
