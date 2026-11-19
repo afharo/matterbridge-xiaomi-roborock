@@ -10,7 +10,16 @@ declare module 'node-miio' {
   export interface MiioDeviceOptions {
     address: string;
     token: string;
+    /** Where the debug messages of this device go (since node-miio 0.5.0; ignored by older versions) */
+    logger?: MiioLogger;
   }
+
+  export interface MiioLogger {
+    debug(message: string, ...args: unknown[]): void;
+  }
+
+  /** Where the debug messages not tied to a device go (since node-miio 0.5.0) */
+  export const configureLogging: ((options: { logger?: MiioLogger }) => void) | undefined;
 
   export interface MiioDevice {
     miioModel?: string;

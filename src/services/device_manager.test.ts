@@ -1,10 +1,10 @@
-import './device_manager.test.mock.js';
 import { jest } from '@jest/globals';
 import { firstValueFrom } from 'rxjs';
 
 import { getLoggerMock } from '../utils/logger.mock.js';
 import { miio } from '../test.mocks.js';
 
+import { miioMock } from './device_manager.test.mock.js';
 import type { DeviceManager as IDeviceManager } from './device_manager.js';
 
 describe('DeviceManager', () => {
@@ -16,6 +16,24 @@ describe('DeviceManager', () => {
     // Need the dynamic import to mock miio
     const imported = await import('./device_manager.js');
     DeviceManager = imported.DeviceManager;
+  });
+
+  describe('node-miio logger', () => {
+    test("passes the plugin's logger to node-miio", async () => {
+      jest.clearAllMocks();
+      new DeviceManager(log, { ip: '192.168.0.1', token: 'token' });
+      await new Promise(process.nextTick);
+      expect(miioMock.device).toHaveBeenCalledWith({
+        address: '192.168.0.1',
+        token: 'token',
+        logger: { debug: expect.any(Function) },
+      });
+      expect(miioMock.configureLogging).toHaveBeenCalledWith({ logger: { debug: expect.any(Function) } });
+
+      const [{ logger }] = miioMock.device.mock.calls[0] as [{ logger: { debug: (msg: string) => void } }];
+      logger.debug('[thing:miio:1234] <- Message');
+      expect(log.debug).toHaveBeenCalledWith('[thing:miio:1234] <- Message');
+    });
   });
 
   describe('constructor', () => {
