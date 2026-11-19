@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **The plugin stopped reacting to the robot after a single failure**: an error while handling a state change or a robot error (e.g. a failed attribute update) ended the stream, so no later change was handled, and RxJS rethrew it as an uncaught exception. Each failure is now logged and handled on its own.
 - **Error reasons**: the robot's errors were always reported as "unable to complete operation", with no details. node-miio emits them as `{ id, description }`, not `{ code, message }`. Clearing the error when the robot recovers also needs [afharo/node-miio#39](https://github.com/afharo/node-miio/pull/39).
 
 ### Changed
