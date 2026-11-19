@@ -8,6 +8,7 @@ import { deviceManagerMock, findSpeedModesMock } from './vacuum_device_accessory
 import type { VacuumDeviceAccessory } from './vacuum_device_accessory.js';
 import { speedmodes } from './models/speedmodes.js';
 import { watermodes } from './models/watermodes.js';
+import { fromNodeMiioModes } from './utils/find_speed_modes.js';
 
 /**
  * Removes the `undefined` properties, so snapshots don't depend on the matterbridge version
@@ -284,6 +285,37 @@ describe('VacuumDeviceAccessory', () => {
             await Promise.resolve(); // Just waiting for the pending promises to run
             expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(105);
             expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledWith(200);
+          });
+          test('on MIoT devices, mop modes only set the water level (the vacuum cannot be turned off)', async () => {
+            findSpeedModesMock.mockReturnValueOnce(
+              fromNodeMiioModes(
+                [
+                  { value: 0, name: 'Silent' },
+                  { value: 1, name: 'Basic' },
+                ],
+                [
+                  { value: 1, name: 'Level1' },
+                  { value: 2, name: 'Level2' },
+                ],
+              ),
+            );
+
+            const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+            deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+            endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+
+            // Modes: 1 = Silent Vacuum, 2 = Basic Vacuum, 3 = Level1 Mop, 4 = Level2 Mop
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode: 4 } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
+            await Promise.resolve();
+            await Promise.resolve();
+            expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
+            expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledWith(2);
+
+            // Vacuum modes don't try to turn the water off
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode: 1 } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
+            await Promise.resolve();
+            expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(0);
+            expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledTimes(1);
           });
         });
 
