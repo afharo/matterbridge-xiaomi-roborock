@@ -331,12 +331,18 @@ export class VacuumDeviceAccessory {
   public async postRegister() {
     this.deviceManager.stateChanged$
       .pipe(
+        // Failures are caught per event: an error in `mergeMap` would end the stream (no later change would be handled)
+        // and RxJS would rethrow it as an uncaught exception.
         mergeMap(async ({ key, value }) => {
           this.log.debug(`Device state changed: ${key} = ${value}`);
 
           if (key in this.stateChangedHandlers) {
-            // @ts-expect-error key is a string, this.stateChangedHandlers is not an index signature, and value is unknown
-            await this.stateChangedHandlers[key](value);
+            try {
+              // @ts-expect-error key is a string, this.stateChangedHandlers is not an index signature, and value is unknown
+              await this.stateChangedHandlers[key](value);
+            } catch (error) {
+              this.log.error(`Failed to handle the state change ${key} = ${value}: ${error}`);
+            }
           }
         }),
         takeUntil(this.stop$),
@@ -345,7 +351,13 @@ export class VacuumDeviceAccessory {
 
     this.deviceManager.errorChanged$
       .pipe(
-        mergeMap(async (error) => this.updateOperationalError(error as MiioError | null)),
+        mergeMap(async (error) => {
+          try {
+            await this.updateOperationalError(error as MiioError | null);
+          } catch (err) {
+            this.log.error(`Failed to report the robot's error: ${err}`);
+          }
+        }),
         takeUntil(this.stop$),
       )
       .subscribe();

@@ -1012,6 +1012,21 @@ describe('VacuumDeviceAccessory', () => {
         });
       });
 
+      test('keeps reporting errors after a failure', async () => {
+        updateAttributeSpy.mockRejectedValueOnce(new Error('boom'));
+        deviceManagerMock.errorChanged$.next({ id: 8, description: 'Device stuck' });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("Failed to report the robot's error: Error: boom"));
+
+        updateAttributeSpy.mockClear();
+        deviceManagerMock.errorChanged$.next({ id: 3, description: 'Wheels are stuck' });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', {
+          errorStateId: RvcOperationalState.ErrorState.WheelsJammed,
+          errorStateDetails: 'Wheels are stuck',
+        });
+      });
+
       test('clears the error', async () => {
         (deviceManagerMock.errorChanged$ as unknown as Subject<null>).next(null);
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1033,6 +1048,16 @@ describe('VacuumDeviceAccessory', () => {
         deviceManagerMock.stateChanged$.next({ key: 'state', value });
         await new Promise((resolve) => setTimeout(resolve, 0));
       };
+
+      test('keeps handling state changes after a failure', async () => {
+        updateAttributeSpy.mockRejectedValueOnce(new Error('boom'));
+        await emitState('cleaning');
+        expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Failed to handle the state change state = cleaning: Error: boom'));
+
+        updateAttributeSpy.mockClear();
+        await emitState('returning');
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.SeekingCharger);
+      });
 
       test.each([
         ['dust-collection', RvcOperationalState.OperationalState.EmptyingDustBin],
