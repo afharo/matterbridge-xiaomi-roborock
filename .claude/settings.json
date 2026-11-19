@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "allow": ["Bash(gh release create:*)", "Bash(gh pr merge:* --auto --squash)"]
+  }
+}
