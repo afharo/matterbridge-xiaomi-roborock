@@ -36,6 +36,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Added
+
+- **Error reasons**: the robot's errors are reported with a specific Matter error state (stuck, wheels or brush jammed, dust bin missing or full, water tank empty or missing, mop pad missing, low battery, sensor obscured, no-go zone…) and the robot's message as details, so controllers can tell _why_ it stopped. The error is cleared when the robot recovers.
+- **Dock and maintenance states**: emptying the dust bin, washing or drying the mop, filling the water tank and building a map are reported with their own operational states (Matter RVC Operational State revision 4).
+- **Skip area**: skipping a room while cleaning rooms carries on with the remaining ones (or sends the robot home if it was the last one).
+- **Operation completion**: cleaning sessions started outside Matter (Mi Home app, schedules, the robot's buttons) now emit the "operation completed" event too, so automations work for every run.
+- **Multi-floor maps**: when the robot has more than one saved map, the maps are exposed and the rooms are assigned to the current one. Only the rooms of the current map are listed: the robot doesn't report the other floors' rooms ([#212](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/212)).
+- **Vacuum & mop / Vacuum then mop** clean modes on MIoT vacuums that support them (requires node-miio with cleaning types). On those devices, the vacuum and mop modes also switch the robot to vacuum-only or mop-only.
+
 ## [v0.8.0] - 2026-11-19
 
 ### Added

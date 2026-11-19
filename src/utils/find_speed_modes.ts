@@ -3,7 +3,7 @@ import { RvcCleanMode } from 'matterbridge/matter/clusters';
 import type { MiioDevice, MiioVacuumMode } from 'node-miio';
 
 import { MODELS } from '../models/models.js';
-import type { ModelDefinition, ModesWithMiLevel } from '../models/types.js';
+import type { CleaningTypes, ModelDefinition, ModesWithMiLevel } from '../models/types.js';
 
 /**
  * Placeholder level for "vacuum off" / "water off" when the device doesn't support it (e.g. MIoT devices).
@@ -65,7 +65,27 @@ export async function resolveSpeedModes(device: MiioDevice, model: string, firmw
   if (fanSpeeds.length === 0) {
     return findSpeedModes(model, firmware);
   }
-  return fromNodeMiioModes(fanSpeeds, waterBoxModes);
+  const definition = fromNodeMiioModes(fanSpeeds, waterBoxModes);
+  const cleaningTypes = classifyCleaningTypes(typeof device.cleaningTypes === 'function' ? await device.cleaningTypes().catch(() => []) : []);
+  return Object.keys(cleaningTypes).length > 0 ? { ...definition, cleaningTypes } : definition;
+}
+
+/**
+ * Classifies the cleaning types reported by node-miio (from the MIoT spec, e.g. `Sweep`, `Mop`, `Sweep Mop`,
+ * `Sweep Before Mopping`, `Sweep And Mop`).
+ *
+ * @param {MiioVacuumMode[]} cleaningTypes The cleaning types
+ * @returns {CleaningTypes} The values for each kind of cleaning
+ */
+export function classifyCleaningTypes(cleaningTypes: MiioVacuumMode[]): CleaningTypes {
+  const result: CleaningTypes = {};
+  for (const { value, name } of cleaningTypes) {
+    const sweep = /sweep|vacuum/i.test(name);
+    const mop = /mop/i.test(name);
+    const kind: keyof CleaningTypes | undefined = sweep && mop ? (/before|then|after/i.test(name) ? 'vacuumThenMop' : 'vacuumAndMop') : sweep ? 'vacuum' : mop ? 'mop' : undefined;
+    if (kind && result[kind] === undefined) result[kind] = value;
+  }
+  return result;
 }
 
 /** Labels by (lowercased) mode name, matching the ones used in `models/` */

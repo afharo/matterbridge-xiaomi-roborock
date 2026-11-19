@@ -1,6 +1,7 @@
+import { Subject } from 'rxjs';
 import { jest } from '@jest/globals';
 import type { Logger } from 'matterbridge/logger';
-import { RoboticVacuumCleaner } from 'matterbridge/devices';
+import { MatterbridgeRvcCleanModeServer, RoboticVacuumCleaner } from 'matterbridge/devices';
 import { PowerSource, RvcCleanMode, RvcOperationalState, RvcRunMode, ServiceArea } from 'matterbridge/matter/clusters';
 import { MatterbridgeServiceAreaServer, type CommandHandlerPayload } from 'matterbridge';
 
@@ -66,6 +67,67 @@ describe('VacuumDeviceAccessory', () => {
       deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
 
       await expect(endpointPromise).resolves.toBeInstanceOf(RoboticVacuumCleaner);
+    });
+
+    describe('multi-floor maps', () => {
+      const connect = async () => {
+        const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        const endpoint = await endpointPromise;
+        return endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps)) as {
+          supportedMaps?: ServiceArea.Map[];
+          supportedAreas?: ServiceArea.Area[];
+        };
+      };
+
+      beforeEach(() => {
+        deviceManagerMock.device.getRoomMap.mockResolvedValue([
+          ['16', 'Kitchen'],
+          ['17', 'Bedroom'],
+        ]);
+      });
+
+      afterEach(() => {
+        delete (deviceManagerMock.device as { getMaps?: unknown }).getMaps;
+      });
+
+      test('exposes the maps and assigns the areas to the current one', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => [
+          { id: 0, name: 'Ground floor' },
+          { id: 1, name: '' },
+        ]);
+        deviceManagerMock.device.call.mockResolvedValueOnce([{ map_status: 7 }] as never); // 7 >> 2 = map 1
+        const options = await connect();
+        expect(options.supportedMaps).toEqual([
+          { mapId: 0, name: 'Ground floor' },
+          { mapId: 1, name: 'Floor 2' },
+        ]);
+        expect(options.supportedAreas?.map(({ mapId }) => mapId)).toEqual([1, 1]);
+      });
+
+      test('skips the maps when there is only one', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => [{ id: 0, name: 'Home' }]);
+        const options = await connect();
+        expect(options.supportedMaps ?? []).toEqual([]);
+        expect(options.supportedAreas?.map(({ mapId }) => mapId)).toEqual([null, null]);
+      });
+
+      test('skips the maps when the current map is unknown', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => [
+          { id: 0, name: 'A' },
+          { id: 1, name: 'B' },
+        ]);
+        deviceManagerMock.device.call.mockResolvedValueOnce([{ map_status: 3 << 2 }] as never); // map 3 doesn't exist
+        const options = await connect();
+        expect(options.supportedMaps ?? []).toEqual([]);
+        expect(options.supportedAreas?.map(({ mapId }) => mapId)).toEqual([null, null]);
+      });
+
+      test('skips the maps when they cannot be retrieved', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => Promise.reject(new Error('unknown method')));
+        const options = await connect();
+        expect(options.supportedMaps ?? []).toEqual([]);
+      });
     });
 
     describe('serviceAreas', () => {
@@ -319,6 +381,61 @@ describe('VacuumDeviceAccessory', () => {
           });
         });
 
+        describe('RvcCleanMode.changeToMode with cleaning types (MIoT)', () => {
+          beforeEach(async () => {
+            findSpeedModesMock.mockReturnValueOnce({
+              ...fromNodeMiioModes(
+                [
+                  { value: 0, name: 'Silent' },
+                  { value: 1, name: 'Basic' },
+                ],
+                [{ value: 2, name: 'Level2' }],
+              ),
+              cleaningTypes: { vacuum: 1, mop: 2, vacuumAndMop: 3, vacuumThenMop: 4 },
+            });
+            deviceManagerMock.device.setCleaningType = jest.fn(async () => undefined);
+            const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+            deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+            endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+          });
+
+          afterEach(() => {
+            delete (deviceManagerMock.device as { setCleaningType?: unknown }).setCleaningType;
+          });
+
+          // Modes: 1 = Silent Vacuum, 2 = Basic Vacuum, 3 = Level2 Mop, 4 = Vacuum & Mop, 5 = Vacuum then Mop
+          const changeTo = async (newMode: number) => {
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          };
+
+          test('exposes the combined modes', () => {
+            const options = endpoint.behaviors.optionsFor(MatterbridgeRvcCleanModeServer) as { supportedModes: RvcCleanMode.ModeOption[] };
+            expect(options.supportedModes.map(({ label }) => label)).toEqual(['Silent Vacuum', 'Basic Vacuum', 'Level2 Mop', 'Vacuum & Mop', 'Vacuum then Mop']);
+            expect(options.supportedModes[4].modeTags).toEqual([{ value: RvcCleanMode.ModeTag.VacuumThenMop }]);
+          });
+
+          test('vacuum modes set the vacuum-only cleaning type and the fan speed', async () => {
+            await changeTo(2);
+            expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(1);
+            expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(1);
+          });
+
+          test('mop modes set the mop-only cleaning type and the water level', async () => {
+            await changeTo(3);
+            expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(2);
+            expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledWith(2);
+            expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
+          });
+
+          test('vacuum then mop only sets the cleaning type', async () => {
+            await changeTo(5);
+            expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(4);
+            expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
+            expect(deviceManagerMock.device.setWaterBoxMode).not.toHaveBeenCalled();
+          });
+        });
+
         describe('RvcRunMode.changeToMode', () => {
           test('on Idle, it does nothing', async () => {
             endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 1 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
@@ -394,6 +511,42 @@ describe('VacuumDeviceAccessory', () => {
         test('triggers the findme action', async () => {
           endpoint.commandHandler.executeHandler('identify', { request: {} } as unknown as CommandHandlerPayload<'identify'>);
           expect(deviceManagerMock.device.find).toHaveBeenCalled();
+        });
+      });
+
+      describe('skipArea', () => {
+        const startRoomCleaning = async (areas: number[]) => {
+          jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce(areas);
+          await endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 2 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
+          deviceManagerMock.device.cleanRooms.mockClear();
+        };
+        const skip = (skippedArea: number) => endpoint.commandHandler.executeHandler('skipArea', { request: { skippedArea } } as unknown as CommandHandlerPayload<'skipArea'>);
+
+        test('carries on with the remaining areas', async () => {
+          await startRoomCleaning([16, 17, 18]);
+          await skip(16);
+          expect(deviceManagerMock.device.cleanRooms).toHaveBeenCalledWith([17, 18]);
+          await skip(18);
+          expect(deviceManagerMock.device.cleanRooms).toHaveBeenLastCalledWith([17]);
+        });
+
+        test('goes home when the last area is skipped', async () => {
+          await startRoomCleaning([16]);
+          await skip(16);
+          expect(deviceManagerMock.device.cleanRooms).not.toHaveBeenCalled();
+          expect(deviceManagerMock.device.activateCharging).toHaveBeenCalled();
+        });
+
+        test('ignores areas that are not being cleaned', async () => {
+          await startRoomCleaning([16, 17]);
+          await skip(99);
+          expect(deviceManagerMock.device.cleanRooms).not.toHaveBeenCalled();
+          expect(deviceManagerMock.device.activateCharging).not.toHaveBeenCalled();
+        });
+
+        test('ignores it when not room cleaning', async () => {
+          await skip(16);
+          expect(deviceManagerMock.device.cleanRooms).not.toHaveBeenCalled();
         });
       });
 
@@ -689,6 +842,82 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeState', PowerSource.BatChargeState.IsCharging);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Charging);
         });
+      });
+    });
+
+    describe('operational errors', () => {
+      beforeEach(async () => {
+        await deviceAccessory.postRegister();
+        updateAttributeSpy.mockClear();
+      });
+
+      test('reports the error state and details', async () => {
+        deviceManagerMock.errorChanged$.next({ code: 8, message: 'Device stuck' });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', {
+          // The model is not a Roborock in the tests, so the message is used
+          errorStateId: RvcOperationalState.ErrorState.Stuck,
+          errorStateDetails: 'Device stuck',
+        });
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Error);
+      });
+
+      test('maps the message for non-Roborock models', async () => {
+        deviceManagerMock.errorChanged$.next({ code: 3, message: 'Wheels are stuck' });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', {
+          errorStateId: RvcOperationalState.ErrorState.WheelsJammed,
+          errorStateDetails: 'Wheels are stuck',
+        });
+      });
+
+      test('clears the error', async () => {
+        (deviceManagerMock.errorChanged$ as unknown as Subject<null>).next(null);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', { errorStateId: RvcOperationalState.ErrorState.NoError });
+        expect(updateAttributeSpy).not.toHaveBeenCalledWith(RvcOperationalState, 'operationalState', expect.anything());
+      });
+    });
+
+    describe('auxiliary states and operation tracking', () => {
+      const operationalStateServer = { beginOperation: jest.fn(), completeOperation: jest.fn() };
+
+      beforeEach(async () => {
+        jest.spyOn(endpoint, 'act').mockImplementation(((actor: (agent: unknown) => unknown) => actor({ get: () => operationalStateServer })) as unknown as typeof endpoint.act);
+        await deviceAccessory.postRegister();
+        updateAttributeSpy.mockClear();
+      });
+
+      const emitState = async (value: string) => {
+        deviceManagerMock.stateChanged$.next({ key: 'state', value });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      };
+
+      test.each([
+        ['dust-collection', RvcOperationalState.OperationalState.EmptyingDustBin],
+        ['drying', RvcOperationalState.OperationalState.CleaningMop],
+        ['building', RvcOperationalState.OperationalState.UpdatingMaps],
+      ])('maps %p to %p', async (state, expected) => {
+        await emitState(state);
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', expected);
+        expect(logger.warn).not.toHaveBeenCalled();
+      });
+
+      test('tracks operations started outside Matter (for the OperationCompletion event)', async () => {
+        await emitState('cleaning');
+        expect(operationalStateServer.beginOperation).toHaveBeenCalledTimes(1);
+        expect(operationalStateServer.completeOperation).not.toHaveBeenCalled();
+
+        await emitState('returning');
+        expect(operationalStateServer.completeOperation).toHaveBeenCalledTimes(1);
+      });
+
+      test('does not fail when tracking the operation fails', async () => {
+        jest.spyOn(endpoint, 'act').mockImplementation(() => {
+          throw new Error('Endpoint is in the inactive state');
+        });
+        await emitState('cleaning');
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Running);
       });
     });
   });
