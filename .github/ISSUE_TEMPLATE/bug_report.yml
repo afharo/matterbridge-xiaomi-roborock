@@ -1,0 +1,59 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! The maintainer can't test most models, so the details below are what makes a fix possible.
+        See [CONTRIBUTING.md](https://github.com/afharo/matterbridge-xiaomi-roborock/blob/main/CONTRIBUTING.md) for how to get them.
+        **Remove your token, serial number, MAC and IP addresses** before posting.
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: '`npx node-miio@latest protocol call <ip> miIO.info --token <token>` (the `model` field)'
+      placeholder: roborock.vacuum.a75
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      description: "In the plugin's logs (`Firmware: ...`), or the `fw_ver` field of `miIO.info`"
+      placeholder: 4.3.5_1234
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+      placeholder: 0.9.0
+    validations:
+      required: true
+  - type: input
+    id: matterbridge
+    attributes:
+      label: Matterbridge version and mode
+      placeholder: 'e.g. 3.3.0, as a service / docker'
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Debug logs
+      description: "With `debug` enabled in the plugin's config. See [how to download them](https://github.com/Luligu/matterbridge/blob/main/README.md#how-to-send-the-debug-log-files)."
+      render: shell
+    validations:
+      required: true
+  - type: checkboxes
+    id: beta
+    attributes:
+      label: Testing
+      options:
+        - label: I can test a beta with the fix on my vacuum.
