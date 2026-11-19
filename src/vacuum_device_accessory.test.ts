@@ -10,6 +10,17 @@ import { speedmodes } from './models/speedmodes.js';
 import { watermodes } from './models/watermodes.js';
 import { fromNodeMiioModes } from './utils/find_speed_modes.js';
 
+/**
+ * Removes the `undefined` properties, so snapshots don't depend on the matterbridge version
+ * (newer versions add optional attributes, e.g. `progress`, to the ServiceArea options).
+ *
+ * @param {unknown} value The value to clean up
+ * @returns {unknown} A copy without `undefined` properties
+ */
+function withoutUndefined(value: unknown): unknown {
+  return JSON.parse(JSON.stringify(value));
+}
+
 describe('VacuumDeviceAccessory', () => {
   let deviceAccessory: VacuumDeviceAccessory;
   let logger: Logger;
@@ -70,7 +81,7 @@ describe('VacuumDeviceAccessory', () => {
 
         const endpoint = await endpointPromise;
         expect(endpoint).toBeInstanceOf(RoboticVacuumCleaner);
-        expect(endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps))).toMatchInlineSnapshot(`
+        expect(withoutUndefined(endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps)))).toMatchInlineSnapshot(`
           {
             "currentArea": 16,
             "estimatedEndTime": null,
@@ -121,7 +132,7 @@ describe('VacuumDeviceAccessory', () => {
 
         const endpoint = await endpointPromise;
         expect(endpoint).toBeInstanceOf(RoboticVacuumCleaner);
-        expect(endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps))).toMatchInlineSnapshot(`
+        expect(withoutUndefined(endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps)))).toMatchInlineSnapshot(`
           {
             "currentArea": 16,
             "estimatedEndTime": null,
@@ -166,7 +177,7 @@ describe('VacuumDeviceAccessory', () => {
 
         const endpoint = await endpointPromise;
         expect(endpoint).toBeInstanceOf(RoboticVacuumCleaner);
-        expect(endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps))).toMatchInlineSnapshot(`
+        expect(withoutUndefined(endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps)))).toMatchInlineSnapshot(`
           {
             "currentArea": 1,
             "estimatedEndTime": null,
