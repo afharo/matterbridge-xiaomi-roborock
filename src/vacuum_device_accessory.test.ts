@@ -49,6 +49,87 @@ describe('VacuumDeviceAccessory', () => {
     jest.clearAllMocks();
   });
 
+  describe('offline robot at startup (#248)', () => {
+    const snapshot = {
+      model: 'roborock.vacuum.s5',
+      serialNumber: 'saved-serial',
+      firmware: '3.5.8',
+      modelSpeeds: { speed: speedmodes.gen4 },
+      serviceAreas: [],
+      supportedMaps: [],
+    };
+    const createStore = (saved?: unknown) => ({
+      get: jest.fn(async () => saved),
+      set: jest.fn(async () => undefined),
+    });
+    const create = async (store: ReturnType<typeof createStore>) => {
+      deviceAccessory.stop();
+      const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
+      deviceAccessory = new VacuumDeviceAccessory({ name: 'Test Vacuum', ip: '1.1.1.1' }, logger, store);
+    };
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    test('saves the device info after connecting', async () => {
+      const store = createStore();
+      await create(store);
+      const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+      deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+      await expect(endpointPromise).resolves.toBeInstanceOf(RoboticVacuumCleaner);
+      expect(store.set).toHaveBeenCalledWith('device-snapshot:1.1.1.1:Test Vacuum', expect.objectContaining({ serialNumber: 'serial-number', firmware: '1.0.0' }));
+    });
+
+    test('uses the saved info when the robot is not reachable', async () => {
+      jest.useFakeTimers();
+      const store = createStore(snapshot);
+      await create(store);
+      const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+      await jest.advanceTimersByTimeAsync(15_000);
+      const endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+      expect(endpoint).toBeInstanceOf(RoboticVacuumCleaner);
+      expect(endpoint.serialNumber).toBe('saved-serial');
+      expect(endpoint.productName).toBe('roborock.vacuum.s5');
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('using the info saved from the last connection'));
+    });
+
+    test('refreshes the saved info once the robot is back online', async () => {
+      jest.useFakeTimers();
+      const store = createStore(snapshot);
+      await create(store);
+      const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+      await jest.advanceTimersByTimeAsync(15_000);
+      await endpointPromise;
+      expect(store.set).not.toHaveBeenCalled();
+
+      deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+      await jest.advanceTimersByTimeAsync(0);
+      expect(store.set).toHaveBeenCalledWith('device-snapshot:1.1.1.1:Test Vacuum', expect.objectContaining({ serialNumber: 'serial-number' }));
+      expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('restart the plugin to apply them'));
+    });
+
+    test('skips the robot when it was never connected and it is not reachable', async () => {
+      jest.useFakeTimers();
+      await create(createStore());
+      const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+      await jest.advanceTimersByTimeAsync(60_000);
+      await expect(endpointPromise).resolves.toBeUndefined();
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Skipping it so the other devices and plugins can start'));
+      expect(deviceManagerMock.stop).toHaveBeenCalled();
+    });
+
+    test('does not fail when the store fails', async () => {
+      const store = { get: jest.fn(async () => Promise.reject(new Error('disk'))), set: jest.fn(async () => Promise.reject(new Error('disk'))) };
+      deviceAccessory.stop();
+      const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
+      deviceAccessory = new VacuumDeviceAccessory({ name: 'Test Vacuum', ip: '1.1.1.1' }, logger, store);
+      const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+      deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+      await expect(endpointPromise).resolves.toBeInstanceOf(RoboticVacuumCleaner);
+    });
+  });
+
   describe('initializeMatterbridgeEndpoint', () => {
     test('should return an endpoint of type RVC', async () => {
       const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();

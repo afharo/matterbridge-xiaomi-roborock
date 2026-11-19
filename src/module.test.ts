@@ -58,9 +58,9 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     mockMatterbridge.matterbridgeVersion = '2.0.0'; // Simulate an older version
     const initializePlugin = (await import('./module.js')).default;
     expect(() => initializePlugin(mockMatterbridge, mockLog, mockConfig)).toThrow(
-      'This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from 2.0.0 to the latest version.',
+      'This plugin requires Matterbridge version >= "3.10.12". Please update Matterbridge from 2.0.0 to the latest version.',
     );
-    mockMatterbridge.matterbridgeVersion = '3.3.0';
+    mockMatterbridge.matterbridgeVersion = '3.10.12';
   });
 
   it('should create an instance of the platform', async () => {
@@ -74,7 +74,7 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     expect(instance.matterbridge).toBe(mockMatterbridge);
     expect(instance.log).toBe(mockLog);
     expect(instance.config).toBe(configWithDevices);
-    expect(instance.matterbridge.matterbridgeVersion).toBe('3.3.0');
+    expect(instance.matterbridge.matterbridgeVersion).toBe('3.10.12');
     expect(mockLog.info).toHaveBeenCalledWith('Initializing Platform...');
   });
 
@@ -83,6 +83,26 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason: Jest');
     await instance.onStart();
     expect(mockLog.info).toHaveBeenCalledWith('onStart called with reason: none');
+  });
+
+  it('skips vacuums that could not be initialized, without failing the start (#248)', async () => {
+    const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
+    const accessoryMock = VacuumDeviceAccessory as unknown as jest.Mock;
+    accessoryMock.mockImplementationOnce(() => ({
+      initializeMatterbridgeEndpoint: jest.fn(() => Promise.resolve(undefined)),
+      postRegister: jest.fn(),
+      stop: jest.fn(),
+    }));
+    await instance.onStart('offline');
+    expect(instance.registerDevice).not.toHaveBeenCalled();
+
+    accessoryMock.mockImplementationOnce(() => ({
+      initializeMatterbridgeEndpoint: jest.fn(() => Promise.reject(new Error('boom'))),
+      postRegister: jest.fn(),
+      stop: jest.fn(),
+    }));
+    await expect(instance.onStart('error')).resolves.toBeUndefined();
+    expect(mockLog.error).toHaveBeenCalledWith('Failed to initialize the vacuum "Test vacuum": Error: boom');
   });
 
   it('should change logger level', async () => {
