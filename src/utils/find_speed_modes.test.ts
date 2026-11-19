@@ -4,7 +4,7 @@ import type { MiioDevice } from 'node-miio';
 
 import { MODELS } from '../models/models.js';
 
-import { findSpeedModes, fromNodeMiioModes, isSupportedLevel, resolveSpeedModes, UNSUPPORTED_LEVEL } from './find_speed_modes.js';
+import { classifyCleaningTypes, findSpeedModes, fromNodeMiioModes, isSupportedLevel, resolveSpeedModes, UNSUPPORTED_LEVEL } from './find_speed_modes.js';
 
 describe('findSpeedModes', () => {
   test("should assign the viomi model for any model starting with 'viomi.'", () => {
@@ -132,5 +132,56 @@ describe('isSupportedLevel', () => {
     [undefined, false],
   ])('%p → %p', (level, expected) => {
     expect(isSupportedLevel(level)).toBe(expected);
+  });
+});
+
+describe('classifyCleaningTypes', () => {
+  test('MIoT sweep-mop-type', () => {
+    expect(
+      classifyCleaningTypes([
+        { value: 1, name: 'Sweep' },
+        { value: 2, name: 'Mop' },
+        { value: 3, name: 'Sweep Mop' },
+        { value: 4, name: 'Sweep Before Mopping' },
+      ]),
+    ).toStrictEqual({ vacuum: 1, mop: 2, vacuumAndMop: 3, vacuumThenMop: 4 });
+  });
+
+  test('MIoT mode used as cleaning type (ijai)', () => {
+    expect(
+      classifyCleaningTypes([
+        { value: 0, name: 'Sweep' },
+        { value: 1, name: 'Sweep And Mop' },
+        { value: 2, name: 'Mop' },
+      ]),
+    ).toStrictEqual({ vacuum: 0, vacuumAndMop: 1, mop: 2 });
+  });
+
+  test('ignores unknown names', () => {
+    expect(classifyCleaningTypes([{ value: 5, name: 'Custom' }])).toStrictEqual({});
+  });
+});
+
+describe('resolveSpeedModes with cleaning types', () => {
+  test('includes the cleaning types reported by node-miio', async () => {
+    const device = {
+      fanSpeeds: jest.fn(async () => [{ value: 0, name: 'Silent' }]),
+      waterBoxModes: jest.fn(async () => [{ value: 1, name: 'Level1' }]),
+      cleaningTypes: jest.fn(async () => [
+        { value: 1, name: 'Sweep' },
+        { value: 4, name: 'Sweep Before Mopping' },
+      ]),
+    } as unknown as MiioDevice;
+    await expect(resolveSpeedModes(device, 'xiaomi.vacuum.d110ch')).resolves.toMatchObject({
+      cleaningTypes: { vacuum: 1, vacuumThenMop: 4 },
+    });
+  });
+
+  test('omits them when the device does not report any', async () => {
+    const device = {
+      fanSpeeds: jest.fn(async () => [{ value: 0, name: 'Silent' }]),
+      cleaningTypes: jest.fn(async () => []),
+    } as unknown as MiioDevice;
+    expect(await resolveSpeedModes(device, 'xiaomi.vacuum.x')).not.toHaveProperty('cleaningTypes');
   });
 });

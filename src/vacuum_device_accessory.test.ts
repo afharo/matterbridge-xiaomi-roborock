@@ -1,7 +1,7 @@
 import { Subject } from 'rxjs';
 import { jest } from '@jest/globals';
 import type { Logger } from 'matterbridge/logger';
-import { RoboticVacuumCleaner } from 'matterbridge/devices';
+import { MatterbridgeRvcCleanModeServer, RoboticVacuumCleaner } from 'matterbridge/devices';
 import { PowerSource, RvcCleanMode, RvcOperationalState, RvcRunMode, ServiceArea } from 'matterbridge/matter/clusters';
 import { MatterbridgeServiceAreaServer, type CommandHandlerPayload } from 'matterbridge';
 
@@ -378,6 +378,61 @@ describe('VacuumDeviceAccessory', () => {
             await Promise.resolve();
             expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(0);
             expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledTimes(1);
+          });
+        });
+
+        describe('RvcCleanMode.changeToMode with cleaning types (MIoT)', () => {
+          beforeEach(async () => {
+            findSpeedModesMock.mockReturnValueOnce({
+              ...fromNodeMiioModes(
+                [
+                  { value: 0, name: 'Silent' },
+                  { value: 1, name: 'Basic' },
+                ],
+                [{ value: 2, name: 'Level2' }],
+              ),
+              cleaningTypes: { vacuum: 1, mop: 2, vacuumAndMop: 3, vacuumThenMop: 4 },
+            });
+            deviceManagerMock.device.setCleaningType = jest.fn(async () => undefined);
+            const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+            deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+            endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+          });
+
+          afterEach(() => {
+            delete (deviceManagerMock.device as { setCleaningType?: unknown }).setCleaningType;
+          });
+
+          // Modes: 1 = Silent Vacuum, 2 = Basic Vacuum, 3 = Level2 Mop, 4 = Vacuum & Mop, 5 = Vacuum then Mop
+          const changeTo = async (newMode: number) => {
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          };
+
+          test('exposes the combined modes', () => {
+            const options = endpoint.behaviors.optionsFor(MatterbridgeRvcCleanModeServer) as { supportedModes: RvcCleanMode.ModeOption[] };
+            expect(options.supportedModes.map(({ label }) => label)).toEqual(['Silent Vacuum', 'Basic Vacuum', 'Level2 Mop', 'Vacuum & Mop', 'Vacuum then Mop']);
+            expect(options.supportedModes[4].modeTags).toEqual([{ value: RvcCleanMode.ModeTag.VacuumThenMop }]);
+          });
+
+          test('vacuum modes set the vacuum-only cleaning type and the fan speed', async () => {
+            await changeTo(2);
+            expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(1);
+            expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(1);
+          });
+
+          test('mop modes set the mop-only cleaning type and the water level', async () => {
+            await changeTo(3);
+            expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(2);
+            expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledWith(2);
+            expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
+          });
+
+          test('vacuum then mop only sets the cleaning type', async () => {
+            await changeTo(5);
+            expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(4);
+            expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
+            expect(deviceManagerMock.device.setWaterBoxMode).not.toHaveBeenCalled();
           });
         });
 

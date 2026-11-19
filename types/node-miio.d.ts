@@ -52,6 +52,9 @@ declare module 'node-miio' {
     cleanZones: (zonesToClean: number[][]) => Promise<void>;
     /** Available since node-miio 0.3.0-beta.4 */
     fanSpeeds?: () => Promise<MiioVacuumMode[]>;
+    /** MIoT only (node-miio > 0.3.0-beta.4): vacuum only, mop only, both, vacuum then mop… */
+    cleaningTypes?: () => Promise<MiioVacuumMode[]>;
+    setCleaningType?: (value: number) => Promise<void>;
     /** Available since node-miio 0.3.0-beta.4 (legacy Roborock only): the saved maps (multi-floor) */
     getMaps?: () => Promise<Array<{ id: number; name: string }>>;
     /** Available since node-miio 0.3.0-beta.4 (empty if the model doesn't support it) */

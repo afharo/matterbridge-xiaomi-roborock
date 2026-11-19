@@ -12,7 +12,7 @@ import type { ModelDefinition } from './models/types.js';
 import { MODELS } from './models/models.js';
 import { type MiioError, toAuxiliaryOperationalState, toErrorStateId } from './utils/rvc_mappings.js';
 
-type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum?: number; mop?: number } };
+type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum?: number; mop?: number; cleaningType?: number } };
 
 const SUPPORTED_MODES: RvcRunMode.ModeOption[] = [
   { label: 'Idle', mode: 1, modeTags: [{ value: RvcRunMode.ModeTag.Idle }] },
@@ -122,6 +122,10 @@ export class VacuumDeviceAccessory {
     this.endpoint.addCommandHandler('RvcCleanMode.changeToMode', async (data) => {
       // Defines the selected cleaning mode (mop or vacuum)
       const newCleanMode = supportedCleanModes[data.request.newMode - 1];
+      // MIoT devices: switch between vacuum only / mop only / both / vacuum then mop
+      if (isSupportedLevel(newCleanMode.miLevels.cleaningType) && this.deviceManager.device.setCleaningType) {
+        await this.deviceManager.device.setCleaningType(newCleanMode.miLevels.cleaningType);
+      }
       // Some devices (e.g. MIoT) can't turn off the vacuum or the water: skip unsupported levels
       if (isSupportedLevel(newCleanMode.miLevels.vacuum)) {
         await this.deviceManager.device.changeFanSpeed(newCleanMode.miLevels.vacuum);
@@ -288,6 +292,13 @@ export class VacuumDeviceAccessory {
     water_box_mode: async (miLevel: number) => {
       const currentVacuumLevel = this.deviceManager.property<number>('fanSpeed');
       const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.mop === miLevel && miLevels.vacuum === currentVacuumLevel);
+      if (cleanMode) {
+        await this.endpoint?.updateAttribute(RvcCleanMode, 'currentMode', cleanMode.mode);
+      }
+    },
+    cleaningType: async (cleaningType: number) => {
+      // Only the combined modes are identified by the cleaning type alone
+      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.cleaningType === cleaningType && miLevels.vacuum === undefined && miLevels.mop === undefined);
       if (cleanMode) {
         await this.endpoint?.updateAttribute(RvcCleanMode, 'currentMode', cleanMode.mode);
       }
@@ -533,6 +544,7 @@ export class VacuumDeviceAccessory {
     const [vacuumSpeedOff, ...vacuumSpeedModes] = this.modelSpeeds.speed;
     const [mopSpeedOff, ...mopSpeedModes] = this.modelSpeeds.waterspeed ?? [];
 
+    const cleaningTypes = this.modelSpeeds.cleaningTypes ?? {};
     let mode = 1;
 
     const supportedCleanModes: SupportedCleanMode[] = vacuumSpeedModes.map(({ name, miLevel, label }) => ({
@@ -546,6 +558,7 @@ export class VacuumDeviceAccessory {
       miLevels: {
         vacuum: miLevel,
         mop: mopSpeedOff?.miLevel,
+        cleaningType: cleaningTypes.vacuum,
       },
     }));
 
@@ -557,9 +570,28 @@ export class VacuumDeviceAccessory {
         miLevels: {
           vacuum: vacuumSpeedOff.miLevel,
           mop: miLevel,
+          cleaningType: cleaningTypes.mop,
         },
       });
     });
+
+    // MIoT devices that can vacuum and mop at the same time, or vacuum and then mop (keep the current levels)
+    if (cleaningTypes.vacuumAndMop !== undefined) {
+      supportedCleanModes.push({
+        label: 'Vacuum & Mop',
+        mode: mode++,
+        modeTags: [{ value: RvcCleanMode.ModeTag.Vacuum }, { value: RvcCleanMode.ModeTag.Mop }],
+        miLevels: { cleaningType: cleaningTypes.vacuumAndMop },
+      });
+    }
+    if (cleaningTypes.vacuumThenMop !== undefined) {
+      supportedCleanModes.push({
+        label: 'Vacuum then Mop',
+        mode: mode++,
+        modeTags: [{ value: RvcCleanMode.ModeTag.VacuumThenMop }],
+        miLevels: { cleaningType: cleaningTypes.vacuumThenMop },
+      });
+    }
 
     return supportedCleanModes;
   }

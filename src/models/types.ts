@@ -15,4 +15,14 @@ export interface ModelDefinition {
   speed: (typeof speedmodes)[string];
   waterspeed?: (typeof watermodes)[string];
   firmware?: string;
+  /** The values of the cleaning types reported by node-miio (MIoT only) */
+  cleaningTypes?: CleaningTypes;
+}
+
+/** Values to send with `setCleaningType()` for each kind of cleaning (only the ones the device supports) */
+export interface CleaningTypes {
+  vacuum?: number;
+  mop?: number;
+  vacuumAndMop?: number;
+  vacuumThenMop?: number;
 }
