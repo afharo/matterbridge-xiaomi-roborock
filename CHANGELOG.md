@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.9.0] - 2026-11-19
+
 ### Added
 
 - **Error reasons**: the robot's errors are reported with a specific Matter error state (stuck, wheels or brush jammed, dust bin missing or full, water tank empty or missing, mop pad missing, low battery, sensor obscured, no-go zone…) and the robot's message as details, so controllers can tell _why_ it stopped. The error is cleared when the robot recovers.
