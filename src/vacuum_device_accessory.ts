@@ -11,6 +11,7 @@ import { isSupportedLevel, resolveSpeedModes } from './utils/find_speed_modes.js
 import type { ModelDefinition } from './models/types.js';
 import { MODELS } from './models/models.js';
 import { type MiioError, toAuxiliaryOperationalState, toErrorStateId } from './utils/rvc_mappings.js';
+import { buildCleanModePresets } from './utils/clean_mode_presets.js';
 
 type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum?: number; mop?: number; cleaningType?: number } };
 
@@ -220,7 +221,7 @@ export class VacuumDeviceAccessory {
       currentRunMode: SUPPORTED_MODES[0].mode,
       supportedRunModes: SUPPORTED_MODES,
       // RvcCleanMode
-      currentCleanMode: supportedCleanModes[0].mode,
+      currentCleanMode: (supportedCleanModes.find(({ mode }) => mode === 1) ?? supportedCleanModes[0]).mode,
       supportedCleanModes,
       operationalState: RvcOperationalState.OperationalState.Docked,
       operationalStateList: SUPPORTED_OPERATIONAL_STATES,
@@ -242,7 +243,12 @@ export class VacuumDeviceAccessory {
 
     this.endpoint.addCommandHandler('RvcCleanMode.changeToMode', async (data) => {
       // Defines the selected cleaning mode (mop or vacuum)
-      const newCleanMode = supportedCleanModes[data.request.newMode - 1];
+      // Modes are looked up by number: the presets are listed first, but numbered after the other modes (stable numbers)
+      const newCleanMode = supportedCleanModes.find(({ mode }) => mode === data.request.newMode);
+      if (!newCleanMode) {
+        this.log.warn(`Unknown clean mode ${data.request.newMode}`);
+        return;
+      }
       // MIoT devices: switch between vacuum only / mop only / both / vacuum then mop
       if (isSupportedLevel(newCleanMode.miLevels.cleaningType) && this.deviceManager.device.setCleaningType) {
         await this.deviceManager.device.setCleaningType(newCleanMode.miLevels.cleaningType);
@@ -696,8 +702,12 @@ export class VacuumDeviceAccessory {
       });
     });
 
-    // MIoT devices that can vacuum and mop at the same time, or vacuum and then mop (keep the current levels)
-    if (cleaningTypes.vacuumAndMop !== undefined) {
+    // Vacuum & mop presets (#162), like the native Matter vacuums: listed first, but numbered after the other modes,
+    // so the numbers of the existing modes don't change (controllers and automations refer to modes by number)
+    const presets = buildCleanModePresets(this.modelSpeeds.speed, this.modelSpeeds.waterspeed, cleaningTypes);
+
+    // MIoT devices that can vacuum and mop at the same time (when there are no presets), or vacuum and then mop (keep the current levels)
+    if (cleaningTypes.vacuumAndMop !== undefined && presets.length === 0) {
       supportedCleanModes.push({
         label: 'Vacuum & Mop',
         mode: mode++,
@@ -714,7 +724,7 @@ export class VacuumDeviceAccessory {
       });
     }
 
-    return supportedCleanModes;
+    return [...presets.map((preset) => ({ ...preset, mode: mode++ })), ...supportedCleanModes];
   }
 }
 

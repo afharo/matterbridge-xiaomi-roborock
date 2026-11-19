@@ -484,7 +484,8 @@ describe('VacuumDeviceAccessory', () => {
             delete (deviceManagerMock.device as { setCleaningType?: unknown }).setCleaningType;
           });
 
-          // Modes: 1 = Silent Vacuum, 2 = Basic Vacuum, 3 = Level2 Mop, 4 = Vacuum & Mop, 5 = Vacuum then Mop
+          // Modes: 1 = Silent Vacuum, 2 = Basic Vacuum, 3 = Level2 Mop, 4 = Vacuum then Mop,
+          // and the presets (listed first): 5 = Automatic, 6 = Deep clean, 7 = Quiet (they replace "Vacuum & Mop")
           const changeTo = async (newMode: number) => {
             endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
             await new Promise((resolve) => setTimeout(resolve, 0));
@@ -492,8 +493,16 @@ describe('VacuumDeviceAccessory', () => {
 
           test('exposes the combined modes', () => {
             const options = endpoint.behaviors.optionsFor(MatterbridgeRvcCleanModeServer) as { supportedModes: RvcCleanMode.ModeOption[] };
-            expect(options.supportedModes.map(({ label }) => label)).toEqual(['Silent Vacuum', 'Basic Vacuum', 'Level2 Mop', 'Vacuum & Mop', 'Vacuum then Mop']);
-            expect(options.supportedModes[4].modeTags).toEqual([{ value: RvcCleanMode.ModeTag.VacuumThenMop }]);
+            expect(options.supportedModes.map(({ label, mode }) => `${mode}:${label}`)).toEqual([
+              '5:Automatic',
+              '6:Deep clean',
+              '7:Quiet',
+              '1:Silent Vacuum',
+              '2:Basic Vacuum',
+              '3:Level2 Mop',
+              '4:Vacuum then Mop',
+            ]);
+            expect(options.supportedModes[6].modeTags).toEqual([{ value: RvcCleanMode.ModeTag.VacuumThenMop }]);
           });
 
           test('vacuum modes set the vacuum-only cleaning type and the fan speed', async () => {
@@ -509,11 +518,62 @@ describe('VacuumDeviceAccessory', () => {
             expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
           });
 
+          test('presets set the vacuum & mop cleaning type and both levels', async () => {
+            await changeTo(5); // Automatic
+            expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(3);
+            expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(1); // Basic is the medium fan level
+            expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledWith(2);
+          });
+
           test('vacuum then mop only sets the cleaning type', async () => {
-            await changeTo(5);
+            await changeTo(4);
             expect(deviceManagerMock.device.setCleaningType).toHaveBeenCalledWith(4);
             expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
             expect(deviceManagerMock.device.setWaterBoxMode).not.toHaveBeenCalled();
+          });
+        });
+
+        describe('vacuum & mop presets (#162)', () => {
+          beforeEach(async () => {
+            // Roborock S5 Max: gen4+custom fan speeds and the gen1+custom water box
+            findSpeedModesMock.mockReturnValueOnce({ speed: speedmodes['gen4+custom'], waterspeed: watermodes['gen1+custom'] });
+            const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+            deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+            endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+          });
+
+          const supportedModes = () =>
+            (endpoint.behaviors.optionsFor(MatterbridgeRvcCleanModeServer) as { supportedModes: RvcCleanMode.ModeOption[]; currentMode: number }).supportedModes;
+
+          test('lists the presets first, numbered after the existing modes', () => {
+            const modes = supportedModes();
+            expect(modes.slice(0, 3).map(({ label }) => label)).toEqual(['Automatic', 'Deep clean', 'Quiet']);
+            // The existing modes keep their numbers (1 = the first vacuum mode)
+            expect(modes[3]).toMatchObject({ mode: 1, label: 'Soft Vacuum' });
+            expect(modes[0].mode).toBe(modes.length - 2);
+            expect(modes[0].modeTags).toEqual([{ value: RvcCleanMode.ModeTag.Auto }, { value: RvcCleanMode.ModeTag.Vacuum }, { value: RvcCleanMode.ModeTag.Mop }]);
+            // The current mode is still the first vacuum mode
+            expect((endpoint.behaviors.optionsFor(MatterbridgeRvcCleanModeServer) as { currentMode: number }).currentMode).toBe(1);
+          });
+
+          test.each([
+            ['Automatic', 102, 202], // Balanced + Medium
+            ['Deep clean', 104, 203], // Max + High
+            ['Quiet', 101, 201], // Quiet + Light
+          ])('%s sets the fan speed %p and the water level %p', async (label, fan, water) => {
+            const preset = supportedModes().find((mode) => mode.label === label) as RvcCleanMode.ModeOption;
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', {
+              request: { newMode: preset.mode },
+            } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(deviceManagerMock.device.changeFanSpeed).toHaveBeenCalledWith(fan);
+            expect(deviceManagerMock.device.setWaterBoxMode).toHaveBeenCalledWith(water);
+          });
+
+          test('unknown modes are ignored', async () => {
+            endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode: 99 } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(deviceManagerMock.device.changeFanSpeed).not.toHaveBeenCalled();
           });
         });
 

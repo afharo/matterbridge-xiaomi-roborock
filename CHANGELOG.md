@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file.
 - **Skip area**: skipping a room while cleaning rooms carries on with the remaining ones (or sends the robot home if it was the last one).
 - **Operation completion**: cleaning sessions started outside Matter (Mi Home app, schedules, the robot's buttons) now emit the "operation completed" event too, so automations work for every run.
 - **Multi-floor maps**: when the robot has more than one saved map, the maps are exposed and the rooms are assigned to the current one. Only the rooms of the current map are listed: the robot doesn't report the other floors' rooms ([#212](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/212)).
+- **Vacuum & mop presets** ([#162](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/162)): robots with a water box get 3 presets that vacuum and mop at the same time, like native Matter vacuums. **Automatic** (balanced fan + medium water), **Deep clean** (max fan + high water) and **Quiet** (quiet fan + low water) are listed first. The existing vacuum-only and mop-only modes are kept, with the same mode numbers.
 - **Vacuum & mop / Vacuum then mop** clean modes on MIoT vacuums that support them (requires node-miio with cleaning types). On those devices, the vacuum and mop modes also switch the robot to vacuum-only or mop-only.
 
 ### Fixed
