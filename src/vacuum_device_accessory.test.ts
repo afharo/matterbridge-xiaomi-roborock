@@ -1,3 +1,4 @@
+import { Subject } from 'rxjs';
 import { jest } from '@jest/globals';
 import type { Logger } from 'matterbridge/logger';
 import { RoboticVacuumCleaner } from 'matterbridge/devices';
@@ -397,6 +398,42 @@ describe('VacuumDeviceAccessory', () => {
         });
       });
 
+      describe('skipArea', () => {
+        const startRoomCleaning = async (areas: number[]) => {
+          jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce(areas);
+          await endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 2 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
+          deviceManagerMock.device.cleanRooms.mockClear();
+        };
+        const skip = (skippedArea: number) => endpoint.commandHandler.executeHandler('skipArea', { request: { skippedArea } } as unknown as CommandHandlerPayload<'skipArea'>);
+
+        test('carries on with the remaining areas', async () => {
+          await startRoomCleaning([16, 17, 18]);
+          await skip(16);
+          expect(deviceManagerMock.device.cleanRooms).toHaveBeenCalledWith([17, 18]);
+          await skip(18);
+          expect(deviceManagerMock.device.cleanRooms).toHaveBeenLastCalledWith([17]);
+        });
+
+        test('goes home when the last area is skipped', async () => {
+          await startRoomCleaning([16]);
+          await skip(16);
+          expect(deviceManagerMock.device.cleanRooms).not.toHaveBeenCalled();
+          expect(deviceManagerMock.device.activateCharging).toHaveBeenCalled();
+        });
+
+        test('ignores areas that are not being cleaned', async () => {
+          await startRoomCleaning([16, 17]);
+          await skip(99);
+          expect(deviceManagerMock.device.cleanRooms).not.toHaveBeenCalled();
+          expect(deviceManagerMock.device.activateCharging).not.toHaveBeenCalled();
+        });
+
+        test('ignores it when not room cleaning', async () => {
+          await skip(16);
+          expect(deviceManagerMock.device.cleanRooms).not.toHaveBeenCalled();
+        });
+      });
+
       describe('selectAreas', () => {
         test('sets the selected areas', async () => {
           const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
@@ -689,6 +726,82 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(PowerSource, 'batChargeState', PowerSource.BatChargeState.IsCharging);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Charging);
         });
+      });
+    });
+
+    describe('operational errors', () => {
+      beforeEach(async () => {
+        await deviceAccessory.postRegister();
+        updateAttributeSpy.mockClear();
+      });
+
+      test('reports the error state and details', async () => {
+        deviceManagerMock.errorChanged$.next({ code: 8, message: 'Device stuck' });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', {
+          // The model is not a Roborock in the tests, so the message is used
+          errorStateId: RvcOperationalState.ErrorState.Stuck,
+          errorStateDetails: 'Device stuck',
+        });
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Error);
+      });
+
+      test('maps the message for non-Roborock models', async () => {
+        deviceManagerMock.errorChanged$.next({ code: 3, message: 'Wheels are stuck' });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', {
+          errorStateId: RvcOperationalState.ErrorState.WheelsJammed,
+          errorStateDetails: 'Wheels are stuck',
+        });
+      });
+
+      test('clears the error', async () => {
+        (deviceManagerMock.errorChanged$ as unknown as Subject<null>).next(null);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', { errorStateId: RvcOperationalState.ErrorState.NoError });
+        expect(updateAttributeSpy).not.toHaveBeenCalledWith(RvcOperationalState, 'operationalState', expect.anything());
+      });
+    });
+
+    describe('auxiliary states and operation tracking', () => {
+      const operationalStateServer = { beginOperation: jest.fn(), completeOperation: jest.fn() };
+
+      beforeEach(async () => {
+        jest.spyOn(endpoint, 'act').mockImplementation(((actor: (agent: unknown) => unknown) => actor({ get: () => operationalStateServer })) as unknown as typeof endpoint.act);
+        await deviceAccessory.postRegister();
+        updateAttributeSpy.mockClear();
+      });
+
+      const emitState = async (value: string) => {
+        deviceManagerMock.stateChanged$.next({ key: 'state', value });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      };
+
+      test.each([
+        ['dust-collection', RvcOperationalState.OperationalState.EmptyingDustBin],
+        ['drying', RvcOperationalState.OperationalState.CleaningMop],
+        ['building', RvcOperationalState.OperationalState.UpdatingMaps],
+      ])('maps %p to %p', async (state, expected) => {
+        await emitState(state);
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', expected);
+        expect(logger.warn).not.toHaveBeenCalled();
+      });
+
+      test('tracks operations started outside Matter (for the OperationCompletion event)', async () => {
+        await emitState('cleaning');
+        expect(operationalStateServer.beginOperation).toHaveBeenCalledTimes(1);
+        expect(operationalStateServer.completeOperation).not.toHaveBeenCalled();
+
+        await emitState('returning');
+        expect(operationalStateServer.completeOperation).toHaveBeenCalledTimes(1);
+      });
+
+      test('does not fail when tracking the operation fails', async () => {
+        jest.spyOn(endpoint, 'act').mockImplementation(() => {
+          throw new Error('Endpoint is in the inactive state');
+        });
+        await emitState('cleaning');
+        expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Running);
       });
     });
   });

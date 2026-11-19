@@ -70,9 +70,10 @@ declare module 'node-miio' {
     error?: MiioErrorChangedEvent;
   }
 
+  /** The error emitted with `errorChanged` (`null` when the error is cleared) */
   export interface MiioErrorChangedEvent {
-    id: string;
-    description: unknown;
+    code: number | string;
+    message?: string;
   }
 
   export interface MiioDeviceInfo {
