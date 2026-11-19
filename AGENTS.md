@@ -55,6 +55,12 @@ CI (`.github/workflows/build-matterbridge-plugin.yml`) runs them on Node 22/24/2
   Every other package still follows the cooldown.
 - Renovate keeps dependencies up to date.
 
+## Releasing
+
+Follow [`.claude/skills/release/SKILL.md`](.claude/skills/release/SKILL.md) (in Claude Code: `/release <patch|minor|major>`).
+In short: a `Prepare for vX.Y.Z` changelog commit and `npm version <level>` on a branch named after the version, a PR labelled `release`
+with auto-merge (squash), then restore the version branch and create the GitHub release with `--notes-start-tag <previous tag>`.
+
 ## Licensing
 
 Apache-2.0. Don't copy code from GPL projects (e.g. python-miio). Use them as behavioural references only.
