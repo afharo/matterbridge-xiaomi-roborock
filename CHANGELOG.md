@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.8.0] - 2026-11-19
+
 ### Added
 
 - Support for **any MIoT vacuum** (Xiaomi, Dreame, Mijia, ijai, newer Viomi like the S9/V13…) via [node-miio 0.3.0-beta.4](https://github.com/afharo/node-miio), which drives the device from its spec on [miot-spec.org](https://home.miot-spec.com). The specs are cached, and a snapshot is bundled for offline setups (related: [#365](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/365), [#242](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/242), [#240](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/240), [#246](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/246), [#83](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/83)).
@@ -44,6 +46,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Requires Node.js 22.13+, 24 or 26 (Node.js 20 is EOL).
+- Devices that can't turn off the vacuum or the water (e.g. MIoT models) no longer receive those (invalid) levels when switching between vacuum and mop clean modes.
+- The project is looking for a new maintainer: see [#387](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/387).
 
 ## [v0.7.1] - 2026-09-11
 
