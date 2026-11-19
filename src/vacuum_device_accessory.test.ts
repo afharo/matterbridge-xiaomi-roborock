@@ -993,7 +993,7 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       test('reports the error state and details', async () => {
-        deviceManagerMock.errorChanged$.next({ code: 8, message: 'Device stuck' });
+        deviceManagerMock.errorChanged$.next({ id: 8, description: 'Device stuck' });
         await new Promise((resolve) => setTimeout(resolve, 0));
         expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', {
           // The model is not a Roborock in the tests, so the message is used
@@ -1004,7 +1004,7 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       test('maps the message for non-Roborock models', async () => {
-        deviceManagerMock.errorChanged$.next({ code: 3, message: 'Wheels are stuck' });
+        deviceManagerMock.errorChanged$.next({ id: 3, description: 'Wheels are stuck' });
         await new Promise((resolve) => setTimeout(resolve, 0));
         expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', {
           errorStateId: RvcOperationalState.ErrorState.WheelsJammed,

@@ -85,9 +85,10 @@ declare module 'node-miio' {
   }
 
   /** The error emitted with `errorChanged` (`null` when the error is cleared) */
+  /** `errorChanged` payload: abstract-things converts the devices' `{ code, message }` into `{ id, description }` */
   export interface MiioErrorChangedEvent {
-    code: number | string;
-    message?: string;
+    id: number | string;
+    description?: string;
   }
 
   export interface MiioDeviceInfo {

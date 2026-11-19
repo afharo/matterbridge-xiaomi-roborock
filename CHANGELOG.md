@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Fixed
+
+- **Error reasons**: the robot's errors were always reported as "unable to complete operation", with no details. node-miio emits them as `{ id, description }`, not `{ code, message }`. Clearing the error when the robot recovers also needs [afharo/node-miio#39](https://github.com/afharo/node-miio/pull/39).
+
 ### Added
 
 - **node-miio's debug logs in the plugin's logs**: with the `debug` option enabled, the logs include what the vacuum is sent and answers (tokens and passwords redacted), with no need for the `DEBUG` environment variable (requires node-miio ≥ 0.5.0, [afharo/node-miio#37](https://github.com/afharo/node-miio/pull/37)).

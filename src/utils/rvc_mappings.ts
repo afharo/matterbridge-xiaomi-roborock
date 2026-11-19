@@ -1,9 +1,13 @@
 import { RvcOperationalState } from 'matterbridge/matter/clusters';
 
-/** The error reported by node-miio (`device.on('errorChanged')`): `null` when the error is cleared */
+/**
+ * The error reported by node-miio (`device.on('errorChanged')`): `null` when the error is cleared.
+ *
+ * The devices set `{ code, message }`, but abstract-things (used by node-miio) emits it as `{ id, description }`.
+ */
 export interface MiioError {
-  code: number | string;
-  message?: string;
+  id: number | string;
+  description?: string;
 }
 
 const { ErrorState } = RvcOperationalState;
@@ -64,11 +68,11 @@ const ERROR_KEYWORDS: Array<[RegExp[], RvcOperationalState.ErrorState]> = [
  * @returns {RvcOperationalState.ErrorState} The Matter error state
  */
 export function toErrorStateId(model: string, error: MiioError): RvcOperationalState.ErrorState {
-  const code = Number(error.code);
+  const code = Number(error.id);
   if (/^(roborock|rockrobo)\./.test(model) && code in ROBOROCK_ERRORS) {
     return ROBOROCK_ERRORS[code];
   }
-  const message = error.message ?? '';
+  const message = error.description ?? '';
   for (const [patterns, errorState] of ERROR_KEYWORDS) {
     if (patterns.every((pattern) => pattern.test(message))) return errorState;
   }
