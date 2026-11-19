@@ -5,10 +5,10 @@
 import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import pluginImport from 'eslint-plugin-import';
+import { importX } from 'eslint-plugin-import-x';
 import pluginN from 'eslint-plugin-n';
 import pluginPromise from 'eslint-plugin-promise';
-import pluginJsdoc from 'eslint-plugin-jsdoc';
+import { configs as jsdocConfigs } from 'eslint-plugin-jsdoc';
 import pluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import pluginJest from 'eslint-plugin-jest';
 import unusedImports from 'eslint-plugin-unused-imports';
@@ -22,10 +22,10 @@ export default defineConfig([
   ...tseslint.configs.strict,
   // Comment the previous line and uncomment the following line if you want to use strict with type checking
   // ...tseslint.configs.strictTypeChecked,
-  pluginImport.flatConfigs.recommended,
+  importX.flatConfigs.recommended,
   pluginN.configs['flat/recommended-script'],
   pluginPromise.configs['flat/recommended'],
-  pluginJsdoc.configs['flat/recommended'],
+  jsdocConfigs['flat/recommended'],
   pluginPrettierRecommended, // Prettier plugin must be the last plugin in the list
   {
     name: 'Global Configuration',
@@ -41,9 +41,9 @@ export default defineConfig([
       'no-console': 'warn', // Warn on console usage
       'spaced-comment': ['error', 'always'], // Require space after comment markers
       'no-unused-vars': 'warn', // Use the base rule for unused variables
-      'import/order': ['warn', { 'newlines-between': 'always' }],
-      'import/no-unresolved': 'off', // Too many false errors with named exports
-      'import/named': 'off', // Too many false errors with named exports
+      'import-x/order': ['warn', { 'newlines-between': 'always' }],
+      'import-x/no-unresolved': 'off', // Too many false errors with named exports
+      'import-x/named': 'off', // Too many false errors with named exports
       'n/prefer-node-protocol': 'error', // Prefer using 'node:' protocol for built-in modules
       'n/no-extraneous-import': 'off', // Allow imports from node_modules
       'n/no-unpublished-import': 'off', // Allow imports from unpublished packages
