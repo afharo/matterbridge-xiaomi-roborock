@@ -55,6 +55,8 @@ export class VacuumDeviceAccessory {
   private endpoint?: RoboticVacuumCleaner;
   private serviceAreas: ServiceArea.Area[] = [];
   private modelSpeeds: ModelDefinition = MODELS.default[0];
+  /** Saved maps (multi-floor), only when the robot has more than one */
+  private supportedMaps: ServiceArea.Map[] = [];
   /** Areas of the current room-cleaning operation (to support SkipArea) */
   private activeAreas: number[] = [];
 
@@ -89,6 +91,7 @@ export class VacuumDeviceAccessory {
       this.log.warn(`Failed to retrieve service areas: ${error}`);
       return [];
     });
+    await this.assignMaps();
 
     this.endpoint = new RoboticVacuumCleaner(this.config.name, serialNumber, {
       mode: 'server',
@@ -101,6 +104,7 @@ export class VacuumDeviceAccessory {
       operationalState: RvcOperationalState.OperationalState.Docked,
       operationalStateList: SUPPORTED_OPERATIONAL_STATES,
       supportedAreas: this.serviceAreas.length > 0 ? this.serviceAreas : undefined,
+      ...(this.supportedMaps.length > 0 ? { supportedMaps: this.supportedMaps } : {}),
       selectedAreas: [],
       currentArea: this.serviceAreas[0]?.areaId,
     });
@@ -425,6 +429,35 @@ export class VacuumDeviceAccessory {
     await this.deviceManager.device.cleanRooms(remainingAreas);
     this.activeAreas = remainingAreas;
     await this.endpoint?.updateAttribute(ServiceArea, 'currentArea', remainingAreas[0]);
+  }
+
+  /**
+   * Multi-floor maps: when the robot has more than one saved map, the maps are exposed as `supportedMaps` and the
+   * areas are assigned to the current map. The robot only reports the rooms of its current map, so the rooms of the
+   * other floors are not listed (that would require switching the robot's map).
+   *
+   * The current map is `map_status >> 2` from `get_status` (legacy Roborock). Untested on real hardware: if anything
+   * looks off, the maps are skipped and the areas are exposed without a map (the previous behaviour).
+   */
+  private async assignMaps() {
+    const { device } = this.deviceManager;
+    if (this.serviceAreas.length === 0 || typeof device.getMaps !== 'function') return;
+    try {
+      const maps = await device.getMaps();
+      if (maps.length < 2) return;
+      const [status] = await device.call<Array<{ map_status?: number }>>('get_status');
+      const mapStatus = status?.map_status;
+      const currentMapId = typeof mapStatus === 'number' ? mapStatus >> 2 : undefined;
+      if (currentMapId === undefined || !maps.some(({ id }) => id === currentMapId)) {
+        this.log.debug(`Could not determine the current map (map_status: ${mapStatus}), skipping the multi-floor maps`);
+        return;
+      }
+      this.supportedMaps = maps.map(({ id, name }) => ({ mapId: id, name: (name || `Floor ${id + 1}`).slice(0, 64) }));
+      this.serviceAreas = this.serviceAreas.map((area) => ({ ...area, mapId: currentMapId }));
+      this.log.info(`Multi-floor maps: ${JSON.stringify(this.supportedMaps)}. The current map is ${currentMapId}.`);
+    } catch (error) {
+      this.log.debug(`Failed to retrieve the maps: ${error}`);
+    }
   }
 
   private async getServiceAreas(): Promise<ServiceArea.Area[]> {

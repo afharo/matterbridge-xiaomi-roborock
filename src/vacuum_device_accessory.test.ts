@@ -69,6 +69,67 @@ describe('VacuumDeviceAccessory', () => {
       await expect(endpointPromise).resolves.toBeInstanceOf(RoboticVacuumCleaner);
     });
 
+    describe('multi-floor maps', () => {
+      const connect = async () => {
+        const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        const endpoint = await endpointPromise;
+        return endpoint.behaviors.optionsFor(MatterbridgeServiceAreaServer.with(ServiceArea.Feature.Maps)) as {
+          supportedMaps?: ServiceArea.Map[];
+          supportedAreas?: ServiceArea.Area[];
+        };
+      };
+
+      beforeEach(() => {
+        deviceManagerMock.device.getRoomMap.mockResolvedValue([
+          ['16', 'Kitchen'],
+          ['17', 'Bedroom'],
+        ]);
+      });
+
+      afterEach(() => {
+        delete (deviceManagerMock.device as { getMaps?: unknown }).getMaps;
+      });
+
+      test('exposes the maps and assigns the areas to the current one', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => [
+          { id: 0, name: 'Ground floor' },
+          { id: 1, name: '' },
+        ]);
+        deviceManagerMock.device.call.mockResolvedValueOnce([{ map_status: 7 }] as never); // 7 >> 2 = map 1
+        const options = await connect();
+        expect(options.supportedMaps).toEqual([
+          { mapId: 0, name: 'Ground floor' },
+          { mapId: 1, name: 'Floor 2' },
+        ]);
+        expect(options.supportedAreas?.map(({ mapId }) => mapId)).toEqual([1, 1]);
+      });
+
+      test('skips the maps when there is only one', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => [{ id: 0, name: 'Home' }]);
+        const options = await connect();
+        expect(options.supportedMaps ?? []).toEqual([]);
+        expect(options.supportedAreas?.map(({ mapId }) => mapId)).toEqual([null, null]);
+      });
+
+      test('skips the maps when the current map is unknown', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => [
+          { id: 0, name: 'A' },
+          { id: 1, name: 'B' },
+        ]);
+        deviceManagerMock.device.call.mockResolvedValueOnce([{ map_status: 3 << 2 }] as never); // map 3 doesn't exist
+        const options = await connect();
+        expect(options.supportedMaps ?? []).toEqual([]);
+        expect(options.supportedAreas?.map(({ mapId }) => mapId)).toEqual([null, null]);
+      });
+
+      test('skips the maps when they cannot be retrieved', async () => {
+        deviceManagerMock.device.getMaps = jest.fn(async () => Promise.reject(new Error('unknown method')));
+        const options = await connect();
+        expect(options.supportedMaps ?? []).toEqual([]);
+      });
+    });
+
     describe('serviceAreas', () => {
       test('should retrieve service areas via room mappings', async () => {
         deviceManagerMock.device.getRoomMap.mockResolvedValue([
