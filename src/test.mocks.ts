@@ -1,12 +1,51 @@
-import { Socket } from 'node:net';
-
 import { jest } from '@jest/globals';
-import { MiioDevice } from 'node-miio';
+import type { Vacuum } from 'node-miio';
 
 // ============= MIIO MOCKS ================
-const miioDevice: jest.Mocked<MiioDevice> = {
+/** The members of a node-miio vacuum that the plugin uses (the Roborock `Vacuum` has all of them) */
+type MockedMembers =
+  | 'call'
+  | 'activateCharging'
+  | 'activateCleaning'
+  | 'deactivateCleaning'
+  | 'batteryLevel'
+  | 'changeFanSpeed'
+  | 'cleanRooms'
+  | 'cleanZones'
+  | 'fanSpeed'
+  | 'find'
+  | 'getDeviceInfo'
+  | 'getRoomMap'
+  | 'getSerialNumber'
+  | 'getTimer'
+  | 'getWaterBoxMode'
+  | 'pause'
+  | 'resumeCleanRooms'
+  | 'sendToLocation'
+  | 'setRawProperty'
+  | 'setWaterBoxMode'
+  | 'startDustCollection'
+  | 'stopDustCollection'
+  | 'matches'
+  | 'destroy'
+  | 'property'
+  | 'on'
+  | 'poll'
+  | 'state';
+
+export type MiioDeviceMock = jest.Mocked<Pick<Vacuum, MockedMembers>> & {
+  miioModel: string;
+  connected: boolean;
+  properties: Record<string, unknown>;
+  /** Class-specific: set by the tests that need them (legacy Roborock / MIoT) */
+  getMaps?: jest.Mocked<Vacuum>['getMaps'];
+  setCleaningType?: jest.Mock<(type: number) => Promise<void>>;
+};
+
+const miioDevice: MiioDeviceMock = {
   miioModel: 'test-model',
-  call: jest.fn() as jest.MockedFunction<MiioDevice['call']>,
+  connected: true,
+  call: jest.fn() as MiioDeviceMock['call'],
   activateCharging: jest.fn(),
   activateCleaning: jest.fn(),
   deactivateCleaning: jest.fn(),
@@ -22,7 +61,7 @@ const miioDevice: jest.Mocked<MiioDevice> = {
   getTimer: jest.fn(),
   getWaterBoxMode: jest.fn(),
   pause: jest.fn(),
-  properties: jest.fn<() => Record<string, unknown>>()(),
+  properties: {},
   resumeCleanRooms: jest.fn(),
   sendToLocation: jest.fn(),
   setRawProperty: jest.fn(),
@@ -31,11 +70,10 @@ const miioDevice: jest.Mocked<MiioDevice> = {
   stopDustCollection: jest.fn(),
   matches: jest.fn(),
   destroy: jest.fn(),
-  property: jest.fn() as jest.MockedFunction<MiioDevice['property']>,
-  on: jest.fn() as jest.MockedFunction<MiioDevice['on']>,
-  handle: { api: { parent: { socket: {} as unknown as jest.Mocked<Socket> } } },
+  property: jest.fn() as MiioDeviceMock['property'],
+  on: jest.fn() as MiioDeviceMock['on'],
   poll: jest.fn(),
-  state: jest.fn().mockReturnValue({}) as jest.MockedFunction<MiioDevice['state']>,
+  state: jest.fn().mockReturnValue({}) as MiioDeviceMock['state'],
 };
 
 export const miio = {
@@ -43,5 +81,7 @@ export const miio = {
   createMock: () => ({
     device: jest.fn().mockImplementation(() => miioDevice),
     configureLogging: jest.fn(),
+    // Same logic as node-miio's
+    isVacuum: (device: unknown) => typeof (device as { matches?: unknown })?.matches === 'function' && (device as MiioDeviceMock).matches('type:vaccuum'),
   }),
 };

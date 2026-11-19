@@ -40,6 +40,10 @@ All notable changes to this project will be documented in this file.
 
 - **Error reasons**: the robot's errors were always reported as "unable to complete operation", with no details. node-miio emits them as `{ id, description }`, not `{ code, message }`. Clearing the error when the robot recovers also needs [afharo/node-miio#39](https://github.com/afharo/node-miio/pull/39).
 
+### Changed
+
+- **node-miio 0.5.0**: the robot's errors are now cleared when it recovers ([afharo/node-miio#39](https://github.com/afharo/node-miio/pull/39)). The plugin now uses node-miio's own TypeScript types, instead of hand-written ones that had drifted from the library ([afharo/node-miio#38](https://github.com/afharo/node-miio/pull/38)).
+
 ### Added
 
 - **node-miio's debug logs in the plugin's logs**: with the `debug` option enabled, the logs include what the vacuum is sent and answers (tokens and passwords redacted), with no need for the `DEBUG` environment variable (requires node-miio ≥ 0.5.0, [afharo/node-miio#37](https://github.com/afharo/node-miio/pull/37)).

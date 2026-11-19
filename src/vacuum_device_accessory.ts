@@ -12,6 +12,7 @@ import type { ModelDefinition } from './models/types.js';
 import { MODELS } from './models/models.js';
 import { type MiioError, toAuxiliaryOperationalState, toErrorStateId } from './utils/rvc_mappings.js';
 import { buildCleanModePresets } from './utils/clean_mode_presets.js';
+import type { GetTimerResponseTimer, RoomMapping } from './utils/miio_types.js';
 
 type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum?: number; mop?: number; cleaningType?: number } };
 
@@ -250,15 +251,17 @@ export class VacuumDeviceAccessory {
         return;
       }
       // MIoT devices: switch between vacuum only / mop only / both / vacuum then mop
-      if (isSupportedLevel(newCleanMode.miLevels.cleaningType) && this.deviceManager.device.setCleaningType) {
-        await this.deviceManager.device.setCleaningType(newCleanMode.miLevels.cleaningType);
+      const { device } = this.deviceManager;
+      if (isSupportedLevel(newCleanMode.miLevels.cleaningType) && 'setCleaningType' in device) {
+        await device.setCleaningType(newCleanMode.miLevels.cleaningType);
       }
       // Some devices (e.g. MIoT) can't turn off the vacuum or the water: skip unsupported levels
       if (isSupportedLevel(newCleanMode.miLevels.vacuum)) {
-        await this.deviceManager.device.changeFanSpeed(newCleanMode.miLevels.vacuum);
+        await device.changeFanSpeed(newCleanMode.miLevels.vacuum);
       }
-      if (isSupportedLevel(newCleanMode.miLevels.mop)) {
-        await this.deviceManager.device.setWaterBoxMode(newCleanMode.miLevels.mop);
+      // Not every vacuum has a water box (e.g. the legacy Viomi): they don't report water levels either
+      if (isSupportedLevel(newCleanMode.miLevels.mop) && 'setWaterBoxMode' in device) {
+        await device.setWaterBoxMode(newCleanMode.miLevels.mop);
       }
     });
 
@@ -579,11 +582,12 @@ export class VacuumDeviceAccessory {
    */
   private async assignMaps() {
     const { device } = this.deviceManager;
-    if (this.serviceAreas.length === 0 || typeof device.getMaps !== 'function') return;
+    // Multi-floor maps are only available on the legacy Roborock vacuums
+    if (this.serviceAreas.length === 0 || !('getMaps' in device)) return;
     try {
       const maps = await device.getMaps();
       if (maps.length < 2) return;
-      const [status] = await device.call<Array<{ map_status?: number }>>('get_status');
+      const [status] = await device.call('get_status', []);
       const mapStatus = status?.map_status;
       const currentMapId = typeof mapStatus === 'number' ? mapStatus >> 2 : undefined;
       if (currentMapId === undefined || !maps.some(({ id }) => id === currentMapId)) {
@@ -603,7 +607,7 @@ export class VacuumDeviceAccessory {
     // If empty, try the timer workaround.
     // Else, return an empty array.
 
-    const roomMapping = await this.deviceManager.device.getRoomMap();
+    const roomMapping = (await this.deviceManager.device.getRoomMap()) as RoomMapping;
     if (roomMapping.length > 0) {
       this.log.info(`Room mapping found: ${JSON.stringify(roomMapping)}`);
       this.log.info(`Creating service areas from room mapping...`);
@@ -621,7 +625,7 @@ export class VacuumDeviceAccessory {
       }));
     }
 
-    const timers = await this.deviceManager.device.getTimer();
+    const timers = (await this.deviceManager.device.getTimer()) as GetTimerResponseTimer[];
     if (timers.length > 0) {
       const timer = timers.find(([id, status, definition]) => {
         if (['off', 'disabled', 'disable'].includes(status)) {

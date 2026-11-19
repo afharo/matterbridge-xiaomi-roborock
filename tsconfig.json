@@ -22,11 +22,8 @@
     "noImplicitAny": true,
     "alwaysStrict": true,
     "noImplicitOverride": true,
-    "skipLibCheck": true,
-    "paths": {
-      "node-miio": ["./types/node-miio.d.ts"]
-    }
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "types/*.d.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["**/*.spec.ts", "**/*.test.ts", "**/__test__/*"]
 }
