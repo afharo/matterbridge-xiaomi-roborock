@@ -18,7 +18,7 @@ Guidance for AI coding agents (and humans) working on `matterbridge-xiaomi-robor
 ```sh
 npm install -g matterbridge   # the plugin is tested against the globally installed matterbridge
 npm ci
-npm link matterbridge         # required before lint/test/build (CI does the same)
+npm run dev:link              # = npm link matterbridge: required before lint/test/build (CI does the same)
 npm run lint                  # eslint --max-warnings=0
 npm run format:check          # prettier
 npm test                      # jest in ESM mode (node --experimental-vm-modules)
