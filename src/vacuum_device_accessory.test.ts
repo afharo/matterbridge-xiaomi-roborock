@@ -21,6 +21,17 @@ function withoutUndefined(value: unknown): unknown {
   return JSON.parse(JSON.stringify(value));
 }
 
+/**
+ * Removes the `undefined` properties, so snapshots don't depend on the matterbridge version
+ * (newer versions add optional attributes, e.g. `progress`, to the ServiceArea options).
+ *
+ * @param {unknown} value The value to clean up
+ * @returns {unknown} A copy without `undefined` properties
+ */
+function withoutUndefined(value: unknown): unknown {
+  return JSON.parse(JSON.stringify(value));
+}
+
 describe('VacuumDeviceAccessory', () => {
   let deviceAccessory: VacuumDeviceAccessory;
   let logger: Logger;
