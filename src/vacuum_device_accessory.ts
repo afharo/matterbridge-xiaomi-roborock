@@ -538,10 +538,10 @@ export class VacuumDeviceAccessory {
       return;
     }
     const errorStateId = toErrorStateId(this.deviceManager.model, error);
-    this.log.warn(`Robot error ${error.code}: ${error.message ?? 'unknown'} (Matter error state ${errorStateId})`);
+    this.log.warn(`Robot error ${error.id}: ${error.description ?? 'unknown'} (Matter error state ${errorStateId})`);
     await this.endpoint?.updateAttribute(RvcOperationalState, 'operationalError', {
       errorStateId,
-      ...(error.message ? { errorStateDetails: error.message.slice(0, 64) } : {}),
+      ...(error.description ? { errorStateDetails: error.description.slice(0, 64) } : {}),
     });
     await this.setOperationalState(RvcOperationalState.OperationalState.Error);
   }

@@ -17,7 +17,7 @@ describe('toErrorStateId', () => {
     [254, ErrorState.DustBinFull],
     [18, ErrorState.UnableToCompleteOperation], // Suction fan failure: no equivalent
   ])('Roborock error %p → %p', (code, expected) => {
-    expect(toErrorStateId('roborock.vacuum.s5', { code, message: 'ignored' })).toBe(expected);
+    expect(toErrorStateId('roborock.vacuum.s5', { id: code, description: 'ignored' })).toBe(expected);
   });
 
   test.each([
@@ -37,15 +37,15 @@ describe('toErrorStateId', () => {
     ['Entered a no-go zone', ErrorState.CannotReachTargetArea],
     ['Unknown error 42', ErrorState.UnableToCompleteOperation],
   ])('message %p → %p', (message, expected) => {
-    expect(toErrorStateId('xiaomi.vacuum.d110ch', { code: 99, message })).toBe(expected);
+    expect(toErrorStateId('xiaomi.vacuum.d110ch', { id: 99, description: message })).toBe(expected);
   });
 
   test('uses the message for Roborock codes that are not in the table', () => {
-    expect(toErrorStateId('roborock.vacuum.s5', { code: 999, message: 'Wheel blocked' })).toBe(ErrorState.WheelsJammed);
+    expect(toErrorStateId('roborock.vacuum.s5', { id: 999, description: 'Wheel blocked' })).toBe(ErrorState.WheelsJammed);
   });
 
   test('handles errors without a message', () => {
-    expect(toErrorStateId('viomi.vacuum.v8', { code: 501 })).toBe(ErrorState.UnableToCompleteOperation);
+    expect(toErrorStateId('viomi.vacuum.v8', { id: 501 })).toBe(ErrorState.UnableToCompleteOperation);
   });
 });
 
