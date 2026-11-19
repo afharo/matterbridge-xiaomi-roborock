@@ -1,25 +1,27 @@
 import { jest } from '@jest/globals';
-import type { MiioDevice, MiioErrorChangedEvent } from 'node-miio';
+import type { ErrorChangedEvent, VacuumDevice } from 'node-miio';
 import { Subject } from 'rxjs';
 
 import type { DeviceManager, StateChangedEvent } from './services/device_manager.js';
-import { miio } from './test.mocks.js';
+import { miio, type MiioDeviceMock } from './test.mocks.js';
 import * as originalFindSpeedModesModule from './utils/find_speed_modes.js';
 import { findSpeedModes as originalFindSpeedModes } from './utils/find_speed_modes.js';
 
 type PublicMethodsOf<T> = { [K in keyof T]: T[K] };
 
 interface ObservableProps {
-  deviceConnected$: Subject<MiioDevice>;
+  /** The vacuum is only partially mocked (see `MiioDeviceMock`) */
+  device: MiioDeviceMock;
+  deviceConnected$: Subject<VacuumDevice>;
   stateChanged$: Subject<StateChangedEvent>;
-  errorChanged$: Subject<MiioErrorChangedEvent>;
+  errorChanged$: Subject<ErrorChangedEvent>;
 }
 
 export const deviceManagerMock: jest.Mocked<PublicMethodsOf<Omit<DeviceManager, keyof ObservableProps>>> & ObservableProps = {
   device: miio.device,
-  deviceConnected$: new Subject<MiioDevice>(),
+  deviceConnected$: new Subject<VacuumDevice>(),
   ensureDevice: jest.fn(),
-  errorChanged$: new Subject<MiioErrorChangedEvent>(),
+  errorChanged$: new Subject<ErrorChangedEvent>(),
   isCleaning: false,
   isPaused: false,
   model: miio.device.miioModel as string,

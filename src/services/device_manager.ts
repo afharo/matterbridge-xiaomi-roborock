@@ -1,6 +1,6 @@
 import { BehaviorSubject, distinct, exhaustMap, filter, Subject, takeUntil, timer } from 'rxjs';
 import * as miio from 'node-miio';
-import type { MiioDevice, MiioErrorChangedEvent } from 'node-miio';
+import { isVacuum, type ErrorChangedEvent, type StateChangedEvent, type VacuumDevice } from 'node-miio';
 
 import { cleaningStatuses } from '../utils/constants.js';
 import type { ModelLogger } from '../utils/logger.ts';
@@ -10,20 +10,17 @@ export interface DeviceManagerConfig {
   token?: string;
 }
 
-export interface StateChangedEvent {
-  key: string;
-  value: unknown;
-}
+export type { StateChangedEvent };
 
 const GET_STATE_INTERVAL_MS = 10000; // 30s
 
 export class DeviceManager {
-  private readonly internalDevice$ = new BehaviorSubject<MiioDevice | undefined>(undefined);
+  private readonly internalDevice$ = new BehaviorSubject<VacuumDevice | undefined>(undefined);
 
   private readonly ip: string;
   private readonly token: string;
 
-  private readonly internalErrorChanged$ = new Subject<MiioErrorChangedEvent | null>();
+  private readonly internalErrorChanged$ = new Subject<ErrorChangedEvent>();
   private readonly internalStateChanged$ = new Subject<StateChangedEvent>();
   private readonly stop$ = new Subject<void>();
   public readonly errorChanged$ = this.internalErrorChanged$.pipe(distinct());
@@ -86,11 +83,10 @@ export class DeviceManager {
         throw new Error(errMsg);
       }
 
-      // checking if the device has an open socket it will fail retrieving it if not
-      // https://github.com/aholstenson/miio/blob/master/lib/network.js#L227
-      if (this.internalDevice$.value.handle.api.parent.socket) {
-        this.log.debug(`DEB ensureDevice | ${this.model} | The socket is still on. Reusing it.`);
+      if (!this.internalDevice$.value.connected) {
+        throw new Error('The socket was destroyed');
       }
+      this.log.debug(`DEB ensureDevice | ${this.model} | The socket is still on. Reusing it.`);
     } catch (error) {
       const err = error as Error;
       if (/destroyed/i.test(err.message) || /No vacuum cleaner is discovered yet/.test(err.message)) {
@@ -137,14 +133,12 @@ export class DeviceManager {
 
     // node-miio's debug messages go to the plugin's logger (shown with the `debug` option)
     const miioLogger = { debug: (msg: string) => this.log.debug(msg) };
-    // Messages not tied to a device (network, MIoT specs…). Available since node-miio 0.5.0.
+    // Messages not tied to a device (network, MIoT specs…).
     // With several vacuums, the last one to connect wins: it's only used for debugging.
-    if (typeof miio.configureLogging === 'function') {
-      miio.configureLogging({ logger: miioLogger });
-    }
+    miio.configureLogging({ logger: miioLogger });
     const device = await miio.device({ address: this.ip, token: this.token, logger: miioLogger });
 
-    if (device.matches('type:vaccuum')) {
+    if (isVacuum(device)) {
       this.internalDevice$.next(device);
 
       this.log.setModel(this.model);
@@ -155,8 +149,8 @@ export class DeviceManager {
       this.log.info(`STA getDevice | FanSpeed: ${this.property('fanSpeed')}`);
       this.log.info(`STA getDevice | BatteryLevel: ${this.property('batteryLevel')}`);
 
-      this.device.on<MiioErrorChangedEvent>('errorChanged', (error) => this.internalErrorChanged$.next(error));
-      this.device.on<StateChangedEvent>('stateChanged', (state) => this.internalStateChanged$.next(state));
+      this.device.on('errorChanged', (error: ErrorChangedEvent) => this.internalErrorChanged$.next(error));
+      this.device.on('stateChanged', (state: StateChangedEvent) => this.internalStateChanged$.next(state));
 
       // Refresh the state every 10s so miio maintains a fresh connection (or recovers connection if lost)
       timer(0, GET_STATE_INTERVAL_MS)
@@ -166,12 +160,12 @@ export class DeviceManager {
         )
         .subscribe();
     } else {
-      const model = (device || {}).miioModel;
+      const model = device?.miioModel;
       this.log.error(
         `Device "${model}" is not registered as a vacuum cleaner! If you think it should be, please open an issue at https://github.com/afharo/matterbridge-xiaomi-roborock/issues/new and provide this line.`,
       );
       this.log.debug(device);
-      device.destroy();
+      device?.destroy();
     }
   }
 
@@ -185,7 +179,7 @@ export class DeviceManager {
 
       Object.entries(state).forEach(([key, value]) => {
         if (key === 'error') {
-          this.internalErrorChanged$.next(value);
+          this.internalErrorChanged$.next(value as ErrorChangedEvent);
         } else {
           this.internalStateChanged$.next({ key, value });
         }

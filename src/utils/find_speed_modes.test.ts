@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 import { RvcCleanMode } from 'matterbridge/matter/clusters';
-import type { MiioDevice } from 'node-miio';
+import type { VacuumDevice } from 'node-miio';
 
 import { MODELS } from '../models/models.js';
 
@@ -36,7 +36,7 @@ describe('resolveSpeedModes', () => {
     ({
       fanSpeeds: fanSpeeds && jest.fn(async () => fanSpeeds),
       waterBoxModes: waterBoxModes && jest.fn(async () => waterBoxModes),
-    }) as unknown as MiioDevice;
+    }) as unknown as VacuumDevice;
 
   test('models listed in MODELS keep the local definitions', async () => {
     const d = device([{ value: 1, name: 'Ignored' }]);
@@ -53,7 +53,7 @@ describe('resolveSpeedModes', () => {
   });
 
   test('falls back to findSpeedModes when node-miio fails', async () => {
-    const d = { fanSpeeds: jest.fn(async () => Promise.reject(new Error('boom'))) } as unknown as MiioDevice;
+    const d = { fanSpeeds: jest.fn(async () => Promise.reject(new Error('boom'))) } as unknown as VacuumDevice;
     await expect(resolveSpeedModes(d, 'dreame.vacuum.p2008')).resolves.toStrictEqual(MODELS.dreame[0]);
   });
 
@@ -171,7 +171,7 @@ describe('resolveSpeedModes with cleaning types', () => {
         { value: 1, name: 'Sweep' },
         { value: 4, name: 'Sweep Before Mopping' },
       ]),
-    } as unknown as MiioDevice;
+    } as unknown as VacuumDevice;
     await expect(resolveSpeedModes(device, 'xiaomi.vacuum.d110ch')).resolves.toMatchObject({
       cleaningTypes: { vacuum: 1, vacuumThenMop: 4 },
     });
@@ -181,7 +181,7 @@ describe('resolveSpeedModes with cleaning types', () => {
     const device = {
       fanSpeeds: jest.fn(async () => [{ value: 0, name: 'Silent' }]),
       cleaningTypes: jest.fn(async () => []),
-    } as unknown as MiioDevice;
+    } as unknown as VacuumDevice;
     expect(await resolveSpeedModes(device, 'xiaomi.vacuum.x')).not.toHaveProperty('cleaningTypes');
   });
 });

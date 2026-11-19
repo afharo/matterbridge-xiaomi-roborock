@@ -1,6 +1,6 @@
 import semver from 'semver';
 import { RvcCleanMode } from 'matterbridge/matter/clusters';
-import type { MiioDevice, MiioVacuumMode } from 'node-miio';
+import type { VacuumDevice, VacuumMode } from 'node-miio';
 
 import { MODELS } from '../models/models.js';
 import type { CleaningTypes, ModelDefinition, ModesWithMiLevel } from '../models/types.js';
@@ -48,12 +48,12 @@ export function findSpeedModes(model: string, firmware?: string) {
  * - Any other model uses the fan speeds / water levels reported by `node-miio` (e.g. from the device's MIoT spec).
  * - Falls back to {@link findSpeedModes} if `node-miio` doesn't report any fan speed.
  *
- * @param {MiioDevice} device The connected device
+ * @param {VacuumDevice} device The connected device
  * @param {string} model The Robot Vacuum's model
  * @param {string?} firmware The firmware's version
  * @returns {Promise<ModelDefinition>} The speed modes that apply to the robot.
  */
-export async function resolveSpeedModes(device: MiioDevice, model: string, firmware?: string): Promise<ModelDefinition> {
+export async function resolveSpeedModes(device: VacuumDevice, model: string, firmware?: string): Promise<ModelDefinition> {
   if (MODELS[model] || typeof device.fanSpeeds !== 'function') {
     return findSpeedModes(model, firmware);
   }
@@ -66,7 +66,7 @@ export async function resolveSpeedModes(device: MiioDevice, model: string, firmw
     return findSpeedModes(model, firmware);
   }
   const definition = fromNodeMiioModes(fanSpeeds, waterBoxModes);
-  const cleaningTypes = classifyCleaningTypes(typeof device.cleaningTypes === 'function' ? await device.cleaningTypes().catch(() => []) : []);
+  const cleaningTypes = classifyCleaningTypes('cleaningTypes' in device ? await device.cleaningTypes().catch(() => []) : []);
   return Object.keys(cleaningTypes).length > 0 ? { ...definition, cleaningTypes } : definition;
 }
 
@@ -74,10 +74,10 @@ export async function resolveSpeedModes(device: MiioDevice, model: string, firmw
  * Classifies the cleaning types reported by node-miio (from the MIoT spec, e.g. `Sweep`, `Mop`, `Sweep Mop`,
  * `Sweep Before Mopping`, `Sweep And Mop`).
  *
- * @param {MiioVacuumMode[]} cleaningTypes The cleaning types
+ * @param {VacuumMode[]} cleaningTypes The cleaning types
  * @returns {CleaningTypes} The values for each kind of cleaning
  */
-export function classifyCleaningTypes(cleaningTypes: MiioVacuumMode[]): CleaningTypes {
+export function classifyCleaningTypes(cleaningTypes: VacuumMode[]): CleaningTypes {
   const result: CleaningTypes = {};
   for (const { value, name } of cleaningTypes) {
     const sweep = /sweep|vacuum/i.test(name);
@@ -146,11 +146,11 @@ function labelFor(labels: Record<string, RvcCleanMode.ModeTag>, name: string, in
  * Converts the modes reported by `node-miio` to a {@link ModelDefinition}.
  * The first entry of each list is the "off" level (as in `models/`): if the device has no such level, {@link UNSUPPORTED_LEVEL} is used.
  *
- * @param {MiioVacuumMode[]} fanSpeeds The fan speeds
- * @param {MiioVacuumMode[]} waterBoxModes The water levels (empty if not supported)
+ * @param {VacuumMode[]} fanSpeeds The fan speeds
+ * @param {VacuumMode[]} waterBoxModes The water levels (empty if not supported)
  * @returns {ModelDefinition} The speed modes
  */
-export function fromNodeMiioModes(fanSpeeds: MiioVacuumMode[], waterBoxModes: MiioVacuumMode[]): ModelDefinition {
+export function fromNodeMiioModes(fanSpeeds: VacuumMode[], waterBoxModes: VacuumMode[]): ModelDefinition {
   const speed: ModesWithMiLevel[] = [
     { miLevel: UNSUPPORTED_LEVEL, name: 'Off', label: RvcCleanMode.ModeTag.Vacuum },
     ...fanSpeeds.map(({ value, name }, index) => ({ miLevel: value, name, label: labelFor(SPEED_LABELS, name, index, fanSpeeds.length) })),

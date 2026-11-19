@@ -42,7 +42,9 @@ CI (`.github/workflows/build-matterbridge-plugin.yml`) runs them on Node 22/24/2
     and the clean-mode handler skips it (`isSupportedLevel`).
 - `src/models/`: legacy per-model tables (also copied into node-miio's `vacuum_modes.ts`). The plan is to remove them once
   node-miio's lists are confirmed to cover every model. Prefer fixing speeds in node-miio.
-- `types/node-miio.d.ts`: hand-written types for node-miio (it doesn't ship `.d.ts` files yet). Optional methods are the ones added in newer versions.
+- node-miio ships its own types (since 0.5.0). The device is a `VacuumDevice` (union of node-miio's vacuum classes): only their
+  shared API is available, so narrow with `'getMaps' in device` (or `instanceof`) for the class-specific methods.
+  `src/utils/miio_types.ts` types the legacy Roborock responses that node-miio returns untyped (room mapping, timers).
 
 ## Tests
 
