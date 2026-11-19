@@ -47,6 +47,27 @@ const OPERATION_END_STATES = new Set<RvcOperationalState.OperationalState>([
   RvcOperationalState.OperationalState.Stopped,
 ]);
 
+/** How long to wait for the robot on startup, when there's info saved from a previous connection */
+export const CONNECT_TIMEOUT_WITH_SNAPSHOT_MS = 15_000;
+/** How long to wait for the robot on startup, when it was never connected before */
+export const CONNECT_TIMEOUT_MS = 60_000;
+
+/** Everything needed to build the Matter device, saved after each successful connection */
+export interface DeviceSnapshot {
+  model: string;
+  serialNumber: string;
+  firmware: string;
+  modelSpeeds: ModelDefinition;
+  serviceAreas: ServiceArea.Area[];
+  supportedMaps: ServiceArea.Map[];
+}
+
+/** Persistent storage (e.g. the platform's `context`) */
+export interface SnapshotStore {
+  get<T>(key: string, defaultValue?: T): Promise<T | undefined>;
+  set<T>(key: string, value: T): Promise<void>;
+}
+
 export class VacuumDeviceAccessory {
   private readonly config: Config;
   private readonly log: ModelLogger;
@@ -60,19 +81,43 @@ export class VacuumDeviceAccessory {
   /** Areas of the current room-cleaning operation (to support SkipArea) */
   private activeAreas: number[] = [];
 
-  constructor(config: Partial<Config>, logger: Logger) {
+  constructor(
+    config: Partial<Config>,
+    logger: Logger,
+    private readonly snapshotStore?: SnapshotStore,
+  ) {
     this.config = applyConfigDefaults(config);
     this.log = getLogger(logger, this.config);
     this.deviceManager = new DeviceManager(this.log, this.config);
   }
 
-  public async initializeMatterbridgeEndpoint(): Promise<MatterbridgeEndpoint> {
-    this.log.info(`Waiting for the connection to the vacuum to be established...`);
+  private get snapshotKey() {
+    return `device-snapshot:${this.config.ip}:${this.config.name}`;
+  }
 
-    // Wait for the device to be connected
-    await firstValueFrom(this.deviceManager.deviceConnected$);
-    this.log.info(`Connected to device!`);
+  private async readSnapshot(): Promise<DeviceSnapshot | undefined> {
+    try {
+      return (await this.snapshotStore?.get<DeviceSnapshot>(this.snapshotKey)) ?? undefined;
+    } catch (error) {
+      this.log.debug(`Failed to read the saved device info: ${error}`);
+      return undefined;
+    }
+  }
 
+  private async writeSnapshot(snapshot: DeviceSnapshot) {
+    try {
+      await this.snapshotStore?.set(this.snapshotKey, snapshot);
+    } catch (error) {
+      this.log.debug(`Failed to save the device info: ${error}`);
+    }
+  }
+
+  /**
+   * Reads everything needed to build the Matter device from the (connected) robot.
+   *
+   * @returns {Promise<DeviceSnapshot>} The device info
+   */
+  private async takeSnapshot(): Promise<DeviceSnapshot> {
     const serialNumber = await this.deviceManager.device.getSerialNumber().catch((error) => {
       this.log.warn(`Failed to retrieve serial number: ${error}`);
       return 'Unknown';
@@ -85,13 +130,89 @@ export class VacuumDeviceAccessory {
     this.log.info(`Firmware: ${deviceInfo.fw_ver}`);
 
     this.modelSpeeds = await resolveSpeedModes(this.deviceManager.device, this.deviceManager.model, deviceInfo.fw_ver);
-    const supportedCleanModes = this.supportedCleanModes;
-
     this.serviceAreas = await this.getServiceAreas().catch((error) => {
       this.log.warn(`Failed to retrieve service areas: ${error}`);
       return [];
     });
+    this.supportedMaps = [];
     await this.assignMaps();
+
+    return {
+      model: this.deviceManager.model,
+      serialNumber,
+      firmware: deviceInfo.fw_ver,
+      modelSpeeds: this.modelSpeeds,
+      serviceAreas: this.serviceAreas,
+      supportedMaps: this.supportedMaps,
+    };
+  }
+
+  private async refreshSnapshotWhenConnected(connected: Promise<boolean>, saved: DeviceSnapshot) {
+    try {
+      await connected;
+      const fresh = await this.takeSnapshot();
+      await this.writeSnapshot(fresh);
+      if (JSON.stringify(fresh) !== JSON.stringify(saved)) {
+        this.log.info(`The vacuum's modes or rooms changed since the last connection: restart the plugin to apply them.`);
+      }
+    } catch (error) {
+      this.log.debug(`Failed to refresh the saved device info: ${error}`);
+    }
+  }
+
+  /**
+   * Resolves the device info: from the robot if it connects in time, or from the last connection otherwise,
+   * so an offline robot doesn't prevent Matterbridge from starting.
+   *
+   * @returns {Promise<DeviceSnapshot | undefined>} The device info, or `undefined` if the robot is not reachable and was never connected before
+   */
+  private async resolveSnapshot(): Promise<DeviceSnapshot | undefined> {
+    // Subscribe before anything else, so a connection that happens meanwhile is not missed
+    const connected = firstValueFrom(this.deviceManager.deviceConnected$).then(() => true);
+    const saved = await this.readSnapshot();
+    const timeoutMs = saved ? CONNECT_TIMEOUT_WITH_SNAPSHOT_MS : CONNECT_TIMEOUT_MS;
+    this.log.info(`Waiting for the connection to the vacuum to be established (up to ${timeoutMs / 1000}s)...`);
+
+    if (await waitAtMost(connected, timeoutMs)) {
+      this.log.info(`Connected to device!`);
+      const snapshot = await this.takeSnapshot();
+      await this.writeSnapshot(snapshot);
+      return snapshot;
+    }
+
+    if (saved) {
+      this.log.warn(`The vacuum is not reachable: using the info saved from the last connection. Its state will update once it's back online.`);
+      // Refresh the saved info once the robot is reachable again
+      void this.refreshSnapshotWhenConnected(connected, saved);
+      return saved;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Builds the Matter device. Returns `undefined` when the robot is not reachable and was never connected before
+   * (there's nothing to build it from): the caller should skip it, so the other devices and plugins can start.
+   *
+   * @returns {Promise<MatterbridgeEndpoint | undefined>} The endpoint to register
+   */
+  public async initializeMatterbridgeEndpoint(): Promise<MatterbridgeEndpoint | undefined> {
+    const snapshot = await this.resolveSnapshot();
+    if (!snapshot) {
+      this.log.error(
+        `Could not connect to the vacuum within ${CONNECT_TIMEOUT_MS / 1000}s, and there is no info saved from a previous connection. ` +
+          `Skipping it so the other devices and plugins can start: restart the plugin once the vacuum is online.`,
+      );
+      this.deviceManager.stop();
+      return undefined;
+    }
+
+    this.modelSpeeds = snapshot.modelSpeeds;
+    this.serviceAreas = snapshot.serviceAreas;
+    this.supportedMaps = snapshot.supportedMaps ?? [];
+    const { serialNumber } = snapshot;
+    const deviceInfo = { fw_ver: snapshot.firmware };
+    const supportedCleanModes = this.supportedCleanModes;
 
     this.endpoint = new RoboticVacuumCleaner(this.config.name, serialNumber, {
       mode: 'server',
@@ -110,10 +231,10 @@ export class VacuumDeviceAccessory {
     });
 
     this.endpoint.vendorName = 'Xiaomi';
-    this.endpoint.productName = this.deviceManager.model;
+    this.endpoint.productName = snapshot.model;
     this.endpoint.softwareVersionString = deviceInfo.fw_ver;
     this.endpoint.productUrl = 'https://github.com/afharo/matterbridge-xiaomi-roborock';
-    this.endpoint.hardwareVersionString = this.deviceManager.model;
+    this.endpoint.hardwareVersionString = snapshot.model;
 
     this.endpoint.lifecycle.destroying.on(() => {
       this.deviceManager.stop();
@@ -604,4 +725,25 @@ export class VacuumDeviceAccessory {
  */
 function getBatteryChargeLevel(batteryLevel: number): PowerSource.BatChargeLevel {
   return batteryLevel < 10 ? PowerSource.BatChargeLevel.Critical : batteryLevel < 20 ? PowerSource.BatChargeLevel.Warning : PowerSource.BatChargeLevel.Ok;
+}
+
+/**
+ * Waits for the promise, but not longer than `timeoutMs`.
+ *
+ * @param {Promise<boolean>} promise Resolves to `true` when the awaited event happens
+ * @param {number} timeoutMs How long to wait
+ * @returns {Promise<boolean>} `true` if it happened in time
+ */
+async function waitAtMost(promise: Promise<boolean>, timeoutMs: number): Promise<boolean> {
+  let timeout: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<boolean>((resolve) => {
+        timeout = setTimeout(() => resolve(false), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeout);
+  }
 }

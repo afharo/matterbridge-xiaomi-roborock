@@ -45,6 +45,14 @@ All notable changes to this project will be documented in this file.
 - **Multi-floor maps**: when the robot has more than one saved map, the maps are exposed and the rooms are assigned to the current one. Only the rooms of the current map are listed: the robot doesn't report the other floors' rooms ([#212](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/212)).
 - **Vacuum & mop / Vacuum then mop** clean modes on MIoT vacuums that support them (requires node-miio with cleaning types). On those devices, the vacuum and mop modes also switch the robot to vacuum-only or mop-only.
 
+### Fixed
+
+- **An offline vacuum no longer blocks Matterbridge** ([#248](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/248)). The device info (model, firmware, serial, clean modes, rooms) is now saved after each connection. If the vacuum isn't reachable on startup, it's registered from the saved info after 15s, and its state updates once it's back online. If it was never connected before, it's skipped after 60s, so the other devices and plugins can still start. A vacuum that fails to initialize no longer puts the plugin in error state.
+
+### Changed
+
+- Requires Matterbridge 3.10.12 or later (needed by the Skip Area support).
+
 ## [v0.8.0] - 2026-11-19
 
 ### Added

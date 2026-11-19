@@ -23,8 +23,8 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
     log.logLevel = this.config.debug ? LogLevel.DEBUG : LogLevel.INFO;
 
     // Verify that Matterbridge is the correct version
-    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.3.0')) {
-      throw new Error(`This plugin requires Matterbridge version >= "3.3.0". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version."`);
+    if (this.verifyMatterbridgeVersion === undefined || typeof this.verifyMatterbridgeVersion !== 'function' || !this.verifyMatterbridgeVersion('3.10.12')) {
+      throw new Error(`This plugin requires Matterbridge version >= "3.10.12". Please update Matterbridge from ${this.matterbridge.matterbridgeVersion} to the latest version."`);
     }
 
     this.log.info(`Initializing Platform...`);
@@ -68,11 +68,17 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
 
     await Promise.all(
       devices.map(async (cfg) => {
-        const vacuumDevice = new VacuumDeviceAccessory(cfg, this.log);
-        const vacuum = await vacuumDevice.initializeMatterbridgeEndpoint();
-        await this.registerDevice(vacuum);
-        await vacuumDevice.postRegister();
-        this.vacuumDevices.add(vacuumDevice);
+        // A device failing (e.g. offline) must not prevent the other devices, or Matterbridge, from starting
+        try {
+          const vacuumDevice = new VacuumDeviceAccessory(cfg, this.log, this.context);
+          const vacuum = await vacuumDevice.initializeMatterbridgeEndpoint();
+          if (!vacuum) return;
+          await this.registerDevice(vacuum);
+          await vacuumDevice.postRegister();
+          this.vacuumDevices.add(vacuumDevice);
+        } catch (error) {
+          this.log.error(`Failed to initialize the vacuum "${cfg.name ?? cfg.ip}": ${error}`);
+        }
       }),
     );
   }
