@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- **Duplicate state polling after a reconnection**: every reconnection started another polling loop, without stopping the previous one.
 - **The plugin stopped reacting to the robot after a single failure**: an error while handling a state change or a robot error (e.g. a failed attribute update) ended the stream, so no later change was handled, and RxJS rethrew it as an uncaught exception. Each failure is now logged and handled on its own.
 - **Error reasons**: the robot's errors were always reported as "unable to complete operation", with no details. node-miio emits them as `{ id, description }`, not `{ code, message }`. Clearing the error when the robot recovers also needs [afharo/node-miio#39](https://github.com/afharo/node-miio/pull/39).
 
@@ -49,6 +50,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - **The room the robot is cleaning** (opt-in, Roborock only): with the new `cloud` option, the plugin downloads the robot's map from the Xiaomi Cloud while it cleans, and reports the room it's in as the Matter current area. It needs a one-off `npx node-miio cloud login --qr`; your password is never stored. Before, the current area was only a guess (the first selected room).
+
+- **Configure a robot by its device ID (`did`)**, instead of its IP and token, with the `cloud` option: they're read from your Xiaomi account. When the robot stops answering, the plugin looks for it again in the account, so a new IP (or a new token, after resetting its Wi-Fi) doesn't break it anymore. Robots configured with an IP and token benefit too, when the `cloud` option is enabled.
 
 - **No more token extraction**: with the `cloud` option, a robot configured with only its `ip` gets its token from your Xiaomi account when the plugin starts. The token is now optional in the config.
 

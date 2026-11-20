@@ -12,9 +12,13 @@ jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
   }),
 }));
 
-const tokenOf = jest.fn(async (ip: string): Promise<string | undefined> => (ip === '2.2.2.2' ? 'cloud-token' : undefined));
+const locate = jest.fn(async ({ did, ip }: { did?: string; ip?: string }): Promise<{ ip: string; token: string } | undefined> => {
+  if (did === '123') return { ip: '4.4.4.4', token: 'did-token' };
+  if (ip === '2.2.2.2') return { ip: '2.2.2.2', token: 'cloud-token' };
+  return undefined;
+});
 jest.unstable_mockModule('./services/cloud_service.js', () => ({
-  CloudService: jest.fn(() => ({ tokenOf })),
+  CloudService: jest.fn(() => ({ locate })),
 }));
 
 // import initializePlugin from './module.js';
@@ -126,7 +130,7 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     instance.config.unregisterOnShutdown = false;
   });
 
-  it('gets the token of the robots configured with their IP only from the Xiaomi Cloud', async () => {
+  it('gets the IP and token of the robots configured with their did, or without a token, from the Xiaomi Cloud', async () => {
     const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
     const accessoryMock = VacuumDeviceAccessory as unknown as jest.Mock;
     const config = {
@@ -136,17 +140,20 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
         { name: 'With token', ip: '1.1.1.1', token: 'token1' },
         { name: 'From the cloud', ip: '2.2.2.2' },
         { name: 'Not in the account', ip: '3.3.3.3' },
+        { name: 'By did', did: '123', ip: '9.9.9.9', token: 'old-token' },
       ],
     };
     const platform = (await import('./module.js')).default(mockMatterbridge, mockLog, config) as XiaomiRoborockVacuumPlatform;
     jest.spyOn(platform, 'registerDevice').mockResolvedValue();
     await platform.onStart('cloud');
-    expect(tokenOf).toHaveBeenCalledTimes(2);
+    expect(locate).toHaveBeenCalledTimes(3);
+    expect(locate).toHaveBeenCalledWith({ did: '123', ip: '9.9.9.9' });
     const configs = accessoryMock.mock.calls.map(([cfg]) => cfg);
     expect(configs).toEqual([
       { name: 'With token', ip: '1.1.1.1', token: 'token1' },
       { name: 'From the cloud', ip: '2.2.2.2', token: 'cloud-token' },
       { name: 'Not in the account', ip: '3.3.3.3' },
+      { name: 'By did', did: '123', ip: '4.4.4.4', token: 'did-token' },
     ]);
   });
 });

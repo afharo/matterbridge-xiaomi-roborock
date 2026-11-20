@@ -94,11 +94,12 @@ export class VacuumDeviceAccessory {
   ) {
     this.config = applyConfigDefaults(config);
     this.log = getLogger(logger, this.config);
-    this.deviceManager = new DeviceManager(this.log, this.config);
+    this.deviceManager = new DeviceManager(this.log, this.config, cloudService && ((current) => cloudService.locate({ did: this.config.did, ...current }, { fresh: true })));
   }
 
   private get snapshotKey() {
-    return `device-snapshot:${this.config.ip}:${this.config.name}`;
+    // The did when known: the IP may change
+    return `device-snapshot:${this.config.did ?? this.config.ip}:${this.config.name}`;
   }
 
   private async readSnapshot(): Promise<DeviceSnapshot | undefined> {
@@ -394,7 +395,7 @@ export class VacuumDeviceAccessory {
               let watcher: MapWatcher | undefined;
               let closed = false;
               const follow = async () => {
-                const created = await cloudService.createMapWatcher(device, { ip: this.config.ip, token: this.config.token });
+                const created = await cloudService.createMapWatcher(device, { did: this.config.did, ip: this.config.ip, token: this.config.token });
                 if (!created || closed) return;
                 watcher = created;
                 watcher.on('currentRoom', (room) => subscriber.next(room));

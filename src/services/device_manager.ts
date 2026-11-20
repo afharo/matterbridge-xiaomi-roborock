@@ -1,4 +1,4 @@
-import { BehaviorSubject, distinct, exhaustMap, filter, Subject, takeUntil, timer } from 'rxjs';
+import { BehaviorSubject, distinct, exhaustMap, filter, Subject, type Subscription, takeUntil, timer } from 'rxjs';
 import * as miio from 'node-miio';
 import { isVacuum, type ErrorChangedEvent, type StateChangedEvent, type VacuumDevice } from 'node-miio';
 
@@ -8,17 +8,41 @@ import type { ModelLogger } from '../utils/logger.ts';
 export interface DeviceManagerConfig {
   ip?: string;
   token?: string;
+  /** The device ID in the Xiaomi account: its IP and token are read from there (needs the `cloud` option) */
+  did?: string;
 }
+
+/** Where the robot is, and how to talk to it */
+export interface DeviceLocation {
+  ip: string;
+  token: string;
+}
+
+/**
+ * Looks for the robot again (in the Xiaomi Cloud), e.g. when its IP changed.
+ *
+ * @param current Where the robot was
+ * @returns Where it is now, or `undefined` if unknown
+ */
+export type DeviceLocator = (current: DeviceLocation) => Promise<DeviceLocation | undefined>;
 
 export type { StateChangedEvent };
 
-const GET_STATE_INTERVAL_MS = 10000; // 30s
+const GET_STATE_INTERVAL_MS = 10000; // 10s
+const RECONNECT_INTERVAL_MS = 10000; // 10s
+/** Consecutive failed state requests before looking for the robot again (~1.5 minutes) */
+const FAILED_POLLS_BEFORE_LOCATING = 9;
+/** Don't ask the Xiaomi Cloud more often than this (e.g. while the robot is unplugged) */
+const LOCATE_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
 export class DeviceManager {
   private readonly internalDevice$ = new BehaviorSubject<VacuumDevice | undefined>(undefined);
 
-  private readonly ip: string;
-  private readonly token: string;
+  private ip: string;
+  private token: string;
+  private failedPolls = 0;
+  private lastLocatedAt = 0;
+  private polling?: Subscription;
 
   private readonly internalErrorChanged$ = new Subject<ErrorChangedEvent>();
   private readonly internalStateChanged$ = new Subject<StateChangedEvent>();
@@ -32,9 +56,11 @@ export class DeviceManager {
   constructor(
     private readonly log: ModelLogger,
     config: DeviceManagerConfig,
+    /** Finds the robot again when it stops answering (with the `cloud` option) */
+    private readonly locate?: DeviceLocator,
   ) {
     if (!config.ip) {
-      throw new Error('You must provide an ip address of the vacuum cleaner.');
+      throw new Error('You must provide an ip address of the vacuum cleaner (or its `did`, with the `cloud` option).');
     }
     this.ip = config.ip;
 
@@ -111,12 +137,14 @@ export class DeviceManager {
   private async connect() {
     if (this.connectingPromise === null) {
       // if already trying to connect, don't trigger yet another one
-      this.connectingPromise = this.initializeDevice().catch((error) => {
-        this.log.error(`ERR connect | miio.device, next try in 10 seconds | ${error}`);
+      this.connectingPromise = this.initializeDevice().catch(async (error) => {
+        // Maybe it's somewhere else now (new IP), or it has a new token (its Wi-Fi was reset)
+        const moved = await this.relocate();
+        this.log.error(`ERR connect | miio.device, next try ${moved ? 'now, at its new location' : 'in 10 seconds'} | ${error}`);
         clearTimeout(this.connectRetry);
         // Using setTimeout instead of holding the promise. This way we'll keep retrying but not holding the other actions
         // eslint-disable-next-line promise/no-nesting
-        this.connectRetry = setTimeout(() => this.connect().catch(() => {}), 10000);
+        this.connectRetry = setTimeout(() => this.connect().catch(() => {}), moved ? 0 : RECONNECT_INTERVAL_MS);
         throw error;
       });
     }
@@ -126,6 +154,43 @@ export class DeviceManager {
     } finally {
       this.connectingPromise = null;
     }
+  }
+
+  /**
+   * Asks where the robot is now (at most every 10 minutes).
+   *
+   * @returns {Promise<boolean>} Whether its IP or token changed
+   */
+  private async relocate(): Promise<boolean> {
+    if (!this.locate || Date.now() - this.lastLocatedAt < LOCATE_INTERVAL_MS) return false;
+    this.lastLocatedAt = Date.now();
+    let found: DeviceLocation | undefined;
+    try {
+      found = await this.locate({ ip: this.ip, token: this.token });
+    } catch (error) {
+      this.log.debug(`DEB relocate | Failed to locate the robot: ${error}`);
+      return false;
+    }
+    if (!found || (found.ip === this.ip && found.token === this.token)) return false;
+    if (found.ip !== this.ip) this.log.info(`INF relocate | The robot's IP changed from ${this.ip} to ${found.ip}`);
+    if (found.token !== this.token) this.log.info('INF relocate | The robot has a new token');
+    this.ip = found.ip;
+    this.token = found.token;
+    return true;
+  }
+
+  /**
+   * The robot doesn't answer anymore: if it's somewhere else now, connect to it there.
+   */
+  private async reconnectIfMoved() {
+    this.failedPolls += 1;
+    if (this.failedPolls < FAILED_POLLS_BEFORE_LOCATING) return;
+    this.failedPolls = 0;
+    if (!(await this.relocate())) return;
+    this.internalDevice$.value?.destroy();
+    await this.connect().catch(() => {
+      // Already logged, and retried later
+    });
   }
 
   private async initializeDevice() {
@@ -153,7 +218,9 @@ export class DeviceManager {
       this.device.on('stateChanged', (state: StateChangedEvent) => this.internalStateChanged$.next(state));
 
       // Refresh the state every 10s so miio maintains a fresh connection (or recovers connection if lost)
-      timer(0, GET_STATE_INTERVAL_MS)
+      // (only one polling loop, also after reconnecting)
+      this.polling?.unsubscribe();
+      this.polling = timer(0, GET_STATE_INTERVAL_MS)
         .pipe(
           takeUntil(this.stop$),
           exhaustMap(() => this.getState()),
@@ -175,6 +242,7 @@ export class DeviceManager {
       await this.ensureDevice('getState');
       await this.device.poll();
       const state = await this.device.state();
+      this.failedPolls = 0;
       this.log.debug(`DEB getState | ${this.model} | State ${JSON.stringify(state)} | Props ${JSON.stringify(this.device.properties)}`);
 
       Object.entries(state).forEach(([key, value]) => {
@@ -188,6 +256,7 @@ export class DeviceManager {
       Object.entries(this.device.properties).forEach(([key, value]) => this.internalStateChanged$.next({ key, value }));
     } catch (err) {
       this.log.error(`getState | ${err}`, err);
+      await this.reconnectIfMoved();
     }
   }
 }
