@@ -71,9 +71,10 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
     this.log.info(`Found ${devices.length} devices`);
 
     await Promise.all(
-      devices.map(async (cfg) => {
+      devices.map(async (configured) => {
         // A device failing (e.g. offline) must not prevent the other devices, or Matterbridge, from starting
         try {
+          const cfg = await this.withToken(configured, cloudService);
           const vacuumDevice = new VacuumDeviceAccessory(cfg, this.log, this.context, cloudService);
           const vacuum = await vacuumDevice.initializeMatterbridgeEndpoint();
           if (!vacuum) return;
@@ -81,9 +82,22 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
           await vacuumDevice.postRegister();
           this.vacuumDevices.add(vacuumDevice);
         } catch (error) {
-          this.log.error(`Failed to initialize the vacuum "${cfg.name ?? cfg.ip}": ${error}`);
+          this.log.error(`Failed to initialize the vacuum "${configured.name ?? configured.ip}": ${error}`);
         }
       }),
     );
+  }
+
+  /**
+   * A robot configured with its IP only gets its token from the Xiaomi Cloud.
+   *
+   * @param {Partial<Config>} cfg The robot's config
+   * @param {CloudService} [cloudService] The Xiaomi Cloud, if enabled
+   * @returns {Promise<Partial<Config>>} The config, with the token if it was missing and the cloud has it
+   */
+  private async withToken(cfg: Partial<Config>, cloudService?: CloudService): Promise<Partial<Config>> {
+    if (cfg.token || !cfg.ip || !cloudService) return cfg;
+    const token = await cloudService.tokenOf(cfg.ip);
+    return token ? { ...cfg, token } : cfg;
   }
 }

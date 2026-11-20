@@ -43,11 +43,14 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **node-miio 0.7.0**: the robots share a single list of the Xiaomi account's devices ([afharo/node-miio#41](https://github.com/afharo/node-miio/pull/41)).
 - **node-miio 0.5.0**: the robot's errors are now cleared when it recovers ([afharo/node-miio#39](https://github.com/afharo/node-miio/pull/39)). The plugin now uses node-miio's own TypeScript types, instead of hand-written ones that had drifted from the library ([afharo/node-miio#38](https://github.com/afharo/node-miio/pull/38)).
 
 ### Added
 
 - **The room the robot is cleaning** (opt-in, Roborock only): with the new `cloud` option, the plugin downloads the robot's map from the Xiaomi Cloud while it cleans, and reports the room it's in as the Matter current area. It needs a one-off `npx node-miio cloud login --qr`; your password is never stored. Before, the current area was only a guess (the first selected room).
+
+- **No more token extraction**: with the `cloud` option, a robot configured with only its `ip` gets its token from your Xiaomi account when the plugin starts. The token is now optional in the config.
 
 - **node-miio's debug logs in the plugin's logs**: with the `debug` option enabled, the logs include what the vacuum is sent and answers (tokens and passwords redacted), with no need for the `DEBUG` environment variable (requires node-miio ≥ 0.5.0, [afharo/node-miio#37](https://github.com/afharo/node-miio/pull/37)).
 

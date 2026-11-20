@@ -47,7 +47,7 @@ describe('DeviceManager', () => {
           new DeviceManager(log, {
             ip: '192.168.0.1',
           }),
-      ).toThrow('You must provide a token of the vacuum cleaner.');
+      ).toThrow('You must provide a token of the vacuum cleaner');
     });
 
     test('Does not fail if ip and token are provided (but fails to connects)', () => {
