@@ -1,10 +1,12 @@
 import { MatterbridgeEndpoint } from 'matterbridge';
 import { MatterbridgeRvcOperationalStateServer, RoboticVacuumCleaner } from 'matterbridge/devices';
 import type { Logger } from 'matterbridge/logger';
-import { firstValueFrom, mergeMap, Subject, takeUntil } from 'rxjs';
+import { firstValueFrom, mergeMap, Observable, Subject, switchMap, takeUntil } from 'rxjs';
+import type { MapWatcher } from 'node-miio';
 import { PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea } from 'matterbridge/matter/clusters';
 
 import { applyConfigDefaults, type Config } from './services/config_service.js';
+import type { CloudService } from './services/cloud_service.js';
 import { DeviceManager } from './services/device_manager.js';
 import { getLogger, type ModelLogger } from './utils/logger.js';
 import { isSupportedLevel, resolveSpeedModes } from './utils/find_speed_modes.js';
@@ -87,6 +89,8 @@ export class VacuumDeviceAccessory {
     config: Partial<Config>,
     logger: Logger,
     private readonly snapshotStore?: SnapshotStore,
+    /** The Xiaomi Cloud, to know which room the robot is cleaning (opt-in) */
+    private readonly cloudService?: CloudService,
   ) {
     this.config = applyConfigDefaults(config);
     this.log = getLogger(logger, this.config);
@@ -362,7 +366,7 @@ export class VacuumDeviceAccessory {
       )
       .subscribe();
 
-    // Force-set the currentArea attribute to null, as we're not able to retrieve the current area at the moment.
+    // The current area is unknown until the robot cleans (and only with the Xiaomi Cloud enabled)
     await this.endpoint?.updateAttribute(ServiceArea, 'currentArea', null);
 
     // If no areas are found, we need to clear the serviceAreas and the currentArea attributes
@@ -371,6 +375,62 @@ export class VacuumDeviceAccessory {
       await this.endpoint?.updateAttribute(ServiceArea, 'currentArea', null);
       await this.endpoint?.updateAttribute(ServiceArea, 'supportedAreas', []);
     }
+
+    this.followCurrentRoom();
+  }
+
+  /**
+   * With the Xiaomi Cloud enabled, the robot's map is downloaded while it cleans, to report the room it's in
+   * (ServiceArea `currentArea`). A new watcher is created every time the robot (re)connects.
+   */
+  private followCurrentRoom() {
+    const { cloudService } = this;
+    if (!cloudService || this.serviceAreas.length === 0) return;
+    this.deviceManager.deviceConnected$
+      .pipe(
+        switchMap(
+          (device) =>
+            new Observable<number | undefined>((subscriber) => {
+              let watcher: MapWatcher | undefined;
+              let closed = false;
+              const follow = async () => {
+                const created = await cloudService.createMapWatcher(device, { ip: this.config.ip, token: this.config.token });
+                if (!created || closed) return;
+                watcher = created;
+                watcher.on('currentRoom', (room) => subscriber.next(room));
+                watcher.on('position', (position) => this.log.debug(`Robot position: ${JSON.stringify(position)}`));
+                await watcher.start();
+              };
+              follow().catch((error) => this.log.debug(`Failed to follow the robot's map: ${error}`));
+              return () => {
+                closed = true;
+                watcher?.stop();
+              };
+            }),
+        ),
+        mergeMap(async (room) => {
+          try {
+            await this.updateCurrentArea(room);
+          } catch (error) {
+            this.log.error(`Failed to report the current room: ${error}`);
+          }
+        }),
+        takeUntil(this.stop$),
+      )
+      .subscribe();
+  }
+
+  /**
+   * @param {number | undefined} room The room (segment) the robot is in, from its map
+   */
+  private async updateCurrentArea(room: number | undefined) {
+    const area = this.serviceAreas.find(({ areaId }) => areaId === room);
+    if (area) {
+      this.log.info(`The robot is in "${area.areaInfo.locationInfo?.locationName ?? area.areaId}"`);
+    } else if (room !== undefined) {
+      this.log.debug(`The robot is in room ${room}, which is not one of its areas`);
+    }
+    await this.endpoint?.updateAttribute(ServiceArea, 'currentArea', area?.areaId ?? null);
   }
 
   public stop() {

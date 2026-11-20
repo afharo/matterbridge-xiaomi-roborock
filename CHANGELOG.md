@@ -47,6 +47,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- **The room the robot is cleaning** (opt-in, Roborock only): with the new `cloud` option, the plugin downloads the robot's map from the Xiaomi Cloud while it cleans, and reports the room it's in as the Matter current area. It needs a one-off `npx node-miio cloud login --qr`; your password is never stored. Before, the current area was only a guess (the first selected room).
+
 - **node-miio's debug logs in the plugin's logs**: with the `debug` option enabled, the logs include what the vacuum is sent and answers (tokens and passwords redacted), with no need for the `DEBUG` environment variable (requires node-miio ≥ 0.5.0, [afharo/node-miio#37](https://github.com/afharo/node-miio/pull/37)).
 
 ## [v0.9.0] - 2026-11-19

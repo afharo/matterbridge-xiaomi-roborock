@@ -1,3 +1,5 @@
+import { EventEmitter } from 'node:events';
+
 import { Subject } from 'rxjs';
 import { jest } from '@jest/globals';
 import type { Logger } from 'matterbridge/logger';
@@ -7,6 +9,7 @@ import { MatterbridgeServiceAreaServer, type CommandHandlerPayload } from 'matte
 
 import { deviceManagerMock, findSpeedModesMock } from './vacuum_device_accessory.test.mock.js';
 import type { VacuumDeviceAccessory } from './vacuum_device_accessory.js';
+import type { CloudService } from './services/cloud_service.js';
 import { speedmodes } from './models/speedmodes.js';
 import { watermodes } from './models/watermodes.js';
 import { fromNodeMiioModes } from './utils/find_speed_modes.js';
@@ -752,6 +755,70 @@ describe('VacuumDeviceAccessory', () => {
         await deviceAccessory.postRegister();
         expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
         expect(updateAttributeSpy).toHaveBeenNthCalledWith(1, ServiceArea, 'currentArea', null);
+      });
+    });
+
+    describe('current area from the Xiaomi Cloud map', () => {
+      const createWatcher = () => Object.assign(new EventEmitter(), { start: jest.fn(async () => undefined), stop: jest.fn() });
+      let watcher: ReturnType<typeof createWatcher>;
+      let cloudService: { createMapWatcher: jest.Mock<(device: object, match: object) => Promise<unknown>> };
+
+      beforeEach(async () => {
+        deviceAccessory.stop();
+        watcher = createWatcher();
+        cloudService = { createMapWatcher: jest.fn(async () => watcher) };
+        deviceManagerMock.device.getRoomMap.mockResolvedValue([
+          ['16', 'Living room'],
+          ['17', 'Kitchen'],
+        ]);
+        const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
+        deviceAccessory = new VacuumDeviceAccessory({ name: 'Test Vacuum', ip: '1.1.1.1', token: 'abc' }, logger, undefined, cloudService as unknown as CloudService);
+        const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+        updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
+        await deviceAccessory.postRegister();
+        updateAttributeSpy.mockClear();
+      });
+
+      test('reports the room the robot is in, and null when it leaves the known areas', async () => {
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        await new Promise(setImmediate);
+        expect(cloudService.createMapWatcher).toHaveBeenCalledWith(deviceManagerMock.device, { ip: '1.1.1.1', token: 'abc' });
+        expect(watcher.start).toHaveBeenCalledTimes(1);
+
+        watcher.emit('currentRoom', 17);
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).toHaveBeenLastCalledWith(ServiceArea, 'currentArea', 17);
+        expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('"Kitchen"'));
+
+        watcher.emit('currentRoom', 99); // Not one of the areas (e.g. a new room)
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).toHaveBeenLastCalledWith(ServiceArea, 'currentArea', null);
+
+        watcher.emit('currentRoom', undefined); // Stopped cleaning
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).toHaveBeenLastCalledWith(ServiceArea, 'currentArea', null);
+      });
+
+      test('a reconnection replaces the watcher; stop() stops it', async () => {
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        await new Promise(setImmediate);
+        const first = watcher;
+        watcher = createWatcher();
+        cloudService.createMapWatcher.mockResolvedValue(watcher);
+
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        await new Promise(setImmediate);
+        expect(first.stop).toHaveBeenCalledTimes(1);
+        expect(watcher.start).toHaveBeenCalledTimes(1);
+
+        first.emit('currentRoom', 16); // The old watcher is ignored
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).not.toHaveBeenCalled();
+
+        deviceAccessory.stop();
+        expect(watcher.stop).toHaveBeenCalledTimes(1);
       });
     });
 

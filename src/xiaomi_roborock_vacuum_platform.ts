@@ -1,11 +1,14 @@
 import { MatterbridgeDynamicPlatform, PlatformConfig, PlatformMatterbridge } from 'matterbridge';
 import { type AnsiLogger, LogLevel } from 'matterbridge/logger';
 
+import { CloudService, type CloudConfig } from './services/cloud_service.js';
 import { type Config } from './services/config_service.js';
 import { VacuumDeviceAccessory } from './vacuum_device_accessory.js';
 
 export interface XiaomiRoborockVacuumPluginConfig extends PlatformConfig {
   devices?: Partial<Config>[];
+  /** The Xiaomi Cloud, to know which room the robot is cleaning (opt-in) */
+  cloud?: CloudConfig;
   debug: boolean;
 }
 
@@ -63,6 +66,7 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
     this.log.info('Discovering devices...');
 
     const devices = this.config.devices ?? [];
+    const cloudService = this.config.cloud?.enabled ? new CloudService(this.log, this.config.cloud) : undefined;
 
     this.log.info(`Found ${devices.length} devices`);
 
@@ -70,7 +74,7 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
       devices.map(async (cfg) => {
         // A device failing (e.g. offline) must not prevent the other devices, or Matterbridge, from starting
         try {
-          const vacuumDevice = new VacuumDeviceAccessory(cfg, this.log, this.context);
+          const vacuumDevice = new VacuumDeviceAccessory(cfg, this.log, this.context, cloudService);
           const vacuum = await vacuumDevice.initializeMatterbridgeEndpoint();
           if (!vacuum) return;
           await this.registerDevice(vacuum);

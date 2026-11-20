@@ -71,6 +71,7 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 
 - [Features](#features)
   - [Room cleaning and discovery](#room-cleaning-and-discovery)
+  - [Current room (Xiaomi Cloud, optional)](#current-room-xiaomi-cloud-optional)
   - [TODO](#todo)
 - [Supported models](#supported-models)
 - [Known issues](#known-issues)
@@ -86,6 +87,7 @@ the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matter
 - Fan speed control
 - Water level control (only in supported models)
 - Room cleaning and discovery (only in supported models)
+- The room the robot is cleaning (Roborock, with the optional Xiaomi Cloud access)
 - Battery information
 
 ### Room cleaning and discovery
@@ -108,6 +110,32 @@ the model (and shown in the Xiaomi Home app):
 > cleaning (`app_segment_clean`).
 > If you find the command that works for these models (testing via `node-miio` or `python-miio`), please open an issue
 > or a PR to add this support.
+
+### Current room (Xiaomi Cloud, optional)
+
+The robot doesn't tell which room it's in over the local network: only its map knows, and the map is in the Xiaomi
+Cloud. With the `cloud` option, the plugin downloads the map while the robot cleans (every 10 seconds), and reports
+the room it's in as Matter's **current area**. It only works with Roborock vacuums, for now.
+
+1. Log in to your Xiaomi account once, **as the same user that runs Matterbridge**:
+
+   ```sh
+   npx node-miio cloud login --qr   # scan the QR code with the Mi Home app
+   ```
+
+   The session is saved in [node-miio's config directory](https://github.com/afharo/node-miio/blob/main/docs/cloud.md)
+   (your password is never stored). If Matterbridge runs as another user or in Docker, copy that file where
+   Matterbridge can read it, and set its path in `cloud.sessionFile`.
+
+2. Enable it in the plugin's config:
+
+   ```json
+   "cloud": { "enabled": true }
+   ```
+
+   Optionally, set `cloud.server` (`de`, `us`, `cn`…) to skip looking for the robot in every server.
+
+If the session expires, the plugin logs a warning: log in again and restart the plugin.
 
 ### TODO
 
