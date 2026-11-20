@@ -27,11 +27,15 @@
           },
           "ip": {
             "type": "string",
-            "description": "The IP address of the robot vacuum."
+            "description": "The IP address of the robot vacuum. Optional with the `did` (and the `cloud` option): it's read from your Xiaomi account."
           },
           "token": {
             "type": "string",
             "description": "The token of the robot vacuum. Optional with the Xiaomi Cloud (`cloud.enabled`): it's read from your account. Otherwise, get it with `npx node-miio cloud login --qr` and `npx node-miio cloud devices`."
+          },
+          "did": {
+            "type": "string",
+            "description": "The device ID in your Xiaomi account, instead of the IP and token (needs the `cloud` option): they're read from your account, and found again if they change (e.g. a new IP from the router). It's in the logs, and in `npx node-miio cloud devices`."
           },
           "roomNames": {
             "type": "array",
@@ -41,7 +45,7 @@
             }
           }
         },
-        "required": ["name", "ip"]
+        "required": ["name"]
       },
       "minItems": 1,
       "default": []

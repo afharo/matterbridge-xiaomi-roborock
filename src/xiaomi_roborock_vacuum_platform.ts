@@ -89,15 +89,15 @@ export class XiaomiRoborockVacuumPlatform extends MatterbridgeDynamicPlatform {
   }
 
   /**
-   * A robot configured with its IP only gets its token from the Xiaomi Cloud.
+   * A robot configured with its `did`, or without a token, gets its IP and token from the Xiaomi Cloud.
    *
    * @param {Partial<Config>} cfg The robot's config
    * @param {CloudService} [cloudService] The Xiaomi Cloud, if enabled
-   * @returns {Promise<Partial<Config>>} The config, with the token if it was missing and the cloud has it
+   * @returns {Promise<Partial<Config>>} The config, with the IP and token from the cloud if found
    */
   private async withToken(cfg: Partial<Config>, cloudService?: CloudService): Promise<Partial<Config>> {
-    if (cfg.token || !cfg.ip || !cloudService) return cfg;
-    const token = await cloudService.tokenOf(cfg.ip);
-    return token ? { ...cfg, token } : cfg;
+    if (!cloudService || !(cfg.did || (cfg.ip && !cfg.token))) return cfg;
+    const found = await cloudService.locate({ did: cfg.did, ip: cfg.ip });
+    return found ? { ...cfg, ...found } : cfg;
   }
 }

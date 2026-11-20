@@ -138,6 +138,18 @@ the room it's in as Matter's **current area**. It only works with Roborock vacuu
 With the `cloud` option, the robots' `token` is optional too: a robot configured with only its `ip` gets its token from
 your Xiaomi account when the plugin starts. The IP must be the one the Mi Home app shows.
 
+Even simpler, configure the robot with its device ID (`did`) instead of its IP and token:
+
+```json
+{ "name": "Robot", "did": "123456789" }
+```
+
+The plugin reads the IP and token from your Xiaomi account, and **finds the robot again if they change**: when the
+robot stops answering (a new IP from the router, or a new token after resetting its Wi-Fi), the plugin asks the Xiaomi
+account where it is now, and reconnects. The `did` is in the logs (`Xiaomi Cloud: found "Robot" (did 123456789) at …`)
+and in `npx node-miio cloud devices`. A fixed IP for the robot in your router is still the most reliable setup: the
+Xiaomi account only knows the new IP once the robot reports it.
+
 If the session expires, the plugin logs a warning: log in again and restart the plugin.
 
 ### TODO
@@ -173,7 +185,7 @@ plugin.
 
 You need to have [Matterbridge](https://github.com/Luligu/matterbridge) installed. Refer to their [installation guide](https://github.com/Luligu/matterbridge?tab=readme-ov-file#prerequisites) for more details.
 
-Additionally, you need the IP and token of the RVC. The easiest way is to let the plugin read the token from your Xiaomi account: enable the [Xiaomi Cloud](#current-room-xiaomi-cloud-optional) and configure only the robot's `ip`. You can also print the tokens of all your devices with node-miio:
+Additionally, you need the IP and token of the RVC. The easiest way is to let the plugin read the token from your Xiaomi account: enable the [Xiaomi Cloud](#current-room-xiaomi-cloud-optional) and configure only the robot's `ip`, or its `did`. You can also print the tokens of all your devices with node-miio:
 
 ```sh
 npx node-miio cloud login --qr   # scan the QR code with the Mi Home app
