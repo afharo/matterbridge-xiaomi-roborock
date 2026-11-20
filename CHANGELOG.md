@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.10.0] - 2026-11-20
+
 ### Fixed
 
 - **Duplicate state polling after a reconnection**: every reconnection started another polling loop, without stopping the previous one.
