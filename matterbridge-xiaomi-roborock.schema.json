@@ -46,6 +46,27 @@
       "minItems": 1,
       "default": []
     },
+    "cloud": {
+      "title": "Xiaomi Cloud (optional)",
+      "description": "Report the room the robot is cleaning (Matter's current area), by downloading its map from the Xiaomi Cloud while it cleans. Roborock vacuums only. Before enabling it, log in once with `npx node-miio cloud login --qr`, as the same user that runs Matterbridge: the session is saved in node-miio's config directory (your password is never stored).",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use the Xiaomi Cloud to know the robot's current room."
+        },
+        "sessionFile": {
+          "type": "string",
+          "description": "(Optional) The session file saved by `npx node-miio cloud login`, if it's not in the default location (e.g. when Matterbridge runs as another user)."
+        },
+        "server": {
+          "type": "string",
+          "enum": ["cn", "de", "us", "ru", "tw", "sg", "in", "i2"],
+          "description": "(Optional) The server your robots are registered in. Found automatically when empty."
+        }
+      }
+    },
     "debug": {
       "description": "Capture debug-level logging from this plugin, overriding the Matterbridge global log level setting.",
       "type": "boolean",
