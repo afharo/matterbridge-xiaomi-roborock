@@ -44,3 +44,10 @@ types/
 *.mocks.js
 *.mock.js
 *.test.js
+
+# Repository tooling and contributor docs
+.claude/
+.idea/
+AGENTS.md
+CONTRIBUTING.md
+renovate.json
