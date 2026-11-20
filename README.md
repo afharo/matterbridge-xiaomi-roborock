@@ -135,6 +135,9 @@ the room it's in as Matter's **current area**. It only works with Roborock vacuu
 
    Optionally, set `cloud.server` (`de`, `us`, `cn`…) to skip looking for the robot in every server.
 
+With the `cloud` option, the robots' `token` is optional too: a robot configured with only its `ip` gets its token from
+your Xiaomi account when the plugin starts. The IP must be the one the Mi Home app shows.
+
 If the session expires, the plugin logs a warning: log in again and restart the plugin.
 
 ### TODO
@@ -170,9 +173,14 @@ plugin.
 
 You need to have [Matterbridge](https://github.com/Luligu/matterbridge) installed. Refer to their [installation guide](https://github.com/Luligu/matterbridge?tab=readme-ov-file#prerequisites) for more details.
 
-Additionally, you need the IP and token of the RVC. I recommend using the [Xiaomi Cloud Tokens Extractor](https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor), as I find it the easiest way to get the token.
+Additionally, you need the IP and token of the RVC. The easiest way is to let the plugin read the token from your Xiaomi account: enable the [Xiaomi Cloud](#current-room-xiaomi-cloud-optional) and configure only the robot's `ip`. You can also print the tokens of all your devices with node-miio:
 
-> ⚠️ If the RVC's Wi-Fi connection is reconfigured, a new token is generated, and you will need to retrieve it again, and update this plugin's configuration.
+```sh
+npx node-miio cloud login --qr   # scan the QR code with the Mi Home app
+npx node-miio cloud devices      # name, model, IP and token of each device
+```
+
+> ⚠️ If the RVC's Wi-Fi connection is reconfigured, a new token is generated, and you will need to retrieve it again, and update this plugin's configuration (unless the plugin reads it from the Xiaomi Cloud).
 >
 > The same happens if the RVC is paired/controlled via the Roborock app.
 >

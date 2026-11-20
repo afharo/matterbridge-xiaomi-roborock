@@ -31,7 +31,7 @@
           },
           "token": {
             "type": "string",
-            "description": "The token of the robot vacuum. Can be extracted using https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor"
+            "description": "The token of the robot vacuum. Optional with the Xiaomi Cloud (`cloud.enabled`): it's read from your account. Otherwise, get it with `npx node-miio cloud login --qr` and `npx node-miio cloud devices`."
           },
           "roomNames": {
             "type": "array",
@@ -41,20 +41,20 @@
             }
           }
         },
-        "required": ["name", "ip", "token"]
+        "required": ["name", "ip"]
       },
       "minItems": 1,
       "default": []
     },
     "cloud": {
       "title": "Xiaomi Cloud (optional)",
-      "description": "Report the room the robot is cleaning (Matter's current area), by downloading its map from the Xiaomi Cloud while it cleans. Roborock vacuums only. Before enabling it, log in once with `npx node-miio cloud login --qr`, as the same user that runs Matterbridge: the session is saved in node-miio's config directory (your password is never stored).",
+      "description": "Get the robots' tokens from your Xiaomi account (so only their IP is needed), and report the room the robot is cleaning (Matter's current area, Roborock vacuums only), by downloading its map while it cleans. Before enabling it, log in once with `npx node-miio cloud login --qr`, as the same user that runs Matterbridge: the session is saved in node-miio's config directory (your password is never stored).",
       "type": "object",
       "properties": {
         "enabled": {
           "type": "boolean",
           "default": false,
-          "description": "Use the Xiaomi Cloud to know the robot's current room."
+          "description": "Use the Xiaomi Cloud for the robots' tokens and current room."
         },
         "sessionFile": {
           "type": "string",

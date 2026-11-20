@@ -12,6 +12,11 @@ jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
   }),
 }));
 
+const tokenOf = jest.fn(async (ip: string): Promise<string | undefined> => (ip === '2.2.2.2' ? 'cloud-token' : undefined));
+jest.unstable_mockModule('./services/cloud_service.js', () => ({
+  CloudService: jest.fn(() => ({ tokenOf })),
+}));
+
 // import initializePlugin from './module.js';
 import type { XiaomiRoborockVacuumPlatform } from './xiaomi_roborock_vacuum_platform.js';
 
@@ -119,5 +124,29 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
     await instance.onShutdown();
     expect(mockLog.info).toHaveBeenCalledWith('onShutdown called with reason: none');
     instance.config.unregisterOnShutdown = false;
+  });
+
+  it('gets the token of the robots configured with their IP only from the Xiaomi Cloud', async () => {
+    const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
+    const accessoryMock = VacuumDeviceAccessory as unknown as jest.Mock;
+    const config = {
+      ...mockConfig,
+      cloud: { enabled: true },
+      devices: [
+        { name: 'With token', ip: '1.1.1.1', token: 'token1' },
+        { name: 'From the cloud', ip: '2.2.2.2' },
+        { name: 'Not in the account', ip: '3.3.3.3' },
+      ],
+    };
+    const platform = (await import('./module.js')).default(mockMatterbridge, mockLog, config) as XiaomiRoborockVacuumPlatform;
+    jest.spyOn(platform, 'registerDevice').mockResolvedValue();
+    await platform.onStart('cloud');
+    expect(tokenOf).toHaveBeenCalledTimes(2);
+    const configs = accessoryMock.mock.calls.map(([cfg]) => cfg);
+    expect(configs).toEqual([
+      { name: 'With token', ip: '1.1.1.1', token: 'token1' },
+      { name: 'From the cloud', ip: '2.2.2.2', token: 'cloud-token' },
+      { name: 'Not in the account', ip: '3.3.3.3' },
+    ]);
   });
 });
