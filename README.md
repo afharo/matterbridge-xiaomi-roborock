@@ -2,7 +2,7 @@
 > [!NOTE]
 > **Beta testers wanted**
 >
-> The maintainer no longer owns most of the supported vacuums, so changes are developed against automated tests and validated by users on beta releases.
+> The maintainer no longer owns any of the supported models, so changes are developed against automated tests and validated by users on beta releases.
 > If you'd like to help, [sign up as a beta tester](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/387): you'll be mentioned when a beta needs a device like yours.
 > See [CONTRIBUTING.md](./CONTRIBUTING.md) for other ways to help. Co-maintainers are welcome too.
 
