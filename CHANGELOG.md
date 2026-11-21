@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.10.1] - 2026-11-21
+
 ### Fixed
 
 - **The current clean mode didn't follow the water level**: the plugin read the water level as `water_box_mode`, but node-miio's property (and state change) is `waterBoxMode`, so it was always unknown. The Matter current clean mode only matched when the fan speed alone was enough, and didn't change when the water level was changed from the robot's app.
