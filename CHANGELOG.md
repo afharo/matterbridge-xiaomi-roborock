@@ -36,6 +36,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Added
+
+- **The room the robot is cleaning, without the Xiaomi Cloud**: newer Roborock robots report it in their status (node-miio's `currentSegment`), and it's now the Matter current area. With the `cloud` option, the room still comes from the map.
+
+### Changed
+
+- **node-miio 0.10.0**: the room being cleaned, from the robot's status ([afharo/node-miio#53](https://github.com/afharo/node-miio/pull/53)).
+
 ## [v0.10.1] - 2026-11-21
 
 ### Fixed

@@ -822,6 +822,43 @@ describe('VacuumDeviceAccessory', () => {
       });
     });
 
+    describe("current area from the robot's status (currentSegment)", () => {
+      async function create(cloudService?: object) {
+        deviceAccessory.stop();
+        deviceManagerMock.device.getRoomMap.mockResolvedValue([
+          ['16', 'Living room'],
+          ['17', 'Kitchen'],
+        ]);
+        const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
+        deviceAccessory = new VacuumDeviceAccessory({ name: 'Test Vacuum', ip: '1.1.1.1', token: 'abc' }, logger, undefined, cloudService as CloudService | undefined);
+        const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+        updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
+        await deviceAccessory.postRegister();
+        updateAttributeSpy.mockClear();
+      }
+
+      test('without the Xiaomi Cloud, the room the robot reports is the current area', async () => {
+        await create();
+        deviceManagerMock.stateChanged$.next({ key: 'currentSegment', value: 17 });
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).toHaveBeenLastCalledWith(ServiceArea, 'currentArea', 17);
+        expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('"Kitchen"'));
+
+        deviceManagerMock.stateChanged$.next({ key: 'currentSegment', value: undefined });
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).toHaveBeenLastCalledWith(ServiceArea, 'currentArea', null);
+      });
+
+      test('with the Xiaomi Cloud, the map watcher reports it instead', async () => {
+        await create({ createMapWatcher: jest.fn(async () => undefined) });
+        deviceManagerMock.stateChanged$.next({ key: 'currentSegment', value: 17 });
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).not.toHaveBeenCalledWith(ServiceArea, 'currentArea', 17);
+      });
+    });
+
     describe('stateChangedHandlers', () => {
       beforeEach(async () => {
         await deviceAccessory.postRegister();

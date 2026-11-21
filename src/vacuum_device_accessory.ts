@@ -422,7 +422,7 @@ export class VacuumDeviceAccessory {
   }
 
   /**
-   * @param {number | undefined} room The room (segment) the robot is in, from its map
+   * @param {number | undefined} room The room (segment) the robot is in, from its map or its status
    */
   private async updateCurrentArea(room: number | undefined) {
     const area = this.serviceAreas.find(({ areaId }) => areaId === room);
@@ -491,6 +491,12 @@ export class VacuumDeviceAccessory {
       if (cleanMode) {
         await this.endpoint?.updateAttribute(RvcCleanMode, 'currentMode', cleanMode.mode);
       }
+    },
+    // The room the robot is cleaning, as newer Roborock robots report it in their status (node-miio >= 0.10).
+    // With the Xiaomi Cloud, the map watcher reports it instead.
+    currentSegment: async (segment: number | undefined) => {
+      if (this.cloudService || this.serviceAreas.length === 0) return;
+      await this.updateCurrentArea(typeof segment === 'number' ? segment : undefined);
     },
     // node-miio's property (and stateChanged key) for the water level
     waterBoxMode: async (miLevel: number) => {
