@@ -36,6 +36,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Fixed
+
+- **The current clean mode didn't follow the water level**: the plugin read the water level as `water_box_mode`, but node-miio's property (and state change) is `waterBoxMode`, so it was always unknown. The Matter current clean mode only matched when the fan speed alone was enough, and didn't change when the water level was changed from the robot's app.
+- **The water level of newer Roborock firmwares** (e.g. S7/S8 families): node-miio read only the older response format, so the current water level was unknown ([afharo/node-miio#47](https://github.com/afharo/node-miio/pull/47)).
+
+### Changed
+
+- **node-miio 0.9.1**:
+  - The water level and the mop route changes are reported as they happen, not only when polled ([afharo/node-miio#51](https://github.com/afharo/node-miio/pull/51)).
+  - The robots with a mop-washing dock report "washing the mop" (states 23, 25 and 26) instead of an unknown state: the Matter operational state shows the dock cleaning the mop ([afharo/node-miio#43](https://github.com/afharo/node-miio/pull/43)).
+  - Changing the fan speed or the water level leaves a preset such as SmartPlan, which some robots require ([afharo/node-miio#52](https://github.com/afharo/node-miio/pull/52)).
+
 ## [v0.10.0] - 2026-11-20
 
 ### Fixed
