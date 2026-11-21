@@ -7,7 +7,7 @@ Guidance for AI coding agents (and humans) working on `matterbridge-xiaomi-robor
 - Matterbridge plugin that exposes Xiaomi / Roborock vacuums (paired in the Mi Home app) as Matter Robotic Vacuum Cleaners.
 - The device protocol lives in [node-miio](https://github.com/afharo/node-miio) (same author). Protocol/model fixes belong **there**:
   this plugin should only translate between node-miio and Matter.
-- **The maintainer only owns one of the supported vacuums** (see [#387](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/387)).
+- **The maintainer doesn't own any of the supported models** (see [#387](https://github.com/afharo/matterbridge-xiaomi-roborock/issues/387)).
   Every behavioural change must be covered by unit tests, and be validated by users on a beta release.
 - Changes are delivered as PRs from feature branches into `main`.
 - **Label every PR** when creating it, so `.github/release.yml` can group the release notes:
