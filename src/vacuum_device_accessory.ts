@@ -486,13 +486,14 @@ export class VacuumDeviceAccessory {
       }
     },
     fanSpeed: async (miLevel: number) => {
-      const currentMopLevel = this.deviceManager.property<number>('water_box_mode');
+      const currentMopLevel = this.deviceManager.property<number>('waterBoxMode');
       const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.vacuum === miLevel && miLevels.mop === currentMopLevel);
       if (cleanMode) {
         await this.endpoint?.updateAttribute(RvcCleanMode, 'currentMode', cleanMode.mode);
       }
     },
-    water_box_mode: async (miLevel: number) => {
+    // node-miio's property (and stateChanged key) for the water level
+    waterBoxMode: async (miLevel: number) => {
       const currentVacuumLevel = this.deviceManager.property<number>('fanSpeed');
       const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.mop === miLevel && miLevels.vacuum === currentVacuumLevel);
       if (cleanMode) {

@@ -934,8 +934,8 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       describe('fanSpeed', () => {
-        test('when fanSpeed is known', async () => {
-          deviceManagerMock.device.property.mockReturnValueOnce(200);
+        test("when fanSpeed is known (with the current water level, node-miio's `waterBoxMode`)", async () => {
+          deviceManagerMock.device.property.mockImplementationOnce(((name: string) => (name === 'waterBoxMode' ? 200 : undefined)) as never);
           deviceManagerMock.stateChanged$.next({ key: 'fanSpeed', value: 105 });
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcCleanMode, 'currentMode', 1);
         });
@@ -946,15 +946,15 @@ describe('VacuumDeviceAccessory', () => {
         });
       });
 
-      describe('water_box_mode', () => {
-        test('when water_box_mode is known', async () => {
+      describe('waterBoxMode', () => {
+        test('when waterBoxMode is known', async () => {
           deviceManagerMock.device.property.mockReturnValueOnce(-1);
-          deviceManagerMock.stateChanged$.next({ key: 'water_box_mode', value: 201 });
+          deviceManagerMock.stateChanged$.next({ key: 'waterBoxMode', value: 201 });
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcCleanMode, 'currentMode', 6);
         });
 
-        test('when water_box_mode is unknown', async () => {
-          deviceManagerMock.stateChanged$.next({ key: 'water_box_mode', value: 999 });
+        test('when waterBoxMode is unknown', async () => {
+          deviceManagerMock.stateChanged$.next({ key: 'waterBoxMode', value: 999 });
           expect(updateAttributeSpy).not.toHaveBeenCalled();
         });
       });
