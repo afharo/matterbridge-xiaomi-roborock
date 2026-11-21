@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.11.0] - 2026-11-21
+
 ### Added
 
 - **The room the robot is cleaning, without the Xiaomi Cloud**: newer Roborock robots report it in their status (node-miio's `currentSegment`), and it's now the Matter current area. With the `cloud` option, the room still comes from the map.
