@@ -19,6 +19,16 @@
   "bugs": {
     "url": "https://github.com/afharo/matterbridge-xiaomi-roborock/issues"
   },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/afharo"
+    },
+    {
+      "type": "ko-fi",
+      "url": "https://ko-fi.com/afharo"
+    }
+  ],
   "keywords": [
     "xiaomi",
     "roborock",
