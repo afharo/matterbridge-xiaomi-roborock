@@ -29,6 +29,12 @@
     <a href="https://codecov.io/gh/afharo/matterbridge-xiaomi-roborock">
         <img src="https://codecov.io/gh/afharo/matterbridge-xiaomi-roborock/branch/main/graph/badge.svg" alt="Codecov">
     </a>
+    <a href="https://github.com/sponsors/afharo">
+        <img src="https://img.shields.io/badge/sponsor-30363D?logo=githubsponsors&logoColor=EA4AAA" alt="Sponsor on GitHub">
+    </a>
+    <a href="https://ko-fi.com/afharo">
+        <img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
+    </a>
 </p>
 
 <p align="center">
@@ -201,3 +207,8 @@ npx node-miio cloud devices      # name, model, IP and token of each device
 ### Add the plugin to Matterbridge and your devices to Apple Home (or any other Matter-compatible app)
 
 Once on the Matterbridge UI, install this plugin using the name `matterbridge-xiaomi-roborock`, and configure it. After restarting Matterbridge, a new device should appear in the list of Devices in the Matterbridge UI, scan the QR code with the Apple Home app (or any other Matter-compatible app), and you should be good to go!
+
+## Support
+
+I maintain this in my spare time, with help from [Claude](https://claude.ai). Sponsorships go towards the subscription,
+so I can take on more feature requests and devices. ❤️ [GitHub Sponsors](https://github.com/sponsors/afharo) · [Ko-fi](https://ko-fi.com/afharo)
