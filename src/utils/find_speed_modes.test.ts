@@ -4,29 +4,33 @@ import { resolveVacuumModes, vacuumModels, type VacuumDevice } from 'node-miio';
 
 import type { ModelDefinition } from '../models/types.js';
 
-import { classifyCleaningTypes, findSpeedModes, fromNodeMiioModes, isSupportedLevel, resolveSpeedModes, UNSUPPORTED_LEVEL } from './find_speed_modes.js';
+import { classifyCleaningTypes, fanTags, findSpeedModes, fromNodeMiioModes, isSupportedLevel, resolveSpeedModes, UNSUPPORTED_LEVEL, waterTags } from './find_speed_modes.js';
 
-const tags = (modes: ModelDefinition['speed'] = []) => modes.map(({ miLevel, name, label }) => `${miLevel}:${name}:${RvcCleanMode.ModeTag[label]}`);
+const tags = (modes: ModelDefinition['speed'] = []) => modes.map(({ miLevel, name, tags }) => `${miLevel}:${name}:${tags.map((tag) => RvcCleanMode.ModeTag[tag]).join('+')}`);
 
 describe('findSpeedModes', () => {
   test("uses node-miio's modes, with an unsupported (never sent) Off speed", () => {
     const { fanSpeeds, waterBoxModes } = resolveVacuumModes('roborock.vacuum.s5e');
     expect(findSpeedModes('roborock.vacuum.s5e')).toStrictEqual(fromNodeMiioModes(fanSpeeds, waterBoxModes));
     expect(tags(findSpeedModes('roborock.vacuum.s5e').speed)).toStrictEqual([
-      'NaN:Off:Vacuum',
+      'NaN:Off:',
       '105:Soft:LowEnergy',
-      '101:Quiet:LowNoise',
-      '102:Balanced:Min',
-      '103:Turbo:Day',
-      '104:Max:Max',
-      '106:Custom:Vacation',
+      '101:Quiet:LowNoise+Night',
+      '102:Balanced:Day',
+      '103:Turbo:Max',
+      '104:Max:DeepClean',
+      '106:Custom:',
     ]);
   });
 
-  test("Viomi and Dreame models: Turbo is Max when it's the fastest speed", () => {
-    expect(tags(findSpeedModes('viomi.one').speed)).toStrictEqual(['NaN:Off:Vacuum', '0:Silent:LowNoise', '1:Standard:Min', '2:Medium:Day', '3:Turbo:Max']);
-    expect(tags(findSpeedModes('dreame.vacuum.mc1808').speed)).toStrictEqual(['NaN:Off:Vacuum', '0:Silent:LowNoise', '1:Standard:Min', '2:Medium:Day', '3:Turbo:Max']);
-    expect(tags(findSpeedModes('dreame.vacuum.one').speed)).toStrictEqual(['NaN:Off:Vacuum', '0:Quiet:LowNoise', '1:Standard:Min', '2:Strong:Day', '3:Turbo:Max']);
+  test('Viomi and Dreame models: the only high speed is Max, or the two fastest are Max and DeepClean', () => {
+    expect(tags(findSpeedModes('viomi.one').speed)).toStrictEqual(['NaN:Off:', '0:Silent:LowNoise+Night', '1:Standard:Day', '2:Medium:Day', '3:Turbo:Max']);
+    expect(tags(findSpeedModes('dreame.vacuum.mc1808').speed)).toStrictEqual(['NaN:Off:', '0:Silent:LowNoise+Night', '1:Standard:Day', '2:Medium:Day', '3:Turbo:Max']);
+    expect(tags(findSpeedModes('dreame.vacuum.one').speed)).toStrictEqual(['NaN:Off:', '0:Quiet:LowNoise+Night', '1:Standard:Day', '2:Strong:Max', '3:Turbo:DeepClean']);
+  });
+
+  test('S7 MaxV: Max and Max+ are Max and DeepClean, Turbo gets no tag', () => {
+    expect(tags(findSpeedModes('roborock.vacuum.a27').speed).slice(4, 7)).toStrictEqual(['103:Turbo:', '104:Max:Max', '108:Max+:DeepClean']);
   });
 
   test('unlisted models get the default speeds', () => {
@@ -98,19 +102,19 @@ describe('resolveSpeedModes', () => {
       ),
       'xiaomi.vacuum.d110ch',
     );
-    expect(modes.speed.map(({ miLevel, name, label }) => [miLevel, name, label])).toStrictEqual([
-      [UNSUPPORTED_LEVEL, 'Off', RvcCleanMode.ModeTag.Vacuum],
-      [0, 'Silent', RvcCleanMode.ModeTag.LowNoise],
-      [1, 'Basic', RvcCleanMode.ModeTag.Min],
-      [2, 'Strong', RvcCleanMode.ModeTag.Day],
-      [3, 'Full Speed', RvcCleanMode.ModeTag.Max],
+    expect(modes.speed.map(({ miLevel, name, tags }) => [miLevel, name, tags])).toStrictEqual([
+      [UNSUPPORTED_LEVEL, 'Off', []],
+      [0, 'Silent', [RvcCleanMode.ModeTag.LowNoise, RvcCleanMode.ModeTag.Night]],
+      [1, 'Basic', [RvcCleanMode.ModeTag.Day]],
+      [2, 'Strong', [RvcCleanMode.ModeTag.Max]],
+      [3, 'Full Speed', [RvcCleanMode.ModeTag.DeepClean]],
     ]);
     // No "Off" water level: it can't be turned off
-    expect(modes.waterspeed?.map(({ miLevel, name, label }) => [miLevel, name, label])).toStrictEqual([
-      [UNSUPPORTED_LEVEL, 'Off', RvcCleanMode.ModeTag.Mop],
-      [1, 'Level1', RvcCleanMode.ModeTag.Min],
-      [2, 'Level2', RvcCleanMode.ModeTag.Day],
-      [3, 'Level3', RvcCleanMode.ModeTag.Max],
+    expect(modes.waterspeed?.map(({ miLevel, name, tags }) => [miLevel, name, tags])).toStrictEqual([
+      [UNSUPPORTED_LEVEL, 'Off', []],
+      [1, 'Level1', [RvcCleanMode.ModeTag.Min]],
+      [2, 'Level2', [RvcCleanMode.ModeTag.Day]],
+      [3, 'Level3', [RvcCleanMode.ModeTag.Max]],
     ]);
   });
 });
@@ -139,7 +143,7 @@ describe('fromNodeMiioModes', () => {
       ],
       [],
     );
-    expect(speed.slice(1).map(({ label }) => label)).toStrictEqual([RvcCleanMode.ModeTag.LowNoise, RvcCleanMode.ModeTag.Day, RvcCleanMode.ModeTag.Max]);
+    expect(speed.slice(1).map(({ tags }) => tags)).toStrictEqual([[RvcCleanMode.ModeTag.LowNoise], [RvcCleanMode.ModeTag.Day], [RvcCleanMode.ModeTag.Max]]);
   });
 
   test('no water levels', () => {
@@ -207,5 +211,22 @@ describe('resolveSpeedModes with cleaning types', () => {
       cleaningTypes: jest.fn(async () => []),
     } as unknown as VacuumDevice;
     expect(await resolveSpeedModes(device, 'xiaomi.vacuum.x')).not.toHaveProperty('cleaningTypes');
+  });
+});
+
+describe('fanTags / waterTags', () => {
+  const names = (list: RvcCleanMode.ModeTag[][]) => list.map((tags) => tags.map((tag) => RvcCleanMode.ModeTag[tag]).join('+'));
+
+  test('MIoT names (e.g. Xiaomi): Basic is Day, the two high speeds are Max and DeepClean', () => {
+    expect(names(fanTags(['Silent', 'Basic', 'Strong', 'Full Speed']))).toStrictEqual(['LowNoise+Night', 'Day', 'Max', 'DeepClean']);
+  });
+
+  test('unknown names: by position (first low, last max, the others day)', () => {
+    expect(names(fanTags(['Level A', 'Level B', 'Level C']))).toStrictEqual(['LowNoise', 'Day', 'Max']);
+    expect(names(waterTags(['Wet 1', 'Wet 2', 'Wet 3']))).toStrictEqual(['Min', 'Day', 'Max']);
+  });
+
+  test('water levels: Light, Medium and High are Min, Day and Max; Custom gets no tag', () => {
+    expect(names(waterTags(['Light', 'Medium', 'High', 'Custom']))).toStrictEqual(['Min', 'Day', 'Max', '']);
   });
 });

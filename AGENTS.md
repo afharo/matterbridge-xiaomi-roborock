@@ -38,7 +38,7 @@ CI (`.github/workflows/build-matterbridge-plugin.yml`) runs them on Node 22/24/2
   - The fan speeds and water levels come from node-miio. `findSpeedModes(model, fw)`: node-miio's table
     (`resolveVacuumModes`, with the firmware variants). `resolveSpeedModes(device, model, fw)`: the models in that table
     (`vacuumModels()`) use it; any other model uses `device.fanSpeeds()` / `device.waterBoxModes()` (e.g. from the device's
-    MIoT spec), or the brand's defaults. The Matter tags are derived from the mode names (`labelFor`).
+    MIoT spec), or the brand's defaults. The Matter tags are derived from the mode names (`fanTags` / `waterTags`), following the tags' meaning in the Matter spec (e.g. Min / Max are the lowest / highest setting, Day / Night when to use it): keep them in sync with homebridge-xiaomi-roborock-vacuum's `src/matter/clean_modes.ts`.
     **Add or fix a model's speeds in node-miio, not here**: a snapshot test pins what each model gets.
   - The first entry of each list is the "off" level. The fan's is always `UNSUPPORTED_LEVEL` (NaN: -1 isn't a fan speed),
     and so is the water's when the device can't turn it off (MIoT). The clean-mode handler skips it (`isSupportedLevel`),
