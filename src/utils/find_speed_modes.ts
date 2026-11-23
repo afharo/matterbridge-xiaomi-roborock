@@ -79,12 +79,13 @@ export function classifyCleaningTypes(cleaningTypes: VacuumMode[]): CleaningType
   return result;
 }
 
-const { Auto, Day, DeepClean, LowEnergy, LowNoise, Max, Min, Mop, Night } = RvcCleanMode.ModeTag;
+const { Auto, Day, DeepClean, LowEnergy, LowNoise, Max, Min, Mop, Night, Vacation } = RvcCleanMode.ModeTag;
 
 /**
  * Matter tags of the fan speeds by (lowercased) name. Their meaning in the Matter spec: LowNoise / Night (quiet, for the
  * night), LowEnergy, Day (suitable while people are around: the everyday speeds), Max (the highest setting), DeepClean
- * (more thorough). The high speeds are tagged by rank instead (see {@link fanTags}), and "Custom" gets no tag of its own.
+ * (more thorough). The high speeds are tagged by rank instead (see {@link fanTags}). "Custom" is Vacation, the closest
+ * there is (users rely on finding it).
  */
 const FAN_TAGS: Record<string, RvcCleanMode.ModeTag[]> = {
   quiet: [LowNoise, Night],
@@ -98,7 +99,7 @@ const FAN_TAGS: Record<string, RvcCleanMode.ModeTag[]> = {
   default: [Day],
   medium: [Day],
   middle: [Day],
-  custom: [],
+  custom: [Vacation],
   mop: [Mop],
   auto: [Auto],
 };
@@ -115,7 +116,7 @@ const WATER_TAGS: Record<string, RvcCleanMode.ModeTag[]> = {
   level2: [Day],
   high: [Max],
   level3: [Max],
-  custom: [],
+  custom: [Vacation],
 };
 
 const OFF_NAMES = new Set(['off', 'close', 'closed', 'level0']);

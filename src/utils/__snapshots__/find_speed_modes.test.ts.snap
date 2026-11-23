@@ -61,14 +61,14 @@ exports[`findSpeedModes roborock.vacuum.a09 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -82,14 +82,14 @@ exports[`findSpeedModes roborock.vacuum.a09 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -103,14 +103,14 @@ exports[`findSpeedModes roborock.vacuum.a10 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -124,14 +124,14 @@ exports[`findSpeedModes roborock.vacuum.a10 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -145,14 +145,14 @@ exports[`findSpeedModes roborock.vacuum.a11 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -166,14 +166,14 @@ exports[`findSpeedModes roborock.vacuum.a11 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -187,14 +187,14 @@ exports[`findSpeedModes roborock.vacuum.a15 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -208,14 +208,14 @@ exports[`findSpeedModes roborock.vacuum.a15 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -230,14 +230,14 @@ exports[`findSpeedModes roborock.vacuum.a27 (firmware 4.0.0) 1`] = `
     "103:Turbo:",
     "104:Max:Max",
     "108:Max+:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -252,14 +252,14 @@ exports[`findSpeedModes roborock.vacuum.a27 (firmware undefined) 1`] = `
     "103:Turbo:",
     "104:Max:Max",
     "108:Max+:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -273,14 +273,14 @@ exports[`findSpeedModes roborock.vacuum.a51 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -294,14 +294,14 @@ exports[`findSpeedModes roborock.vacuum.a51 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -315,14 +315,14 @@ exports[`findSpeedModes roborock.vacuum.a62 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -336,14 +336,14 @@ exports[`findSpeedModes roborock.vacuum.a62 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -357,14 +357,14 @@ exports[`findSpeedModes roborock.vacuum.a65 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -378,14 +378,14 @@ exports[`findSpeedModes roborock.vacuum.a65 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -399,7 +399,7 @@ exports[`findSpeedModes roborock.vacuum.a72 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [],
 }
@@ -414,7 +414,7 @@ exports[`findSpeedModes roborock.vacuum.a72 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [],
 }
@@ -429,14 +429,14 @@ exports[`findSpeedModes roborock.vacuum.a73 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -450,14 +450,14 @@ exports[`findSpeedModes roborock.vacuum.a73 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -471,14 +471,14 @@ exports[`findSpeedModes roborock.vacuum.a75 (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -492,14 +492,14 @@ exports[`findSpeedModes roborock.vacuum.a75 (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
-    "204:Custom:",
+    "204:Custom:Vacation",
   ],
 }
 `;
@@ -713,7 +713,7 @@ exports[`findSpeedModes roborock.vacuum.s5e (firmware 4.0.0) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",
@@ -733,7 +733,7 @@ exports[`findSpeedModes roborock.vacuum.s5e (firmware undefined) 1`] = `
     "102:Balanced:Day",
     "103:Turbo:Max",
     "104:Max:DeepClean",
-    "106:Custom:",
+    "106:Custom:Vacation",
   ],
   "waterspeed": [
     "200:Off:",

@@ -19,7 +19,7 @@ describe('findSpeedModes', () => {
       '102:Balanced:Day',
       '103:Turbo:Max',
       '104:Max:DeepClean',
-      '106:Custom:',
+      '106:Custom:Vacation',
     ]);
   });
 
@@ -226,7 +226,7 @@ describe('fanTags / waterTags', () => {
     expect(names(waterTags(['Wet 1', 'Wet 2', 'Wet 3']))).toStrictEqual(['Min', 'Day', 'Max']);
   });
 
-  test('water levels: Light, Medium and High are Min, Day and Max; Custom gets no tag', () => {
-    expect(names(waterTags(['Light', 'Medium', 'High', 'Custom']))).toStrictEqual(['Min', 'Day', 'Max', '']);
+  test('water levels: Light, Medium and High are Min, Day and Max; Custom is Vacation', () => {
+    expect(names(waterTags(['Light', 'Medium', 'High', 'Custom']))).toStrictEqual(['Min', 'Day', 'Max', 'Vacation']);
   });
 });
