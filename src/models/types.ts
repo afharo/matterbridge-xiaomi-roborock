@@ -1,9 +1,4 @@
-import { RvcCleanMode } from 'matterbridge/matter/clusters';
-
-import { speedmodes } from './speedmodes.js';
-import { watermodes } from './watermodes.js';
-
-export type SpeedModes = Record<string, ModesWithMiLevel[]>;
+import type { RvcCleanMode } from 'matterbridge/matter/clusters';
 
 export interface ModesWithMiLevel {
   miLevel: number;
@@ -11,10 +6,10 @@ export interface ModesWithMiLevel {
   label: RvcCleanMode.ModeTag;
 }
 
+/** A robot's fan speeds and water levels, with their Matter clean mode tags (see `findSpeedModes`) */
 export interface ModelDefinition {
-  speed: (typeof speedmodes)[string];
-  waterspeed?: (typeof watermodes)[string];
-  firmware?: string;
+  speed: ModesWithMiLevel[];
+  waterspeed?: ModesWithMiLevel[];
   /** The values of the cleaning types reported by node-miio (MIoT only) */
   cleaningTypes?: CleaningTypes;
 }

@@ -1,14 +1,11 @@
-import { speedmodes } from '../models/speedmodes.js';
-import { watermodes } from '../models/watermodes.js';
-
+import { findSpeedModes, fromNodeMiioModes } from './find_speed_modes.js';
 import { buildCleanModePresets } from './clean_mode_presets.js';
-import { fromNodeMiioModes } from './find_speed_modes.js';
 
 const levels = (presets: ReturnType<typeof buildCleanModePresets>) => presets.map(({ label, miLevels }) => [label, miLevels.vacuum, miLevels.mop]);
 
 describe('buildCleanModePresets', () => {
   test('Roborock with a water box (gen4 + gen1)', () => {
-    expect(levels(buildCleanModePresets(speedmodes.gen4, watermodes.gen1))).toEqual([
+    expect(levels(buildCleanModePresets(findSpeedModes('roborock.vacuum.s6').speed, findSpeedModes('roborock.vacuum.s5e').waterspeed))).toEqual([
       ['Automatic', 102, 202],
       ['Deep clean', 104, 203],
       ['Quiet', 101, 201],
@@ -16,7 +13,7 @@ describe('buildCleanModePresets', () => {
   });
 
   test('ignores the mop-only and custom fan speeds (gen2)', () => {
-    expect(levels(buildCleanModePresets(speedmodes.gen2, watermodes['gen1+custom']))).toEqual([
+    expect(levels(buildCleanModePresets(findSpeedModes('roborock.vacuum.s5').speed, findSpeedModes('roborock.vacuum.a10').waterspeed))).toEqual([
       ['Automatic', 60, 202],
       ['Deep clean', 100, 203],
       ['Quiet', 38, 201],
@@ -24,7 +21,7 @@ describe('buildCleanModePresets', () => {
   });
 
   test('no presets without a water box', () => {
-    expect(buildCleanModePresets(speedmodes.gen4, undefined)).toEqual([]);
+    expect(buildCleanModePresets(findSpeedModes('roborock.vacuum.s6').speed, undefined)).toEqual([]);
   });
 
   test('MIoT: uses the vacuum & mop cleaning type', () => {

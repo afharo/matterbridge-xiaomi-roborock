@@ -7,11 +7,9 @@ import { MatterbridgeRvcCleanModeServer, RoboticVacuumCleaner } from 'matterbrid
 import { PowerSource, RvcCleanMode, RvcOperationalState, RvcRunMode, ServiceArea } from 'matterbridge/matter/clusters';
 import { MatterbridgeServiceAreaServer, type CommandHandlerPayload } from 'matterbridge';
 
-import { deviceManagerMock, findSpeedModesMock } from './vacuum_device_accessory.test.mock.js';
+import { deviceManagerMock, findSpeedModesMock, originalFindSpeedModes } from './vacuum_device_accessory.test.mock.js';
 import type { VacuumDeviceAccessory } from './vacuum_device_accessory.js';
 import type { CloudService } from './services/cloud_service.js';
-import { speedmodes } from './models/speedmodes.js';
-import { watermodes } from './models/watermodes.js';
 import { fromNodeMiioModes } from './utils/find_speed_modes.js';
 
 /**
@@ -57,7 +55,7 @@ describe('VacuumDeviceAccessory', () => {
       model: 'roborock.vacuum.s5',
       serialNumber: 'saved-serial',
       firmware: '3.5.8',
-      modelSpeeds: { speed: speedmodes.gen4 },
+      modelSpeeds: { speed: originalFindSpeedModes('roborock.vacuum.s6').speed },
       serviceAreas: [],
       supportedMaps: [],
     };
@@ -419,8 +417,8 @@ describe('VacuumDeviceAccessory', () => {
 
           test('sets the fan speed and the water level to off (for a supported model)', async () => {
             findSpeedModesMock.mockReturnValueOnce({
-              speed: speedmodes.gen2,
-              waterspeed: watermodes.gen1,
+              speed: originalFindSpeedModes('roborock.vacuum.s5').speed,
+              waterspeed: originalFindSpeedModes('roborock.vacuum.s5e').waterspeed,
             });
 
             const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
@@ -539,7 +537,10 @@ describe('VacuumDeviceAccessory', () => {
         describe('vacuum & mop presets (#162)', () => {
           beforeEach(async () => {
             // Roborock S5 Max: gen4+custom fan speeds and the gen1+custom water box
-            findSpeedModesMock.mockReturnValueOnce({ speed: speedmodes['gen4+custom'], waterspeed: watermodes['gen1+custom'] });
+            findSpeedModesMock.mockReturnValueOnce({
+              speed: originalFindSpeedModes('roborock.vacuum.a10').speed,
+              waterspeed: originalFindSpeedModes('roborock.vacuum.a10').waterspeed,
+            });
             const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
             deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
             endpoint = (await endpointPromise) as RoboticVacuumCleaner;
@@ -722,8 +723,8 @@ describe('VacuumDeviceAccessory', () => {
 
     beforeEach(async () => {
       findSpeedModesMock.mockReturnValueOnce({
-        speed: speedmodes.gen2,
-        waterspeed: watermodes.gen1,
+        speed: originalFindSpeedModes('roborock.vacuum.s5').speed,
+        waterspeed: originalFindSpeedModes('roborock.vacuum.s5e').waterspeed,
       });
 
       const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();

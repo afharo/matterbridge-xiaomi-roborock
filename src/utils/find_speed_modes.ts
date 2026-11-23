@@ -1,8 +1,6 @@
-import semver from 'semver';
 import { RvcCleanMode } from 'matterbridge/matter/clusters';
-import type { VacuumDevice, VacuumMode } from 'node-miio';
+import { resolveVacuumModes, vacuumModels, type VacuumDevice, type VacuumMode } from 'node-miio';
 
-import { MODELS } from '../models/models.js';
 import type { CleaningTypes, ModelDefinition, ModesWithMiLevel } from '../models/types.js';
 
 /**
@@ -22,29 +20,22 @@ export function isSupportedLevel(level: number | undefined): level is number {
 }
 
 /**
- * Finds the speed modes that apply to the current model and firmware version
+ * Finds the speed modes that apply to the current model and firmware version, from node-miio's table (the models it
+ * doesn't list get their brand's defaults).
  *
  * @param {string} model The Robot Vacuum's model
  * @param {string?} firmware The firmware's version
  *
  * @returns {ModelDefinition} The speed modes that apply to the robot.
  */
-export function findSpeedModes(model: string, firmware?: string) {
-  const baseModel = model.startsWith('viomi.') ? MODELS.viomi : model.startsWith('dreame.') ? MODELS.dreame : MODELS.default;
-
-  return (MODELS[model] || []).reduce((acc, option) => {
-    if (option.firmware) {
-      const [, cleanFirmware] = (firmware || '').match(/^(\d+\.\d+\.\d+)/) || [];
-      return semver.satisfies(cleanFirmware, option.firmware) ? option : acc;
-    } else {
-      return option;
-    }
-  }, baseModel[0]);
+export function findSpeedModes(model: string, firmware?: string): ModelDefinition {
+  const { fanSpeeds, waterBoxModes } = resolveVacuumModes(model, firmware);
+  return fromNodeMiioModes(fanSpeeds, waterBoxModes);
 }
 
 /**
  * Resolves the speed modes of a device:
- * - Models listed in `MODELS` keep using the local definitions (unchanged behaviour).
+ * - Models in node-miio's table (`vacuumModels()`) use it ({@link findSpeedModes}), with the firmware variants.
  * - Any other model uses the fan speeds / water levels reported by `node-miio` (e.g. from the device's MIoT spec).
  * - Falls back to {@link findSpeedModes} if `node-miio` doesn't report any fan speed.
  *
@@ -54,7 +45,7 @@ export function findSpeedModes(model: string, firmware?: string) {
  * @returns {Promise<ModelDefinition>} The speed modes that apply to the robot.
  */
 export async function resolveSpeedModes(device: VacuumDevice, model: string, firmware?: string): Promise<ModelDefinition> {
-  if (MODELS[model] || typeof device.fanSpeeds !== 'function') {
+  if (vacuumModels().includes(model) || typeof device.fanSpeeds !== 'function') {
     return findSpeedModes(model, firmware);
   }
 
@@ -88,7 +79,7 @@ export function classifyCleaningTypes(cleaningTypes: VacuumMode[]): CleaningType
   return result;
 }
 
-/** Labels by (lowercased) mode name, matching the ones used in `models/` */
+/** Labels by (lowercased) mode name ("turbo" is special: see {@link labelFor}) */
 const SPEED_LABELS: Record<string, RvcCleanMode.ModeTag> = {
   'quiet': RvcCleanMode.ModeTag.LowNoise,
   'silent': RvcCleanMode.ModeTag.LowNoise,
@@ -102,7 +93,7 @@ const SPEED_LABELS: Record<string, RvcCleanMode.ModeTag> = {
   'medium': RvcCleanMode.ModeTag.Day,
   'middle': RvcCleanMode.ModeTag.Day,
   'strong': RvcCleanMode.ModeTag.Day,
-  'turbo': RvcCleanMode.ModeTag.Max,
+  'turbo': RvcCleanMode.ModeTag.Day,
   'max': RvcCleanMode.ModeTag.Max,
   'full speed': RvcCleanMode.ModeTag.Max,
   'max+': RvcCleanMode.ModeTag.DeepClean,
@@ -127,6 +118,7 @@ const OFF_NAMES = new Set(['off', 'close', 'closed', 'level0']);
 
 /**
  * Picks a label by name, or by position when the name is unknown (first: low noise, last: max, others: day).
+ * "Turbo" is "max" only when it's the fastest speed, "day" otherwise (there's a "Max" after it).
  *
  * @param {Record<string, RvcCleanMode.ModeTag>} labels Labels by name
  * @param {string} name The mode name
@@ -135,7 +127,10 @@ const OFF_NAMES = new Set(['off', 'close', 'closed', 'level0']);
  * @returns {RvcCleanMode.ModeTag} The label
  */
 function labelFor(labels: Record<string, RvcCleanMode.ModeTag>, name: string, index: number, count: number): RvcCleanMode.ModeTag {
-  const label = labels[name.trim().toLowerCase()];
+  const key = name.trim().toLowerCase();
+  // "Turbo" is the fastest speed of some robots (Viomi, Dreame), and the one before "Max" of the others
+  if (labels === SPEED_LABELS && key === 'turbo' && index === count - 1) return RvcCleanMode.ModeTag.Max;
+  const label = labels[key];
   if (label !== undefined) return label;
   if (index === 0) return labels === SPEED_LABELS ? RvcCleanMode.ModeTag.LowNoise : RvcCleanMode.ModeTag.Min;
   if (index === count - 1) return RvcCleanMode.ModeTag.Max;
@@ -144,7 +139,8 @@ function labelFor(labels: Record<string, RvcCleanMode.ModeTag>, name: string, in
 
 /**
  * Converts the modes reported by `node-miio` to a {@link ModelDefinition}.
- * The first entry of each list is the "off" level (as in `models/`): if the device has no such level, {@link UNSUPPORTED_LEVEL} is used.
+ * The first entry of each list is the "off" level: if the device has no such level, {@link UNSUPPORTED_LEVEL} is used (never
+ * sent to the device). The fan speeds never have one (-1 is not a real fan speed: 0 is on some models).
  *
  * @param {VacuumMode[]} fanSpeeds The fan speeds
  * @param {VacuumMode[]} waterBoxModes The water levels (empty if not supported)

@@ -1,8 +1,7 @@
 import { BehaviorSubject, distinct, exhaustMap, filter, Subject, type Subscription, takeUntil, timer } from 'rxjs';
 import * as miio from 'node-miio';
-import { isVacuum, type ErrorChangedEvent, type StateChangedEvent, type VacuumDevice } from 'node-miio';
+import { isCleaningState, isVacuum, type ErrorChangedEvent, type StateChangedEvent, type VacuumDevice } from 'node-miio';
 
-import { cleaningStatuses } from '../utils/constants.js';
 import type { ModelLogger } from '../utils/logger.ts';
 
 export interface DeviceManagerConfig {
@@ -83,7 +82,7 @@ export class DeviceManager {
   }
 
   public get isCleaning() {
-    return cleaningStatuses.includes(this.state);
+    return isCleaningState(this.state);
   }
 
   public get isPaused() {
