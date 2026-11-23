@@ -136,7 +136,7 @@ function tagsByPosition(index: number, count: number, lowest: RvcCleanMode.ModeT
 
 /**
  * The Matter tags of each fan speed (slowest first): by name, the high speeds (Strong, Turbo, Max, Full Speed, Max+) by
- * rank (the fastest DeepClean, the next one Max, the others none: e.g. Turbo when there are Max and Max+), and the
+ * rank (the fastest DeepClean, the next one Max, the others Day: e.g. Turbo when there are Max and Max+), and the
  * unknown names by position.
  *
  * @param {string[]} names The fan speeds' names
@@ -149,7 +149,8 @@ export function fanTags(names: string[]): RvcCleanMode.ModeTag[][] {
     if (HIGH_FAN_SPEEDS.test(key)) {
       const fromTheTop = highs.length - 1 - highs.indexOf(index);
       if (highs.length === 1) return [Max];
-      return fromTheTop === 0 ? [DeepClean] : fromTheTop === 1 ? [Max] : [];
+      // The ones below them (e.g. Turbo when there are Max and Max+) are Day: every mode keeps an intensity tag
+      return fromTheTop === 0 ? [DeepClean] : fromTheTop === 1 ? [Max] : [Day];
     }
     return FAN_TAGS[key] ?? tagsByPosition(index, keys.length, LowNoise);
   });
