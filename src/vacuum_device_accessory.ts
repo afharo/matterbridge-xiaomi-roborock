@@ -777,13 +777,13 @@ export class VacuumDeviceAccessory {
     const cleaningTypes = this.modelSpeeds.cleaningTypes ?? {};
     let mode = 1;
 
-    const supportedCleanModes: SupportedCleanMode[] = vacuumSpeedModes.map(({ name, miLevel, label }) => ({
+    const supportedCleanModes: SupportedCleanMode[] = vacuumSpeedModes.map(({ name, miLevel, tags }) => ({
       label: `${name} Vacuum`,
       mode: mode++,
       modeTags: [
-        // If the label is "Mop", do not add "Vacuum" as a mode tag.
-        ...(label === RvcCleanMode.ModeTag.Mop ? [] : [{ value: RvcCleanMode.ModeTag.Vacuum }]),
-        { value: label },
+        // The mop-only fan speed ("Mop") doesn't vacuum
+        ...(tags.includes(RvcCleanMode.ModeTag.Mop) ? [] : [{ value: RvcCleanMode.ModeTag.Vacuum }]),
+        ...tags.map((value) => ({ value })),
       ],
       miLevels: {
         vacuum: miLevel,
@@ -792,11 +792,11 @@ export class VacuumDeviceAccessory {
       },
     }));
 
-    mopSpeedModes.forEach(({ name, miLevel, label }) => {
+    mopSpeedModes.forEach(({ name, miLevel, tags }) => {
       supportedCleanModes.push({
         label: `${name} Mop`,
         mode: mode++,
-        modeTags: [{ value: RvcCleanMode.ModeTag.Mop }, { value: label }],
+        modeTags: [{ value: RvcCleanMode.ModeTag.Mop }, ...tags.map((value) => ({ value }))],
         miLevels: {
           vacuum: vacuumSpeedOff.miLevel,
           mop: miLevel,

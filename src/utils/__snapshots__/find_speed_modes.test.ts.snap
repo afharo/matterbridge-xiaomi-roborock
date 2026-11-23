@@ -3,9 +3,9 @@
 exports[`findSpeedModes dreame.vacuum.mc1808 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "0:Silent:LowNoise",
-    "1:Standard:Min",
+    "NaN:Off:",
+    "0:Silent:LowNoise+Night",
+    "1:Standard:Day",
     "2:Medium:Day",
     "3:Turbo:Max",
   ],
@@ -16,9 +16,9 @@ exports[`findSpeedModes dreame.vacuum.mc1808 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes dreame.vacuum.mc1808 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "0:Silent:LowNoise",
-    "1:Standard:Min",
+    "NaN:Off:",
+    "0:Silent:LowNoise+Night",
+    "1:Standard:Day",
     "2:Medium:Day",
     "3:Turbo:Max",
   ],
@@ -29,11 +29,11 @@ exports[`findSpeedModes dreame.vacuum.mc1808 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a08 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -42,11 +42,11 @@ exports[`findSpeedModes roborock.vacuum.a08 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a08 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -55,16 +55,16 @@ exports[`findSpeedModes roborock.vacuum.a08 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a09 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -76,16 +76,16 @@ exports[`findSpeedModes roborock.vacuum.a09 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a09 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -97,16 +97,16 @@ exports[`findSpeedModes roborock.vacuum.a09 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a10 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -118,16 +118,16 @@ exports[`findSpeedModes roborock.vacuum.a10 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a10 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -139,16 +139,16 @@ exports[`findSpeedModes roborock.vacuum.a10 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a11 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -160,16 +160,16 @@ exports[`findSpeedModes roborock.vacuum.a11 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a11 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -181,16 +181,16 @@ exports[`findSpeedModes roborock.vacuum.a11 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a15 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -202,16 +202,16 @@ exports[`findSpeedModes roborock.vacuum.a15 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a15 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -223,17 +223,17 @@ exports[`findSpeedModes roborock.vacuum.a15 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a27 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
     "104:Max:Max",
     "108:Max+:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -245,17 +245,17 @@ exports[`findSpeedModes roborock.vacuum.a27 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a27 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
     "104:Max:Max",
     "108:Max+:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -267,16 +267,16 @@ exports[`findSpeedModes roborock.vacuum.a27 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a51 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -288,16 +288,16 @@ exports[`findSpeedModes roborock.vacuum.a51 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a51 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -309,16 +309,16 @@ exports[`findSpeedModes roborock.vacuum.a51 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a62 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -330,16 +330,16 @@ exports[`findSpeedModes roborock.vacuum.a62 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a62 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -351,16 +351,16 @@ exports[`findSpeedModes roborock.vacuum.a62 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a65 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -372,16 +372,16 @@ exports[`findSpeedModes roborock.vacuum.a65 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a65 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -393,12 +393,12 @@ exports[`findSpeedModes roborock.vacuum.a65 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a72 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [],
@@ -408,12 +408,12 @@ exports[`findSpeedModes roborock.vacuum.a72 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a72 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [],
@@ -423,16 +423,16 @@ exports[`findSpeedModes roborock.vacuum.a72 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a73 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -444,16 +444,16 @@ exports[`findSpeedModes roborock.vacuum.a73 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a73 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -465,16 +465,16 @@ exports[`findSpeedModes roborock.vacuum.a73 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a75 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -486,16 +486,16 @@ exports[`findSpeedModes roborock.vacuum.a75 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a75 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -507,15 +507,15 @@ exports[`findSpeedModes roborock.vacuum.a75 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a296 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "221:Level 1:Min",
     "222:Level 2:Day",
     "223:Level 3:Day",
@@ -553,15 +553,15 @@ exports[`findSpeedModes roborock.vacuum.a296 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.a296 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "221:Level 1:Min",
     "222:Level 2:Day",
     "223:Level 3:Day",
@@ -599,11 +599,11 @@ exports[`findSpeedModes roborock.vacuum.a296 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.c1 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "38:Quiet:LowNoise",
-    "60:Balanced:Min",
-    "77:Turbo:Day",
-    "90:Max:Max",
+    "NaN:Off:",
+    "38:Quiet:LowNoise+Night",
+    "60:Balanced:Day",
+    "77:Turbo:Max",
+    "90:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -612,11 +612,11 @@ exports[`findSpeedModes roborock.vacuum.c1 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.c1 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "38:Quiet:LowNoise",
-    "60:Balanced:Min",
-    "77:Turbo:Day",
-    "90:Max:Max",
+    "NaN:Off:",
+    "38:Quiet:LowNoise+Night",
+    "60:Balanced:Day",
+    "77:Turbo:Max",
+    "90:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -625,12 +625,12 @@ exports[`findSpeedModes roborock.vacuum.c1 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.e2 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "41:Gentle:LowEnergy",
-    "50:Silent:LowNoise",
-    "68:Balanced:Min",
-    "79:Turbo:Day",
-    "100:Max:Max",
+    "50:Silent:LowNoise+Night",
+    "68:Balanced:Day",
+    "79:Turbo:Max",
+    "100:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -639,12 +639,12 @@ exports[`findSpeedModes roborock.vacuum.e2 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.e2 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "41:Gentle:LowEnergy",
-    "50:Silent:LowNoise",
-    "68:Balanced:Min",
-    "79:Turbo:Day",
-    "100:Max:Max",
+    "50:Silent:LowNoise+Night",
+    "68:Balanced:Day",
+    "79:Turbo:Max",
+    "100:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -653,11 +653,11 @@ exports[`findSpeedModes roborock.vacuum.e2 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.m1s (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -666,11 +666,11 @@ exports[`findSpeedModes roborock.vacuum.m1s (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.m1s (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -679,12 +679,12 @@ exports[`findSpeedModes roborock.vacuum.m1s (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.s5 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -693,12 +693,12 @@ exports[`findSpeedModes roborock.vacuum.s5 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.s5 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Mop:Mop",
-    "38:Quiet:LowNoise",
-    "60:Balanced:Min",
-    "75:Turbo:Day",
-    "100:Max:Max",
+    "38:Quiet:LowNoise+Night",
+    "60:Balanced:Day",
+    "75:Turbo:Max",
+    "100:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -707,16 +707,16 @@ exports[`findSpeedModes roborock.vacuum.s5 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.s5e (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -727,16 +727,16 @@ exports[`findSpeedModes roborock.vacuum.s5e (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.s5e (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
     "106:Custom:Vacation",
   ],
   "waterspeed": [
-    "200:Off:Mop",
+    "200:Off:",
     "201:Light:Min",
     "202:Medium:Day",
     "203:High:Max",
@@ -747,12 +747,12 @@ exports[`findSpeedModes roborock.vacuum.s5e (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.s6 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -761,12 +761,12 @@ exports[`findSpeedModes roborock.vacuum.s6 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.s6 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
+    "NaN:Off:",
     "105:Soft:LowEnergy",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -775,11 +775,11 @@ exports[`findSpeedModes roborock.vacuum.s6 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.t4 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -788,11 +788,11 @@ exports[`findSpeedModes roborock.vacuum.t4 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.t4 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -801,11 +801,11 @@ exports[`findSpeedModes roborock.vacuum.t4 (firmware undefined) 1`] = `
 exports[`findSpeedModes roborock.vacuum.t6 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -814,11 +814,11 @@ exports[`findSpeedModes roborock.vacuum.t6 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes roborock.vacuum.t6 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "101:Quiet:LowNoise",
-    "102:Balanced:Min",
-    "103:Turbo:Day",
-    "104:Max:Max",
+    "NaN:Off:",
+    "101:Quiet:LowNoise+Night",
+    "102:Balanced:Day",
+    "103:Turbo:Max",
+    "104:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -827,11 +827,11 @@ exports[`findSpeedModes roborock.vacuum.t6 (firmware undefined) 1`] = `
 exports[`findSpeedModes rockrobo.vacuum.v1 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "38:Quiet:LowNoise",
-    "60:Balanced:Min",
-    "75:Turbo:Day",
-    "100:Max:Max",
+    "NaN:Off:",
+    "38:Quiet:LowNoise+Night",
+    "60:Balanced:Day",
+    "75:Turbo:Max",
+    "100:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -840,11 +840,11 @@ exports[`findSpeedModes rockrobo.vacuum.v1 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes rockrobo.vacuum.v1 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "38:Quiet:LowNoise",
-    "60:Balanced:Min",
-    "75:Turbo:Day",
-    "100:Max:Max",
+    "NaN:Off:",
+    "38:Quiet:LowNoise+Night",
+    "60:Balanced:Day",
+    "75:Turbo:Max",
+    "100:Max:DeepClean",
   ],
   "waterspeed": [],
 }
@@ -853,9 +853,9 @@ exports[`findSpeedModes rockrobo.vacuum.v1 (firmware undefined) 1`] = `
 exports[`findSpeedModes viomi.vacuum.v7 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "0:Silent:LowNoise",
-    "1:Standard:Min",
+    "NaN:Off:",
+    "0:Silent:LowNoise+Night",
+    "1:Standard:Day",
     "2:Medium:Day",
     "3:Turbo:Max",
   ],
@@ -866,9 +866,9 @@ exports[`findSpeedModes viomi.vacuum.v7 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes viomi.vacuum.v7 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "0:Silent:LowNoise",
-    "1:Standard:Min",
+    "NaN:Off:",
+    "0:Silent:LowNoise+Night",
+    "1:Standard:Day",
     "2:Medium:Day",
     "3:Turbo:Max",
   ],
@@ -879,9 +879,9 @@ exports[`findSpeedModes viomi.vacuum.v7 (firmware undefined) 1`] = `
 exports[`findSpeedModes viomi.vacuum.v8 (firmware 4.0.0) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "0:Silent:LowNoise",
-    "1:Standard:Min",
+    "NaN:Off:",
+    "0:Silent:LowNoise+Night",
+    "1:Standard:Day",
     "2:Medium:Day",
     "3:Turbo:Max",
   ],
@@ -892,9 +892,9 @@ exports[`findSpeedModes viomi.vacuum.v8 (firmware 4.0.0) 1`] = `
 exports[`findSpeedModes viomi.vacuum.v8 (firmware undefined) 1`] = `
 {
   "speed": [
-    "NaN:Off:Vacuum",
-    "0:Silent:LowNoise",
-    "1:Standard:Min",
+    "NaN:Off:",
+    "0:Silent:LowNoise+Night",
+    "1:Standard:Day",
     "2:Medium:Day",
     "3:Turbo:Max",
   ],
