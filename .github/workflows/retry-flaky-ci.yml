@@ -1,0 +1,55 @@
+name: Retry flaky CI
+
+# Re-runs the failed jobs of "Node.js CI" (up to twice) when every failure was caused by the
+# GitHub-hosted runner rather than by the code: no runner picked the job up (macOS capacity),
+# the runner lost communication, or a timeout-minutes limit was hit.
+# Real failures (lint, tests, build...) are never retried.
+# Note: workflow_run only triggers from the copy of this file on the default branch.
+
+on:
+  workflow_run:
+    workflows: ['Node.js CI']
+    types: [completed]
+
+permissions:
+  actions: write # re-run jobs
+  checks: read # read job annotations
+
+jobs:
+  rerun:
+    if: >-
+      github.event.workflow_run.conclusion != 'success' &&
+      github.event.workflow_run.conclusion != 'skipped' &&
+      github.event.workflow_run.run_attempt < 3
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Re-run failed jobs if they all failed for infrastructure reasons
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          set -euo pipefail
+          infra='not acquired by Runner|lost communication with the server|exceeded the maximum execution time|has timed out after'
+          flaky=0
+          real=0
+          for id in $(gh api --paginate "repos/$REPO/actions/runs/$RUN_ID/attempts/$ATTEMPT/jobs" \
+            --jq '.jobs[] | select(.conclusion == "failure" or .conclusion == "cancelled" or .conclusion == "timed_out") | .id'); do
+            messages=$(gh api "repos/$REPO/check-runs/$id/annotations" --jq '.[].message')
+            if grep -qE "$infra" <<<"$messages"; then
+              echo "Job $id: infrastructure failure"
+              flaky=$((flaky + 1))
+            else
+              echo "Job $id: real failure (or manual cancellation)"
+              real=$((real + 1))
+            fi
+          done
+
+          if [ "$flaky" -gt 0 ] && [ "$real" -eq 0 ]; then
+            echo "Re-running $flaky failed job(s) of run $RUN_ID (attempt $ATTEMPT)"
+            gh run rerun "$RUN_ID" --failed -R "$REPO"
+          else
+            echo "Not re-running: $flaky infrastructure failure(s), $real other failure(s)"
+          fi
