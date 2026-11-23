@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    # Normal runs take ~1 min (Ubuntu/macOS) to ~5 min (Windows): fail fast on hung runners
+    # (retried by retry-flaky-ci.yml)
+    timeout-minutes: 15
 
     strategy:
       fail-fast: false
@@ -39,9 +42,11 @@ jobs:
 
       - name: Install matterbridge globally
         run: npm install -g matterbridge@latest
+        timeout-minutes: 8
 
       - name: Install plugin dependencies
         run: npm ci
+        timeout-minutes: 5
 
       - name: Link matterbridge in the project
         run: npm link matterbridge
