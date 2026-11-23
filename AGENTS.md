@@ -35,13 +35,15 @@ CI (`.github/workflows/build-matterbridge-plugin.yml`) runs them on Node 22/24/2
 - `src/services/device_manager.ts`: connects to the device (`miio.device({ address, token })`), polls it, and emits state/error changes.
   The `device.matches("type:vaccuum")` spelling is intentional: it's how abstract-things (used by node-miio) names the type.
 - `src/utils/find_speed_modes.ts`: fan speeds / water levels → Matter clean modes.
-  - `resolveSpeedModes(device, model, fw)`: models listed in `src/models/` keep the local definitions.
-    Any other model uses `device.fanSpeeds()` / `device.waterBoxModes()` from node-miio (e.g. from the device's MIoT spec),
-    with Matter labels derived from the mode names.
-  - The first entry of each list is the "off" level. If the device can't turn the vacuum or the water off (MIoT), it's `UNSUPPORTED_LEVEL` (NaN),
-    and the clean-mode handler skips it (`isSupportedLevel`).
-- `src/models/`: legacy per-model tables (also copied into node-miio's `vacuum_modes.ts`). The plan is to remove them once
-  node-miio's lists are confirmed to cover every model. Prefer fixing speeds in node-miio.
+  - The fan speeds and water levels come from node-miio. `findSpeedModes(model, fw)`: node-miio's table
+    (`resolveVacuumModes`, with the firmware variants). `resolveSpeedModes(device, model, fw)`: the models in that table
+    (`vacuumModels()`) use it; any other model uses `device.fanSpeeds()` / `device.waterBoxModes()` (e.g. from the device's
+    MIoT spec), or the brand's defaults. The Matter tags are derived from the mode names (`labelFor`).
+    **Add or fix a model's speeds in node-miio, not here**: a snapshot test pins what each model gets.
+  - The first entry of each list is the "off" level. The fan's is always `UNSUPPORTED_LEVEL` (NaN: -1 isn't a fan speed),
+    and so is the water's when the device can't turn it off (MIoT). The clean-mode handler skips it (`isSupportedLevel`),
+    and the current mode is matched on the levels a mode sets (`levelsMatch`).
+- The cleaning states come from node-miio (`isCleaningState`).
 - node-miio ships its own types (since 0.5.0). The device is a `VacuumDevice` (union of node-miio's vacuum classes): only their
   shared API is available, so narrow with `'getMaps' in device` (or `instanceof`) for the class-specific methods.
   `src/utils/miio_types.ts` types the legacy Roborock responses that node-miio returns untyped (room mapping, timers).

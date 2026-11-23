@@ -47,9 +47,6 @@
     <a href="https://www.npmjs.com/package/rxjs">
         <img src="https://img.shields.io/badge/powered%20by-rxjs-blue" alt="powered by rxjs">
     </a>
-    <a href="https://www.npmjs.com/package/semver">
-        <img src="https://img.shields.io/badge/powered%20by-semver-blue" alt="powered by semver">
-    </a>
 </p>
 
 ---

@@ -9,9 +9,8 @@ import { applyConfigDefaults, type Config } from './services/config_service.js';
 import type { CloudService } from './services/cloud_service.js';
 import { DeviceManager } from './services/device_manager.js';
 import { getLogger, type ModelLogger } from './utils/logger.js';
-import { isSupportedLevel, resolveSpeedModes } from './utils/find_speed_modes.js';
+import { findSpeedModes, isSupportedLevel, resolveSpeedModes } from './utils/find_speed_modes.js';
 import type { ModelDefinition } from './models/types.js';
-import { MODELS } from './models/models.js';
 import { type MiioError, toAuxiliaryOperationalState, toErrorStateId } from './utils/rvc_mappings.js';
 import { buildCleanModePresets } from './utils/clean_mode_presets.js';
 import type { GetTimerResponseTimer, RoomMapping } from './utils/miio_types.js';
@@ -72,6 +71,25 @@ export interface SnapshotStore {
   set<T>(key: string, value: T): Promise<void>;
 }
 
+/**
+ * Whether a clean mode is the robot's current one: every level the mode sets matches the robot's. The levels it doesn't
+ * set (e.g. the fan speed of the mop-only modes, never sent to the robot) match any, but it must set at least one.
+ *
+ * @param {{ vacuum?: number; mop?: number }} miLevels The clean mode's levels
+ * @param {number} [miLevels.vacuum] The fan speed it sets
+ * @param {number} [miLevels.mop] The water level it sets
+ * @param {number | undefined} fanSpeed The robot's fan speed
+ * @param {number | undefined} waterBoxMode The robot's water level
+ * @returns {boolean} `true` if it's the current mode
+ */
+function levelsMatch(miLevels: { vacuum?: number; mop?: number }, fanSpeed: number | undefined, waterBoxMode: number | undefined): boolean {
+  const levels = [
+    [miLevels.vacuum, fanSpeed],
+    [miLevels.mop, waterBoxMode],
+  ].filter(([level]) => isSupportedLevel(level));
+  return levels.length > 0 && levels.every(([level, current]) => level === current);
+}
+
 export class VacuumDeviceAccessory {
   private readonly config: Config;
   private readonly log: ModelLogger;
@@ -79,7 +97,8 @@ export class VacuumDeviceAccessory {
   private readonly stop$ = new Subject<void>();
   private endpoint?: RoboticVacuumCleaner;
   private serviceAreas: ServiceArea.Area[] = [];
-  private modelSpeeds: ModelDefinition = MODELS.default[0];
+  // The default speeds until the model is known
+  private modelSpeeds: ModelDefinition = findSpeedModes('');
   /** Saved maps (multi-floor), only when the robot has more than one */
   private supportedMaps: ServiceArea.Map[] = [];
   /** Areas of the current room-cleaning operation (to support SkipArea) */
@@ -487,7 +506,7 @@ export class VacuumDeviceAccessory {
     },
     fanSpeed: async (miLevel: number) => {
       const currentMopLevel = this.deviceManager.property<number>('waterBoxMode');
-      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.vacuum === miLevel && miLevels.mop === currentMopLevel);
+      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => levelsMatch(miLevels, miLevel, currentMopLevel));
       if (cleanMode) {
         await this.endpoint?.updateAttribute(RvcCleanMode, 'currentMode', cleanMode.mode);
       }
@@ -501,7 +520,7 @@ export class VacuumDeviceAccessory {
     // node-miio's property (and stateChanged key) for the water level
     waterBoxMode: async (miLevel: number) => {
       const currentVacuumLevel = this.deviceManager.property<number>('fanSpeed');
-      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => miLevels.mop === miLevel && miLevels.vacuum === currentVacuumLevel);
+      const cleanMode = this.supportedCleanModes.find(({ miLevels }) => levelsMatch(miLevels, currentVacuumLevel, miLevel));
       if (cleanMode) {
         await this.endpoint?.updateAttribute(RvcCleanMode, 'currentMode', cleanMode.mode);
       }

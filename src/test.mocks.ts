@@ -1,5 +1,8 @@
 import { jest } from '@jest/globals';
 import type { Vacuum } from 'node-miio';
+// node-miio's pure function (its own module: importing `node-miio` itself would load the real network layer)
+// eslint-disable-next-line n/no-missing-import -- it exists: the rule doesn't resolve deep imports of node-miio
+import { isCleaningState } from 'node-miio/dist/lib/devices/vacuums/vacuum_states.js';
 
 // ============= MIIO MOCKS ================
 /** The members of a node-miio vacuum that the plugin uses (the Roborock `Vacuum` has all of them) */
@@ -81,6 +84,7 @@ export const miio = {
   createMock: () => ({
     device: jest.fn().mockImplementation(() => miioDevice),
     configureLogging: jest.fn(),
+    isCleaningState,
     // Same logic as node-miio's
     isVacuum: (device: unknown) => typeof (device as { matches?: unknown })?.matches === 'function' && (device as MiioDeviceMock).matches('type:vaccuum'),
   }),

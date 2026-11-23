@@ -1,33 +1,57 @@
 import { jest } from '@jest/globals';
 import { RvcCleanMode } from 'matterbridge/matter/clusters';
-import type { VacuumDevice } from 'node-miio';
+import { resolveVacuumModes, vacuumModels, type VacuumDevice } from 'node-miio';
 
-import { MODELS } from '../models/models.js';
+import type { ModelDefinition } from '../models/types.js';
 
 import { classifyCleaningTypes, findSpeedModes, fromNodeMiioModes, isSupportedLevel, resolveSpeedModes, UNSUPPORTED_LEVEL } from './find_speed_modes.js';
 
+const tags = (modes: ModelDefinition['speed'] = []) => modes.map(({ miLevel, name, label }) => `${miLevel}:${name}:${RvcCleanMode.ModeTag[label]}`);
+
 describe('findSpeedModes', () => {
-  test("should assign the viomi model for any model starting with 'viomi.'", () => {
-    expect(findSpeedModes('viomi.one')).toStrictEqual(MODELS.viomi[0]);
-    expect(findSpeedModes('viomi.two')).toStrictEqual(MODELS.viomi[0]);
-    expect(findSpeedModes('viomi.vacuum.v8')).toStrictEqual(MODELS['viomi.vacuum.v8'][0]);
+  test("uses node-miio's modes, with an unsupported (never sent) Off speed", () => {
+    const { fanSpeeds, waterBoxModes } = resolveVacuumModes('roborock.vacuum.s5e');
+    expect(findSpeedModes('roborock.vacuum.s5e')).toStrictEqual(fromNodeMiioModes(fanSpeeds, waterBoxModes));
+    expect(tags(findSpeedModes('roborock.vacuum.s5e').speed)).toStrictEqual([
+      'NaN:Off:Vacuum',
+      '105:Soft:LowEnergy',
+      '101:Quiet:LowNoise',
+      '102:Balanced:Min',
+      '103:Turbo:Day',
+      '104:Max:Max',
+      '106:Custom:Vacation',
+    ]);
   });
 
-  test('Dreame models', () => {
-    expect(findSpeedModes('dreame.vacuum.one')).toStrictEqual(MODELS.dreame[0]);
-    expect(findSpeedModes('dreame.vacuum.mc1808')).toStrictEqual(MODELS['dreame.vacuum.mc1808'][0]);
+  test("Viomi and Dreame models: Turbo is Max when it's the fastest speed", () => {
+    expect(tags(findSpeedModes('viomi.one').speed)).toStrictEqual(['NaN:Off:Vacuum', '0:Silent:LowNoise', '1:Standard:Min', '2:Medium:Day', '3:Turbo:Max']);
+    expect(tags(findSpeedModes('dreame.vacuum.mc1808').speed)).toStrictEqual(['NaN:Off:Vacuum', '0:Silent:LowNoise', '1:Standard:Min', '2:Medium:Day', '3:Turbo:Max']);
+    expect(tags(findSpeedModes('dreame.vacuum.one').speed)).toStrictEqual(['NaN:Off:Vacuum', '0:Quiet:LowNoise', '1:Standard:Min', '2:Strong:Day', '3:Turbo:Max']);
   });
 
-  test('should return the default model for unlisted models', () => {
-    expect(findSpeedModes('random-model')).toStrictEqual(MODELS.default[0]);
+  test('unlisted models get the default speeds', () => {
+    expect(findSpeedModes('random-model')).toStrictEqual(findSpeedModes('roborock.vacuum.s6'));
   });
 
-  test('should return a known model in the list', () => {
-    expect(findSpeedModes('roborock.vacuum.s5')).toStrictEqual(MODELS['roborock.vacuum.s5'][0]);
+  test('the firmware version picks a different set of speeds', () => {
+    expect(findSpeedModes('roborock.vacuum.s5').speed.map(({ miLevel }) => miLevel)).toStrictEqual([NaN, 105, 38, 60, 75, 100]);
+    expect(findSpeedModes('roborock.vacuum.s5', '3.5.7').speed.map(({ miLevel }) => miLevel)).toStrictEqual([NaN, 105, 101, 102, 103, 104]);
   });
 
-  test('should apply the firmware version to choose a different set of speeds', () => {
-    expect(findSpeedModes('roborock.vacuum.s5', '3.5.7')).toStrictEqual(MODELS['roborock.vacuum.s5'][1]);
+  test('S7 and newer: 105 is Mop (no suction)', () => {
+    expect(tags(findSpeedModes('roborock.vacuum.a15').speed)[1]).toBe('105:Mop:Mop');
+  });
+
+  // Pins what each model gets (fan speeds, water levels and Matter tags), so a change in node-miio's table shows up
+  // here: update the snapshot only if it's intended.
+  test.each(
+    vacuumModels().flatMap((model) => [
+      [model, undefined],
+      [model, '4.0.0'],
+    ]),
+  )('%s (firmware %s)', (model, firmware) => {
+    const { speed, waterspeed } = findSpeedModes(model, firmware);
+    expect({ speed: tags(speed), waterspeed: tags(waterspeed) }).toMatchSnapshot();
   });
 });
 
@@ -38,23 +62,23 @@ describe('resolveSpeedModes', () => {
       waterBoxModes: waterBoxModes && jest.fn(async () => waterBoxModes),
     }) as unknown as VacuumDevice;
 
-  test('models listed in MODELS keep the local definitions', async () => {
+  test("the models in node-miio's table keep its definitions", async () => {
     const d = device([{ value: 1, name: 'Ignored' }]);
-    await expect(resolveSpeedModes(d, 'roborock.vacuum.s5', '3.5.7')).resolves.toStrictEqual(MODELS['roborock.vacuum.s5'][1]);
+    await expect(resolveSpeedModes(d, 'roborock.vacuum.s5', '3.5.7')).resolves.toStrictEqual(findSpeedModes('roborock.vacuum.s5', '3.5.7'));
     expect(d.fanSpeeds).not.toHaveBeenCalled();
   });
 
   test('falls back to findSpeedModes when node-miio does not provide the modes (older versions)', async () => {
-    await expect(resolveSpeedModes(device(), 'xiaomi.vacuum.d110ch')).resolves.toStrictEqual(MODELS.default[0]);
+    await expect(resolveSpeedModes(device(), 'xiaomi.vacuum.d110ch')).resolves.toStrictEqual(findSpeedModes('xiaomi.vacuum.d110ch'));
   });
 
   test('falls back to findSpeedModes when node-miio reports no fan speeds', async () => {
-    await expect(resolveSpeedModes(device([]), 'xiaomi.vacuum.d110ch')).resolves.toStrictEqual(MODELS.default[0]);
+    await expect(resolveSpeedModes(device([]), 'xiaomi.vacuum.d110ch')).resolves.toStrictEqual(findSpeedModes('xiaomi.vacuum.d110ch'));
   });
 
   test('falls back to findSpeedModes when node-miio fails', async () => {
     const d = { fanSpeeds: jest.fn(async () => Promise.reject(new Error('boom'))) } as unknown as VacuumDevice;
-    await expect(resolveSpeedModes(d, 'dreame.vacuum.p2008')).resolves.toStrictEqual(MODELS.dreame[0]);
+    await expect(resolveSpeedModes(d, 'dreame.vacuum.p2008')).resolves.toStrictEqual(findSpeedModes('dreame.vacuum.p2008'));
   });
 
   test('uses the modes reported by node-miio for other models (e.g. MIoT)', async () => {

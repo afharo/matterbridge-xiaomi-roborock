@@ -35,6 +35,8 @@ jest.unstable_mockModule('./services/device_manager.js', () => {
   return { DeviceManager: jest.fn(() => deviceManagerMock) };
 });
 
+/** The real `findSpeedModes`, for the tests' fixtures */
+export { originalFindSpeedModes };
 export const findSpeedModesMock = jest.fn(originalFindSpeedModes);
 jest.unstable_mockModule('./utils/find_speed_modes.js', () => {
   return {
