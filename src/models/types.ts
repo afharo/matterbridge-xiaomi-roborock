@@ -3,7 +3,8 @@ import type { RvcCleanMode } from 'matterbridge/matter/clusters';
 export interface ModesWithMiLevel {
   miLevel: number;
   name: string;
-  label: RvcCleanMode.ModeTag;
+  /** Its Matter clean mode tags, besides Vacuum / Mop (see `fanTags` / `waterTags`) */
+  tags: RvcCleanMode.ModeTag[];
 }
 
 /** A robot's fan speeds and water levels, with their Matter clean mode tags (see `findSpeedModes`) */

@@ -42,6 +42,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **Matter clean mode tags follow their meaning in the Matter spec** (the names and numbers don't change). Quiet / Silent: LowNoise and Night. Balanced / Standard / Medium: Day (the everyday speeds; Balanced was Min, the lowest setting). The two fastest speeds (Turbo, Max, Strong, Full Speed, Max+): Max and DeepClean, so each one can be found by its tag (the S7 MaxV's Turbo gets no tag: Max and Max+ take them). Custom: no tag (it was Vacation). Water: Light Min, Medium Day, High Max, Custom no tag.
 - **Fan speeds, water levels and cleaning states from node-miio 0.11.0** ([afharo/node-miio#56](https://github.com/afharo/node-miio/pull/56)), shared with homebridge-xiaomi-roborock-vacuum, instead of this plugin's own copy (`src/models/`). A test pins what each model gets. What changes:
   - **S7 and newer** (`a15`, `a51`, `a65`, `a73`, `a75`): fan speed 105 is "Mop" (mop only, no suction), not "Soft". **S7 MaxV** (`a27`) gets it too: its clean modes after it are renumbered (update the automations that use them by number).
   - **S7 Pro Ultra** (`a62`): its own fan speeds (with Mop and Custom) and water levels, instead of the defaults: its clean modes are renumbered too.
