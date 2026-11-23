@@ -29,8 +29,8 @@ describe('findSpeedModes', () => {
     expect(tags(findSpeedModes('dreame.vacuum.one').speed)).toStrictEqual(['NaN:Off:', '0:Quiet:LowNoise+Night', '1:Standard:Day', '2:Strong:Max', '3:Turbo:DeepClean']);
   });
 
-  test('S7 MaxV: Max and Max+ are Max and DeepClean, Turbo is Day', () => {
-    expect(tags(findSpeedModes('roborock.vacuum.a27').speed).slice(4, 7)).toStrictEqual(['103:Turbo:Day', '104:Max:Max', '108:Max+:DeepClean']);
+  test('S7 MaxV: Turbo and Max are Max, Max+ is DeepClean', () => {
+    expect(tags(findSpeedModes('roborock.vacuum.a27').speed).slice(4, 7)).toStrictEqual(['103:Turbo:Max', '104:Max:Max', '108:Max+:DeepClean']);
   });
 
   test('unlisted models get the default speeds', () => {
