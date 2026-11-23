@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.12.0] - 2026-11-23
+
 ### Fixed
 
 - **Mop-only clean modes** sent a fan speed of `-1` to the robot (it was only the tables' "off" placeholder, and `0` is a real fan speed on some models): they now only set the water level. While mopping, the current clean mode follows the water level.
