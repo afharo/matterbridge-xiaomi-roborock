@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+### Fixed
+
+- **MIoT vacuums that answer with their device ID instead of the property name** (e.g. the Mijia Robot Vacuum H40, `xiaomi.vacuum.d101`): the status, battery, charging state and modes are read again (only one value was kept). node-miio 0.11.1 ([afharo/node-miio#59](https://github.com/afharo/node-miio/pull/59), [homebridge-xiaomi-roborock-vacuum#1314](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum/issues/1314)).
+
 ## [v0.12.0] - 2026-11-23
 
 ### Fixed
