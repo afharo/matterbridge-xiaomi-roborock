@@ -141,13 +141,21 @@ export class VacuumDeviceAccessory {
   /**
    * Reads everything needed to build the Matter device from the (connected) robot.
    *
+   * The serial number of an already saved robot is kept: Matterbridge derives the endpoint's id and uniqueId from it,
+   * so a new one (e.g. node-miio now reading it from `serial-no` instead of `"unknown"`) would make the controllers
+   * see a new device, losing its room, name and automations.
+   *
+   * @param {DeviceSnapshot} [saved] The info saved from the last connection
    * @returns {Promise<DeviceSnapshot>} The device info
    */
-  private async takeSnapshot(): Promise<DeviceSnapshot> {
+  private async takeSnapshot(saved?: DeviceSnapshot): Promise<DeviceSnapshot> {
     const serialNumber = await this.deviceManager.device.getSerialNumber().catch((error) => {
       this.log.warn(`Failed to retrieve serial number: ${error}`);
       return 'Unknown';
     });
+    if (saved?.serialNumber && saved.serialNumber !== serialNumber) {
+      this.log.debug(`Keeping the saved serial number ${saved.serialNumber} (the robot reports ${serialNumber}), so the controllers keep the device`);
+    }
     const deviceInfo = await this.deviceManager.device.getDeviceInfo().catch((error) => {
       this.log.warn(`Failed to retrieve device info: ${error}`);
       return { fw_ver: 'Unknown' };
@@ -165,7 +173,7 @@ export class VacuumDeviceAccessory {
 
     return {
       model: this.deviceManager.model,
-      serialNumber,
+      serialNumber: saved?.serialNumber || serialNumber,
       firmware: deviceInfo.fw_ver,
       modelSpeeds: this.modelSpeeds,
       serviceAreas: this.serviceAreas,
@@ -176,7 +184,7 @@ export class VacuumDeviceAccessory {
   private async refreshSnapshotWhenConnected(connected: Promise<boolean>, saved: DeviceSnapshot) {
     try {
       await connected;
-      const fresh = await this.takeSnapshot();
+      const fresh = await this.takeSnapshot(saved);
       await this.writeSnapshot(fresh);
       if (JSON.stringify(fresh) !== JSON.stringify(saved)) {
         this.log.info(`The vacuum's modes or rooms changed since the last connection: restart the plugin to apply them.`);
@@ -201,7 +209,7 @@ export class VacuumDeviceAccessory {
 
     if (await waitAtMost(connected, timeoutMs)) {
       this.log.info(`Connected to device!`);
-      const snapshot = await this.takeSnapshot();
+      const snapshot = await this.takeSnapshot(saved);
       await this.writeSnapshot(snapshot);
       return snapshot;
     }
