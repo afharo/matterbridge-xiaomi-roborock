@@ -36,6 +36,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.12.2] - 2026-11-25
+
+### Fixed
+
+- **Serial number of the MIoT vacuums that report it as `serial-no`** (e.g. the Mijia Robot Vacuum H40, `xiaomi.vacuum.d101`), instead of `unknown`. node-miio 0.13.0 ([afharo/node-miio#62](https://github.com/afharo/node-miio/pull/62), [#431](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/431)). The vacuums already added keep their saved serial number: Matterbridge builds the device's id from it, so a new one would make the controllers register it as a new device, losing its room, name and automations ([#432](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/432)).
+
 ## [v0.12.1] - 2026-11-24
 
 ### Fixed
