@@ -106,8 +106,19 @@ describe('VacuumDeviceAccessory', () => {
 
       deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
       await jest.advanceTimersByTimeAsync(0);
-      expect(store.set).toHaveBeenCalledWith('device-snapshot:1.1.1.1:Test Vacuum', expect.objectContaining({ serialNumber: 'serial-number' }));
+      expect(store.set).toHaveBeenCalledWith('device-snapshot:1.1.1.1:Test Vacuum', expect.objectContaining({ serialNumber: 'saved-serial', firmware: '1.0.0' }));
       expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('restart the plugin to apply them'));
+    });
+
+    test("keeps the saved serial number when the robot reports a new one (the controllers don't register it as a new device)", async () => {
+      const store = createStore({ ...snapshot, serialNumber: 'unknown' });
+      await create(store);
+      const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+      deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+      const endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+      expect(endpoint.serialNumber).toBe('unknown');
+      expect(endpoint.id).toBe('TestVacuum-unknown');
+      expect(store.set).toHaveBeenCalledWith('device-snapshot:1.1.1.1:Test Vacuum', expect.objectContaining({ serialNumber: 'unknown', firmware: '1.0.0' }));
     });
 
     test('skips the robot when it was never connected and it is not reachable', async () => {
