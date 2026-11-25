@@ -57,18 +57,16 @@ for [Matterbridge](https://www.npmjs.com/package/matterbridge) that integrates w
 Roborock app, refer to
 the [Matterbridge Roborock Platform Plugin](https://www.npmjs.com/package/matterbridge-roborock-vacuum-plugin) instead.
 
+> [!TIP]
+> **Already using Homebridge?** You don't need Matterbridge:
+> [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum)
+> shows the robot as Apple Home's native robot vacuum too, through
+> [Homebridge's Matter support](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum/blob/main/docs/how-it-shows-up.md#robot-vacuum-matter). It also offers
+> zone cleaning, extra switches and sensors, a settings page in the Homebridge UI, and experimental support for the
+> robots paired with the Roborock app. Both plugins are built on [node-miio](https://github.com/afharo/node-miio).
+
 > ⭐️ If you like this project and find it useful, please consider giving it a star on GitHub
 > at [Matterbridge Xiaomi Roborock Plugin](https://github.com/afharo/matterbridge-xiaomi-roborock).
-
-> ⚠️ **Disclaimer**
->
-> This project is in a very early stage of development. I'm initially building it to integrate with my Roborock S5, and
-> will be extending the support once the basic features are implemented.
->
-> Other models might work at this stage, but I cannot guarantee that (mostly because I haven't been able to test them).
-> Any help testing other models is welcome. If you find a model that works, please open an issue or a PR to add it to
-> the
-> list of [supported models](#supported-models).
 
 <!-- TOC -->
 
@@ -166,10 +164,23 @@ If the session expires, the plugin logs a warning: log in again and restart the 
 
 ## Supported models
 
+The plugin talks to the robot with [node-miio](https://github.com/afharo/node-miio), so it supports the vacuums
+node-miio supports, paired with the Xiaomi Home app: the Roborock and Xiaomi miIO models, and any MIoT vacuum (Xiaomi,
+Dreame, Mijia…), driven by its spec from [miot-spec.org](https://home.miot-spec.com). To check what node-miio resolves
+for your model:
+
+```sh
+npx node-miio spec your.model.id
+```
+
+These models have been confirmed by users:
+
 | Model            | Code name             | Basic info (battery, serial, firmware) | Full cleaning | Room cleaning |  Tested by  |
 | ---------------- | --------------------- | :------------------------------------: | :-----------: | :-----------: | :---------: |
 | Roborock S5      | `roborock.vacuum.s5`  |                   ✅                   |      ✅       |      ✅       |   @afharo   |
 | Roborock S6 MaxV | `roborock.vacuum.a10` |                   ✅                   |      ✅       |      ✅       | @alexh-name |
+
+If your model works (or doesn't), please open an issue or a PR to update this list.
 
 ## Known issues
 
@@ -182,7 +193,8 @@ If the session expires, the plugin logs a warning: log in again and restart the 
 This plugin leverages the Matterbridge ecosystem, so you can install it in the same way as any other Matterbridge
 plugin.
 
-> ℹ️ This is not a Homebridge plugin. You need to install Matterbridge instead.
+> ℹ️ This is not a Homebridge plugin. You need to install Matterbridge instead. If you already run Homebridge, see
+> [homebridge-xiaomi-roborock-vacuum](https://github.com/homebridge-xiaomi-roborock-vacuum/homebridge-xiaomi-roborock-vacuum).
 
 ### Prerequisites
 
