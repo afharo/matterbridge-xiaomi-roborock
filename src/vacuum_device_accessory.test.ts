@@ -110,7 +110,7 @@ describe('VacuumDeviceAccessory', () => {
       expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('restart the plugin to apply them'));
     });
 
-    test('keeps the saved serial number when the robot reports a new one (the controllers don't register it as a new device)', async () => {
+    test("keeps the saved serial number when the robot reports a new one (the controllers don't register it as a new device)", async () => {
       const store = createStore({ ...snapshot, serialNumber: 'unknown' });
       await create(store);
       const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
