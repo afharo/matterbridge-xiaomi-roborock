@@ -96,7 +96,7 @@
     "matterbridge:list": "matterbridge -list"
   },
   "dependencies": {
-    "node-miio": "^0.12.0",
+    "node-miio": "^0.13.0",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
