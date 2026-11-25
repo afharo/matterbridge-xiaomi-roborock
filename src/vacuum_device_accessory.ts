@@ -154,7 +154,7 @@ export class VacuumDeviceAccessory {
       return 'Unknown';
     });
     if (saved?.serialNumber && saved.serialNumber !== serialNumber) {
-      this.log.debug(`Keeping the saved serial number ${saved.serialNumber} (the robot reports ${serialNumber}), so the controllers keep the device`);
+      this.log.debug(`Keeping the saved serial number ${saved.serialNumber} (the robot reports ${serialNumber}), so the controllers don't register it as a new device`);
     }
     const deviceInfo = await this.deviceManager.device.getDeviceInfo().catch((error) => {
       this.log.warn(`Failed to retrieve device info: ${error}`);
