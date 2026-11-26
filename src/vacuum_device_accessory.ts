@@ -2,7 +2,7 @@ import { MatterbridgeEndpoint } from 'matterbridge';
 import { MatterbridgeRvcOperationalStateServer, RoboticVacuumCleaner } from 'matterbridge/devices';
 import type { Logger } from 'matterbridge/logger';
 import { firstValueFrom, mergeMap, Observable, Subject, switchMap, takeUntil } from 'rxjs';
-import type { MapWatcher } from 'node-miio';
+import { vacuumActivity, type MapWatcher } from 'node-miio';
 import { PowerSource, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea } from 'matterbridge/matter/clusters';
 
 import { applyConfigDefaults, type Config } from './services/config_service.js';
@@ -13,6 +13,7 @@ import { findSpeedModes, isSupportedLevel, resolveSpeedModes } from './utils/fin
 import type { ModelDefinition } from './models/types.js';
 import { type MiioError, toAuxiliaryOperationalState, toErrorStateId } from './utils/rvc_mappings.js';
 import { buildCleanModePresets } from './utils/clean_mode_presets.js';
+import { unknownStateCode, unknownStateIssueUrl } from './utils/unknown_state.js';
 import type { GetTimerResponseTimer, RoomMapping } from './utils/miio_types.js';
 
 type SupportedCleanMode = RvcCleanMode.ModeOption & { miLevels: { vacuum?: number; mop?: number; cleaningType?: number } };
@@ -103,6 +104,8 @@ export class VacuumDeviceAccessory {
   private supportedMaps: ServiceArea.Map[] = [];
   /** Areas of the current room-cleaning operation (to support SkipArea) */
   private activeAreas: number[] = [];
+  /** The unknown states already reported (see {@link reportUnknownState}) */
+  private readonly reportedUnknownStates = new Set<string>();
 
   constructor(
     config: Partial<Config>,
@@ -542,10 +545,11 @@ export class VacuumDeviceAccessory {
     },
     state: async (state: string) => {
       await this.stateChangedHandlers.charging(state === 'charging');
-      switch (state) {
+      // What each state means comes from node-miio: don't match state names here
+      const activity = vacuumActivity(state);
+      switch (activity) {
         case 'charging':
-          // No need to call it again, as it's called 3 lines above.
-          // await this.stateChangedHandlers.charging(true);
+          // Already handled by the charging update above
           break;
 
         case 'paused':
@@ -553,56 +557,69 @@ export class VacuumDeviceAccessory {
           await this.setOperationalState(RvcOperationalState.OperationalState.Paused);
           break;
 
-        case 'cleaning':
-        case 'spot-cleaning':
-        case 'room-cleaning':
-        case 'zone-cleaning':
-        case 'sweeping':
-        case 'mopping':
-        case 'sweeping-and-mopping':
+        case 'running':
           await this.endpoint?.updateAttribute(RvcRunMode, 'currentMode', SUPPORTED_MODES[1].mode);
           await this.setOperationalState(RvcOperationalState.OperationalState.Running);
           break;
 
         case 'returning': // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
-        case 'docking':
           await this.setOperationalState(RvcOperationalState.OperationalState.SeekingCharger);
           break;
 
         case 'error':
           await this.setOperationalState(RvcOperationalState.OperationalState.Error);
-          // await this.endpoint?.updateAttribute(RvcOperationalState, 'operationalError', RvcOperationalState.ErrorState.CommandInvalidInState);
-          // We might want to emit the optional RvcOperationalState.Cluster.events.operationCompletion when completed cleaning (or when errors occur)
+          if (state === 'charging-error') {
+            await this.endpoint?.updateAttribute(RvcOperationalState, 'operationalError', { errorStateId: RvcOperationalState.ErrorState.FailedToFindChargingDock });
+          }
           break;
 
-        case 'fully-charged':
+        case 'docked':
           await this.setOperationalState(RvcOperationalState.OperationalState.Docked);
           break;
 
-        case 'charging-error':
-          await this.setOperationalState(RvcOperationalState.OperationalState.Error);
-          await this.endpoint?.updateAttribute(RvcOperationalState, 'operationalError', { errorStateId: RvcOperationalState.ErrorState.FailedToFindChargingDock });
-          break;
-
-        case 'initializing':
-        case 'idle':
-        case 'sleeping':
+        case 'stopped':
           await this.endpoint?.updateAttribute(RvcRunMode, 'currentMode', SUPPORTED_MODES[0].mode);
           await this.setOperationalState(RvcOperationalState.OperationalState.Stopped);
           break;
 
         default: {
-          const auxiliaryState = toAuxiliaryOperationalState(state);
+          const auxiliaryState = toAuxiliaryOperationalState(activity);
           if (auxiliaryState !== undefined) {
             await this.setOperationalState(auxiliaryState);
-          } else {
-            this.log.warn(`Unknown state: ${state}`);
+            break;
           }
+          // Unknown: not cleaning, so the controller doesn't keep the previous state (e.g. "cleaning the mop") and lock
+          // its controls
+          this.reportUnknownState(state);
+          await this.endpoint?.updateAttribute(RvcRunMode, 'currentMode', SUPPORTED_MODES[0].mode);
+          await this.setOperationalState(RvcOperationalState.OperationalState.Stopped);
           break;
         }
       }
     },
   };
+
+  /**
+   * Warns about a state the plugin can't translate (node-miio's `unknown-<code>`), once per state, with a link to
+   * report it. The state is polled every 30s: without the once, it would be logged on every poll.
+   *
+   * @param {string} state The vacuum's `state` property
+   */
+  private reportUnknownState(state: string) {
+    if (this.reportedUnknownStates.has(state)) return;
+    this.reportedUnknownStates.add(state);
+    const code = unknownStateCode(state);
+    let description: string | undefined;
+    try {
+      // MIoT vacuums only: the description in the model's spec
+      const device = this.deviceManager.device as { describeStatus?: (code: number) => string | undefined };
+      description = code === undefined ? undefined : device.describeStatus?.(code);
+    } catch {
+      // Not connected (anymore)
+    }
+    const url = unknownStateIssueUrl({ model: this.deviceManager.model, state, description });
+    this.log.warn(`Unknown state: ${state}${description ? ` ("${description}")` : ''}. It's shown as stopped. Please report it, saying what the robot was doing: ${url}`);
+  }
 
   /**
    * Updates the operational state, keeping track of the operation for the mandatory OperationCompletion event.
