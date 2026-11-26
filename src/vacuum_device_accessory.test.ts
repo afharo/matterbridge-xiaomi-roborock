@@ -1015,12 +1015,18 @@ describe('VacuumDeviceAccessory', () => {
           }
         };
 
-        test('unknown', async () => {
-          deviceManagerMock.stateChanged$.next({ key: 'state', value: 'unknown' });
-          const expectedCalls = 1; // The charging update.
-          await awaitNPromises(expectedCalls + 1);
+        test.each(['unknown-23', 'something-new'])('unknown (%s): stopped, with a link to report it, once', async (value) => {
+          deviceManagerMock.stateChanged$.next({ key: 'state', value });
+          deviceManagerMock.stateChanged$.next({ key: 'state', value });
+          const expectedCalls = 6; // 2 + the charging update, twice
+          await awaitNPromises(expectedCalls + 2);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
-          expect(logger.warn).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Unknown state: unknown');
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 1);
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Stopped);
+          expect(logger.warn).toHaveBeenCalledTimes(1);
+          const message = logger.warn.mock.calls[0][0] as string;
+          expect(message).toContain(`Unknown state: ${value}. It's shown as stopped. Please report it`);
+          expect(message).toContain('https://github.com/afharo/matterbridge-xiaomi-roborock/issues/new?template=bug_report.yml');
         });
 
         test('paused', async () => {
@@ -1033,17 +1039,20 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Paused);
         });
 
-        test.each(['cleaning', 'spot-cleaning', 'room-cleaning', 'zone-cleaning', 'sweeping', 'mopping', 'sweeping-and-mopping'])('%s', async (value) => {
-          deviceManagerMock.stateChanged$.next({ key: 'state', value });
-          const expectedCalls = 3; // 2 + the charging update.
-          await awaitNPromises(expectedCalls + 1);
-          expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
-          expect(logger.warn).not.toHaveBeenCalled();
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 2);
-          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Running);
-        });
+        test.each(['cleaning', 'spot-cleaning', 'room-cleaning', 'zone-cleaning', 'mopping', 'cleaning-and-mopping', 'remote-control', 'going-to-location'])(
+          '%s',
+          async (value) => {
+            deviceManagerMock.stateChanged$.next({ key: 'state', value });
+            const expectedCalls = 3; // 2 + the charging update.
+            await awaitNPromises(expectedCalls + 1);
+            expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
+            expect(logger.warn).not.toHaveBeenCalled();
+            expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 2);
+            expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Running);
+          },
+        );
 
-        test.each(['returning', 'docking'])('%s', async (value) => {
+        test.each(['returning', 'docking', 'returning-to-wash-mop'])('%s', async (value) => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value });
           const expectedCalls = 2; // 1 + the charging update.
           await awaitNPromises(expectedCalls + 1);
@@ -1061,8 +1070,8 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Error);
         });
 
-        test('fully-charged', async () => {
-          deviceManagerMock.stateChanged$.next({ key: 'state', value: 'fully-charged' });
+        test.each(['fully-charged', 'docked'])('%s', async (value) => {
+          deviceManagerMock.stateChanged$.next({ key: 'state', value });
           const expectedCalls = 2; // 1 + the charging update.
           await awaitNPromises(expectedCalls + 1);
           expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
@@ -1080,7 +1089,7 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalError', { errorStateId: RvcOperationalState.ErrorState.FailedToFindChargingDock });
         });
 
-        test.each(['initializing', 'idle', 'sleeping'])('%s', async (value) => {
+        test.each(['initiating', 'idle', 'sleeping', 'updating'])('%s', async (value) => {
           deviceManagerMock.stateChanged$.next({ key: 'state', value });
           const expectedCalls = 3; // 2 + the charging update.
           await awaitNPromises(expectedCalls + 1);
@@ -1088,6 +1097,21 @@ describe('VacuumDeviceAccessory', () => {
           expect(logger.warn).not.toHaveBeenCalled();
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 1);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Stopped);
+        });
+
+        test.each([
+          ['dust-collection', RvcOperationalState.OperationalState.EmptyingDustBin],
+          ['washing-mop', RvcOperationalState.OperationalState.CleaningMop],
+          ['station-working', RvcOperationalState.OperationalState.CleaningMop],
+          ['filling-water-tank', RvcOperationalState.OperationalState.FillingWaterTank],
+          ['mapping', RvcOperationalState.OperationalState.UpdatingMaps],
+        ])('%s', async (value, operationalState) => {
+          deviceManagerMock.stateChanged$.next({ key: 'state', value });
+          const expectedCalls = 2; // 1 + the charging update.
+          await awaitNPromises(expectedCalls + 1);
+          expect(updateAttributeSpy).toHaveBeenCalledTimes(expectedCalls);
+          expect(logger.warn).not.toHaveBeenCalled();
+          expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', operationalState);
         });
 
         test('charging', async () => {
@@ -1177,8 +1201,8 @@ describe('VacuumDeviceAccessory', () => {
 
       test.each([
         ['dust-collection', RvcOperationalState.OperationalState.EmptyingDustBin],
-        ['drying', RvcOperationalState.OperationalState.CleaningMop],
-        ['building', RvcOperationalState.OperationalState.UpdatingMaps],
+        ['drying-mop', RvcOperationalState.OperationalState.CleaningMop],
+        ['mapping', RvcOperationalState.OperationalState.UpdatingMaps],
       ])('maps %p to %p', async (state, expected) => {
         await emitState(state);
         expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', expected);

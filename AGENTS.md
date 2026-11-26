@@ -43,7 +43,10 @@ CI (`.github/workflows/build-matterbridge-plugin.yml`) runs them on Node 22/24/2
   - The first entry of each list is the "off" level. The fan's is always `UNSUPPORTED_LEVEL` (NaN: -1 isn't a fan speed),
     and so is the water's when the device can't turn it off (MIoT). The clean-mode handler skips it (`isSupportedLevel`),
     and the current mode is matched on the levels a mode sets (`levelsMatch`).
-- The cleaning states come from node-miio (`isCleaningState`).
+- The cleaning states come from node-miio (`isCleaningState`), and so does what each state means (`vacuumActivity`:
+  one per Matter operational state). Don't match state names here: node-miio reports one of its `VACUUM_STATES`, or
+  `unknown-<code>` (shown as stopped, with a warning and a pre-filled issue link, once per state). Translate new
+  statuses in node-miio.
 - node-miio ships its own types (since 0.5.0). The device is a `VacuumDevice` (union of node-miio's vacuum classes): only their
   shared API is available, so narrow with `'getMaps' in device` (or `instanceof`) for the class-specific methods.
   `src/utils/miio_types.ts` types the legacy Roborock responses that node-miio returns untyped (room mapping, timers).

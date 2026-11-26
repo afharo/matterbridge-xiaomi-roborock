@@ -1,4 +1,5 @@
 import { RvcOperationalState } from 'matterbridge/matter/clusters';
+import { VACUUM_STATES } from 'node-miio';
 
 import { toAuxiliaryOperationalState, toErrorStateId } from './rvc_mappings.js';
 
@@ -51,18 +52,19 @@ describe('toErrorStateId', () => {
 
 describe('toAuxiliaryOperationalState', () => {
   test.each([
-    ['dust-collection', OperationalState.EmptyingDustBin],
-    ['dustcollecting', OperationalState.EmptyingDustBin],
-    ['emptying', OperationalState.EmptyingDustBin],
-    ['washing', OperationalState.CleaningMop],
-    ['drying', OperationalState.CleaningMop],
-    ['selfcleaning', OperationalState.CleaningMop],
-    ['building', OperationalState.UpdatingMaps],
-    ['mapping', OperationalState.UpdatingMaps],
-    ['relocation', OperationalState.UpdatingMaps],
-    ['refilling', OperationalState.FillingWaterTank],
-    ['something-else', undefined],
-  ])('%p → %p', (state, expected) => {
-    expect(toAuxiliaryOperationalState(state)).toBe(expected);
+    ['emptying-dust-bin', OperationalState.EmptyingDustBin],
+    ['cleaning-mop', OperationalState.CleaningMop],
+    ['filling-water-tank', OperationalState.FillingWaterTank],
+    ['updating-maps', OperationalState.UpdatingMaps],
+    ['running', undefined],
+    [undefined, undefined],
+  ] as const)('%p → %p', (activity, expected) => {
+    expect(toAuxiliaryOperationalState(activity)).toBe(expected);
+  });
+
+  // Every state node-miio can report is handled: by the accessory's switch, or here
+  test.each(Object.entries(VACUUM_STATES))('%s (%s) is translated', (_state, activity) => {
+    const handled = ['stopped', 'running', 'paused', 'returning', 'charging', 'docked', 'error'];
+    expect(handled.includes(activity) || toAuxiliaryOperationalState(activity) !== undefined).toBe(true);
   });
 });

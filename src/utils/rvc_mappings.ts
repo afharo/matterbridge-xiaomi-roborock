@@ -1,4 +1,5 @@
 import { RvcOperationalState } from 'matterbridge/matter/clusters';
+import type { VacuumActivity } from 'node-miio';
 
 /**
  * The error reported by node-miio (`device.on('errorChanged')`): `null` when the error is cleared.
@@ -79,18 +80,20 @@ export function toErrorStateId(model: string, error: MiioError): RvcOperationalS
   return ErrorState.UnableToCompleteOperation;
 }
 
+/** The Matter operational state of the dock and maintenance activities (added in revision 4 of the cluster) */
+const AUXILIARY_STATES: Partial<Record<VacuumActivity, RvcOperationalState.OperationalState>> = {
+  'emptying-dust-bin': RvcOperationalState.OperationalState.EmptyingDustBin,
+  'cleaning-mop': RvcOperationalState.OperationalState.CleaningMop,
+  'filling-water-tank': RvcOperationalState.OperationalState.FillingWaterTank,
+  'updating-maps': RvcOperationalState.OperationalState.UpdatingMaps,
+};
+
 /**
- * Translates the auxiliary states reported by node-miio (dock and maintenance activities) into the Matter RVC
- * operational states added in revision 4 of the cluster. The states are normalized by node-miio, e.g.
- * `dust-collection` (Roborock), or the kebab-cased descriptions of the MIoT spec (`dustcollecting`, `drying`…).
+ * Translates a dock or maintenance activity (node-miio's `vacuumActivity`) into a Matter RVC operational state.
  *
- * @param {string} state The state reported by node-miio
- * @returns {RvcOperationalState.OperationalState | undefined} The Matter state, or `undefined` if it's not an auxiliary state
+ * @param {VacuumActivity | undefined} activity What the robot is doing
+ * @returns {RvcOperationalState.OperationalState | undefined} The Matter state, or `undefined` if it's not a dock or maintenance activity
  */
-export function toAuxiliaryOperationalState(state: string): RvcOperationalState.OperationalState | undefined {
-  if (/dust|emptying/.test(state)) return RvcOperationalState.OperationalState.EmptyingDustBin;
-  if (/wash|dry|self-?clean|station-?working/.test(state)) return RvcOperationalState.OperationalState.CleaningMop;
-  if (/water|refill|filling/.test(state)) return RvcOperationalState.OperationalState.FillingWaterTank;
-  if (/map|building|relocat/.test(state)) return RvcOperationalState.OperationalState.UpdatingMaps;
-  return undefined;
+export function toAuxiliaryOperationalState(activity: VacuumActivity | undefined): RvcOperationalState.OperationalState | undefined {
+  return activity === undefined ? undefined : AUXILIARY_STATES[activity];
 }
