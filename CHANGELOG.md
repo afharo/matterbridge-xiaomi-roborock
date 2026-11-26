@@ -36,6 +36,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.12.3] - 2026-11-26
+
+### Fixed
+
+- **Every robot state has a Matter equivalent.** node-miio 0.14.0 translates every status published for the MIoT vacuums (all 243, checked against their Chinese descriptions) and says what each one means. States the plugin dropped before (e.g. updating, remote control, going to a point, returning to wash the mop) are shown, and Dreame's mopping states count as cleaning. A status the plugin doesn't know shows as stopped instead of keeping the previous state (a stuck "cleaning the mop" locked Apple Home's controls). The logs show a warning, once, with a link to a pre-filled bug report ([afharo/node-miio#66](https://github.com/afharo/node-miio/pull/66), [#436](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/436)).
+
+### Changed
+
+- **Docs**: point Homebridge users to the Homebridge plugin's Matter vacuum, refresh the supported models and the npm keywords ([#434](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/434), [#435](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/435)).
+
 ## [v0.12.2] - 2026-11-25
 
 ### Fixed
