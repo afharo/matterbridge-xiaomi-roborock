@@ -36,6 +36,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Next] - ??
 
+## [v0.12.4] - 2026-11-27
+
+### Fixed
+
+- **Xiaomi Cloud map at the start of a cleaning**: no more `failed to get the robot's map: ... objectname invalid` (the Roborock S5 answers "locating" before its map is ready, and that was used as the map name). node-miio 0.15.1 ([afharo/node-miio#70](https://github.com/afharo/node-miio/pull/70), [#439](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/439)).
+
+### Changed
+
+- **node-miio 0.15.0**: it no longer depends on the unmaintained abstract-things, so installing the plugin no longer warns about the deprecated `appdirectory` and `fs-write-stream-atomic` packages ([afharo/node-miio#69](https://github.com/afharo/node-miio/pull/69), [#438](https://github.com/afharo/matterbridge-xiaomi-roborock/pull/438)).
+
 ## [v0.12.3] - 2026-11-26
 
 ### Fixed
