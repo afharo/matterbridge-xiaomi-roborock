@@ -1,3 +1,5 @@
+import { describe, test, expect } from 'vitest';
+
 import { findSpeedModes, fromNodeMiioModes } from './find_speed_modes.js';
 import { buildCleanModePresets } from './clean_mode_presets.js';
 

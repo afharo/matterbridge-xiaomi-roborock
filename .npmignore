@@ -26,7 +26,7 @@ temp/
 eslint.config.*
 install-matterbridge-dev.sh
 install-matterbridge-main.sh
-jest.config.*
+vitest.config.*
 nodemon.json
 prettier.config.*
 TODO.md

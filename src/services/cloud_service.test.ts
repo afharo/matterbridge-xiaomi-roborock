@@ -1,27 +1,27 @@
 import { EventEmitter } from 'node:events';
 
-import { jest } from '@jest/globals';
+import { describe, test, expect, vi } from 'vitest';
 import { CloudSessionExpiredError, type CloudDevice, type MapWatcher } from 'node-miio';
 
 import { CloudService, type CloudServiceDeps } from './cloud_service.js';
 
 const session = { userId: '1', ssecurity: 'ssecurity', serviceToken: 'token' };
-const roborock = { getCloudMap: jest.fn() };
+const roborock = { getCloudMap: vi.fn() };
 const cloudDevice = (overrides: Partial<CloudDevice>) =>
   ({ did: '1', name: 'Robot', model: 'roborock.vacuum.s5', token: 'abc', localip: '192.168.1.2', server: 'de', ...overrides }) as CloudDevice;
 
 function setup(options: { session?: typeof session | undefined; devices?: CloudDevice[]; server?: string } = {}) {
-  const log = { debug: jest.fn(), info: jest.fn(), warn: jest.fn() };
+  const log = { debug: vi.fn(), info: vi.fn(), warn: vi.fn() };
   const cloud = {
-    getDevices: jest.fn(async () => options.devices ?? [cloudDevice({})]),
-    getMapFileUrl: jest.fn(),
-    download: jest.fn(),
+    getDevices: vi.fn(async () => options.devices ?? [cloudDevice({})]),
+    getMapFileUrl: vi.fn(),
+    download: vi.fn(),
   };
   const watcher = new EventEmitter() as unknown as MapWatcher;
   const deps = {
-    loadSession: jest.fn(async () => ('session' in options ? options.session : session)),
-    createCloud: jest.fn(() => cloud),
-    createWatcher: jest.fn(() => watcher),
+    loadSession: vi.fn(async () => ('session' in options ? options.session : session)),
+    createCloud: vi.fn(() => cloud),
+    createWatcher: vi.fn(() => watcher),
   };
   const service = new CloudService(log, { enabled: true, server: options.server, sessionFile: '/sessions/miio.json' }, deps as unknown as CloudServiceDeps);
   return { log, cloud, watcher, deps, service };

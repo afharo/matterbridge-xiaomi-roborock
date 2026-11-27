@@ -10,7 +10,7 @@ import pluginN from 'eslint-plugin-n';
 import pluginPromise from 'eslint-plugin-promise';
 import { configs as jsdocConfigs } from 'eslint-plugin-jsdoc';
 import pluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import pluginJest from 'eslint-plugin-jest';
+import pluginVitest from '@vitest/eslint-plugin';
 import unusedImports from 'eslint-plugin-unused-imports';
 
 export default defineConfig([
@@ -64,7 +64,7 @@ export default defineConfig([
   {
     name: 'TypeScript Source Files',
     files: ['src/**/*.ts'],
-    ignores: ['src/**/*.test.ts', 'src/**/*.spec.ts'], // Ignore test files
+    ignores: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'src/**/*.mock.ts', 'src/test.mocks.ts'], // Ignore test files and their mocks
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
@@ -90,19 +90,19 @@ export default defineConfig([
     },
   },
   {
-    name: 'Jest Test Files',
-    files: ['**/*.spec.ts', '**/*.test.ts', 'test/**/*.ts'],
+    name: 'Test Files',
+    files: ['**/*.spec.ts', '**/*.test.ts', '**/*.mock.ts', '**/test.mocks.ts', 'test/**/*.ts'],
     ignores: [],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: './tsconfig.jest.json', // Use a separate tsconfig for Jest tests with "isolatedModules": true
+        project: './tsconfig.test.json', // The tests aren't part of the build (tsconfig.json)
         sourceType: 'module',
         ecmaVersion: 'latest',
       },
     },
     plugins: {
-      jest: pluginJest, // Add Jest plugin for test files
+      vitest: pluginVitest,
     },
     rules: {
       // Override/add rules specific to test files here
@@ -112,8 +112,8 @@ export default defineConfig([
       '@typescript-eslint/no-empty-function': 'off', // Allow empty functions in test files
       'jsdoc/require-jsdoc': 'off', // Disable JSDoc rule in test files
 
-      // Recommended Jest rules
-      ...pluginJest.configs.recommended.rules,
+      // Recommended Vitest rules
+      ...pluginVitest.configs.recommended.rules,
     },
   },
   {

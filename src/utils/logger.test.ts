@@ -1,21 +1,21 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, vi, type Mocked } from 'vitest';
 import { Logger } from 'matterbridge/logger';
 
 import { getLogger } from './logger.js';
 
 describe('getLogger', () => {
-  const mockLog: jest.Mocked<Logger> = {
-    fatal: jest.fn(() => {}),
-    error: jest.fn(() => {}),
-    warn: jest.fn(() => {}),
-    notice: jest.fn(() => {}),
-    info: jest.fn(() => {}),
-    debug: jest.fn(() => {}),
-    log: jest.fn(() => {}),
+  const mockLog: Mocked<Logger> = {
+    fatal: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    warn: vi.fn(() => {}),
+    notice: vi.fn(() => {}),
+    info: vi.fn(() => {}),
+    debug: vi.fn(() => {}),
+    log: vi.fn(() => {}),
   };
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   test('it should create a new logger out of the Logging structure', () => {
@@ -36,14 +36,14 @@ describe('getLogger', () => {
   });
 
   test.each(['debug', 'info', 'warn', 'error'] as const)('it should log %p messages by default', (level) => {
-    const logSpy = jest.spyOn(mockLog, level);
+    const logSpy = vi.spyOn(mockLog, level);
     const logger = getLogger(mockLog, { name: 'test' });
     logger[level]('Test message');
     expect(logSpy).toHaveBeenCalledWith('[Name=test][Model=unknown] Test message');
   });
 
   test.each(['debug', 'info', 'warn', 'error'] as const)('it should log %p messages with a model set', (level) => {
-    const logSpy = jest.spyOn(mockLog, level);
+    const logSpy = vi.spyOn(mockLog, level);
     const logger = getLogger(mockLog, { name: 'test' });
     logger.setModel('test-model');
     logger[level]('Test message');

@@ -1,36 +1,38 @@
-import { jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterAll, vi, type Mock } from 'vitest';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { PlatformConfig, PlatformMatterbridge } from 'matterbridge';
 
-jest.unstable_mockModule('./vacuum_device_accessory.js', () => ({
-  VacuumDeviceAccessory: jest.fn(() => {
+vi.doMock('./vacuum_device_accessory.js', () => ({
+  VacuumDeviceAccessory: vi.fn(function () {
     return {
-      initializeMatterbridgeEndpoint: jest.fn(() => Promise.resolve({})),
-      postRegister: jest.fn(() => {}),
-      stop: jest.fn(() => {}),
+      initializeMatterbridgeEndpoint: vi.fn(() => Promise.resolve({})),
+      postRegister: vi.fn(() => {}),
+      stop: vi.fn(() => {}),
     };
   }),
 }));
 
-const locate = jest.fn(async ({ did, ip }: { did?: string; ip?: string }): Promise<{ ip: string; token: string } | undefined> => {
+const locate = vi.fn(async ({ did, ip }: { did?: string; ip?: string }): Promise<{ ip: string; token: string } | undefined> => {
   if (did === '123') return { ip: '4.4.4.4', token: 'did-token' };
   if (ip === '2.2.2.2') return { ip: '2.2.2.2', token: 'cloud-token' };
   return undefined;
 });
-jest.unstable_mockModule('./services/cloud_service.js', () => ({
-  CloudService: jest.fn(() => ({ locate })),
+vi.doMock('./services/cloud_service.js', () => ({
+  CloudService: vi.fn(function () {
+    return { locate };
+  }),
 }));
 
 // import initializePlugin from './module.js';
 import type { XiaomiRoborockVacuumPlatform } from './xiaomi_roborock_vacuum_platform.js';
 
 const mockLog = {
-  fatal: jest.fn(() => {}),
-  error: jest.fn(() => {}),
-  warn: jest.fn(() => {}),
-  notice: jest.fn(() => {}),
-  info: jest.fn(() => {}),
-  debug: jest.fn(() => {}),
+  fatal: vi.fn(() => {}),
+  error: vi.fn(() => {}),
+  warn: vi.fn(() => {}),
+  notice: vi.fn(() => {}),
+  info: vi.fn(() => {}),
+  debug: vi.fn(() => {}),
 } as unknown as AnsiLogger;
 
 const mockMatterbridge = {
@@ -47,20 +49,20 @@ const mockConfig = {
   unregisterOnShutdown: false,
 } as PlatformConfig;
 
-jest.spyOn(AnsiLogger.prototype, 'log').mockImplementation(() => {});
+vi.spyOn(AnsiLogger.prototype, 'log').mockImplementation(() => {});
 
 describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
   let instance: XiaomiRoborockVacuumPlatform;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     if (instance) {
-      jest.spyOn(instance, 'registerDevice').mockResolvedValue();
+      vi.spyOn(instance, 'registerDevice').mockResolvedValue();
     }
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('should throw an error if matterbridge is not the required version', async () => {
@@ -96,20 +98,24 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
 
   it('skips vacuums that could not be initialized, without failing the start (#248)', async () => {
     const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
-    const accessoryMock = VacuumDeviceAccessory as unknown as jest.Mock;
-    accessoryMock.mockImplementationOnce(() => ({
-      initializeMatterbridgeEndpoint: jest.fn(() => Promise.resolve(undefined)),
-      postRegister: jest.fn(),
-      stop: jest.fn(),
-    }));
+    const accessoryMock = VacuumDeviceAccessory as unknown as Mock;
+    accessoryMock.mockImplementationOnce(function () {
+      return {
+        initializeMatterbridgeEndpoint: vi.fn(() => Promise.resolve(undefined)),
+        postRegister: vi.fn(),
+        stop: vi.fn(),
+      };
+    });
     await instance.onStart('offline');
     expect(instance.registerDevice).not.toHaveBeenCalled();
 
-    accessoryMock.mockImplementationOnce(() => ({
-      initializeMatterbridgeEndpoint: jest.fn(() => Promise.reject(new Error('boom'))),
-      postRegister: jest.fn(),
-      stop: jest.fn(),
-    }));
+    accessoryMock.mockImplementationOnce(function () {
+      return {
+        initializeMatterbridgeEndpoint: vi.fn(() => Promise.reject(new Error('boom'))),
+        postRegister: vi.fn(),
+        stop: vi.fn(),
+      };
+    });
     await expect(instance.onStart('error')).resolves.toBeUndefined();
     expect(mockLog.error).toHaveBeenCalledWith('Failed to initialize the vacuum "Test vacuum": Error: boom');
   });
@@ -132,7 +138,7 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
 
   it('gets the IP and token of the robots configured with their did, or without a token, from the Xiaomi Cloud', async () => {
     const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
-    const accessoryMock = VacuumDeviceAccessory as unknown as jest.Mock;
+    const accessoryMock = VacuumDeviceAccessory as unknown as Mock;
     const config = {
       ...mockConfig,
       cloud: { enabled: true },
@@ -144,7 +150,7 @@ describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
       ],
     };
     const platform = (await import('./module.js')).default(mockMatterbridge, mockLog, config) as XiaomiRoborockVacuumPlatform;
-    jest.spyOn(platform, 'registerDevice').mockResolvedValue();
+    vi.spyOn(platform, 'registerDevice').mockResolvedValue();
     await platform.onStart('cloud');
     expect(locate).toHaveBeenCalledTimes(3);
     expect(locate).toHaveBeenCalledWith({ did: '123', ip: '9.9.9.9' });

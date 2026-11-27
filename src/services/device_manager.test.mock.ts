@@ -1,6 +1,6 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 import { miio } from '../test.mocks.js';
 
 export const miioMock = miio.createMock();
-jest.doMock('node-miio', () => miioMock);
+vi.doMock('node-miio', () => miioMock);

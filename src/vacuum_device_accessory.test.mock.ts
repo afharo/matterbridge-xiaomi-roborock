@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi, type Mocked } from 'vitest';
 import type { ErrorChangedEvent, VacuumDevice } from 'node-miio';
 import { Subject } from 'rxjs';
 
@@ -17,10 +17,10 @@ interface ObservableProps {
   errorChanged$: Subject<ErrorChangedEvent>;
 }
 
-export const deviceManagerMock: jest.Mocked<PublicMethodsOf<Omit<DeviceManager, keyof ObservableProps>>> & ObservableProps = {
+export const deviceManagerMock: Mocked<PublicMethodsOf<Omit<DeviceManager, keyof ObservableProps>>> & ObservableProps = {
   device: miio.device,
   deviceConnected$: new Subject<VacuumDevice>(),
-  ensureDevice: jest.fn(),
+  ensureDevice: vi.fn(),
   errorChanged$: new Subject<ErrorChangedEvent>(),
   isCleaning: false,
   isPaused: false,
@@ -28,20 +28,25 @@ export const deviceManagerMock: jest.Mocked<PublicMethodsOf<Omit<DeviceManager, 
   property: miio.device.property,
   state: 'charging',
   stateChanged$: new Subject<StateChangedEvent>(),
-  stop: jest.fn(),
+  stop: vi.fn(),
 };
 
-jest.unstable_mockModule('./services/device_manager.js', () => {
-  return { DeviceManager: jest.fn(() => deviceManagerMock) };
+vi.doMock('./services/device_manager.js', () => {
+  // A `function`: the accessory calls it with `new`
+  return {
+    DeviceManager: vi.fn(function () {
+      return deviceManagerMock;
+    }),
+  };
 });
 
 /** The real `findSpeedModes`, for the tests' fixtures */
 export { originalFindSpeedModes };
-export const findSpeedModesMock = jest.fn(originalFindSpeedModes);
-jest.unstable_mockModule('./utils/find_speed_modes.js', () => {
+export const findSpeedModesMock = vi.fn(originalFindSpeedModes);
+vi.doMock('./utils/find_speed_modes.js', () => {
   return {
     ...originalFindSpeedModesModule,
     findSpeedModes: findSpeedModesMock,
-    resolveSpeedModes: jest.fn(async (_device: unknown, model: string, firmware?: string) => findSpeedModesMock(model, firmware)),
+    resolveSpeedModes: vi.fn(async (_device: unknown, model: string, firmware?: string) => findSpeedModesMock(model, firmware)),
   };
 });

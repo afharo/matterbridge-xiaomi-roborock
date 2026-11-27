@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi, type Mock, type Mocked } from 'vitest';
 import type { Vacuum } from 'node-miio';
 // node-miio's pure function (its own module: importing `node-miio` itself would load the real network layer)
 // eslint-disable-next-line n/no-missing-import -- it exists: the rule doesn't resolve deep imports of node-miio
@@ -36,54 +36,54 @@ type MockedMembers =
   | 'poll'
   | 'state';
 
-export type MiioDeviceMock = jest.Mocked<Pick<Vacuum, MockedMembers>> & {
+export type MiioDeviceMock = Mocked<Pick<Vacuum, MockedMembers>> & {
   miioModel: string;
   connected: boolean;
   properties: Record<string, unknown>;
   /** Class-specific: set by the tests that need them (legacy Roborock / MIoT) */
-  getMaps?: jest.Mocked<Vacuum>['getMaps'];
-  setCleaningType?: jest.Mock<(type: number) => Promise<void>>;
+  getMaps?: Mocked<Vacuum>['getMaps'];
+  setCleaningType?: Mock<(type: number) => Promise<void>>;
 };
 
 const miioDevice: MiioDeviceMock = {
   miioModel: 'test-model',
   connected: true,
-  call: jest.fn() as MiioDeviceMock['call'],
-  activateCharging: jest.fn(),
-  activateCleaning: jest.fn(),
-  deactivateCleaning: jest.fn(),
-  batteryLevel: jest.fn(),
-  changeFanSpeed: jest.fn(),
-  cleanRooms: jest.fn(),
-  cleanZones: jest.fn(),
-  fanSpeed: jest.fn(),
-  find: jest.fn(),
-  getDeviceInfo: jest.fn(),
-  getRoomMap: jest.fn(),
-  getSerialNumber: jest.fn(),
-  getTimer: jest.fn(),
-  getWaterBoxMode: jest.fn(),
-  pause: jest.fn(),
+  call: vi.fn() as MiioDeviceMock['call'],
+  activateCharging: vi.fn(),
+  activateCleaning: vi.fn(),
+  deactivateCleaning: vi.fn(),
+  batteryLevel: vi.fn(),
+  changeFanSpeed: vi.fn(),
+  cleanRooms: vi.fn(),
+  cleanZones: vi.fn(),
+  fanSpeed: vi.fn(),
+  find: vi.fn(),
+  getDeviceInfo: vi.fn(),
+  getRoomMap: vi.fn(),
+  getSerialNumber: vi.fn(),
+  getTimer: vi.fn(),
+  getWaterBoxMode: vi.fn(),
+  pause: vi.fn(),
   properties: {},
-  resumeCleanRooms: jest.fn(),
-  sendToLocation: jest.fn(),
-  setRawProperty: jest.fn(),
-  setWaterBoxMode: jest.fn(),
-  startDustCollection: jest.fn(),
-  stopDustCollection: jest.fn(),
-  matches: jest.fn(),
-  destroy: jest.fn(),
-  property: jest.fn() as MiioDeviceMock['property'],
-  on: jest.fn() as MiioDeviceMock['on'],
-  poll: jest.fn(),
-  state: jest.fn().mockReturnValue({}) as MiioDeviceMock['state'],
+  resumeCleanRooms: vi.fn(),
+  sendToLocation: vi.fn(),
+  setRawProperty: vi.fn(),
+  setWaterBoxMode: vi.fn(),
+  startDustCollection: vi.fn(),
+  stopDustCollection: vi.fn(),
+  matches: vi.fn(),
+  destroy: vi.fn(),
+  property: vi.fn() as MiioDeviceMock['property'],
+  on: vi.fn() as MiioDeviceMock['on'],
+  poll: vi.fn(),
+  state: vi.fn().mockReturnValue({}) as MiioDeviceMock['state'],
 };
 
 export const miio = {
   device: miioDevice,
   createMock: () => ({
-    device: jest.fn().mockImplementation(() => miioDevice),
-    configureLogging: jest.fn(),
+    device: vi.fn().mockImplementation(() => miioDevice),
+    configureLogging: vi.fn(),
     isCleaningState,
     // Same logic as node-miio's
     isVacuum: (device: unknown) => typeof (device as { matches?: unknown })?.matches === 'function' && (device as MiioDeviceMock).matches('type:vacuum'),

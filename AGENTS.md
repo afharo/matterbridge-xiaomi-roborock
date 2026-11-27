@@ -21,7 +21,7 @@ npm ci
 npm run dev:link              # = npm link matterbridge: required before lint/test/build (CI does the same)
 npm run lint                  # eslint --max-warnings=0
 npm run format:check          # prettier
-npm test                      # jest in ESM mode (node --experimental-vm-modules)
+npm test                      # vitest (not type-checked: `npm run build` only covers the sources)
 npm run build                 # tsc
 ```
 
@@ -54,7 +54,10 @@ CI (`.github/workflows/build-matterbridge-plugin.yml`) runs them on Node 22/24/2
 ## Tests
 
 - `src/test.mocks.ts` mocks the node-miio device. `src/vacuum_device_accessory.test.mock.ts` mocks the `DeviceManager` and `find_speed_modes`.
-  ESM mocks use `jest.unstable_mockModule`, so the code under test must be imported dynamically after the mocks.
+  They use `vi.doMock` (not hoisted), so the code under test must be imported dynamically after the mocks.
+  The mocks aren't part of the build (`tsconfig.json` excludes `*.mock.ts` and `test.mocks.ts`), like the tests.
+- Import the test API from `vitest` (no globals). A mock called with `new` (`DeviceManager`, `VacuumDeviceAccessory`,
+  `CloudService`) needs a `function` implementation: not an arrow function, nor `mockReturnValue`.
 
 ## Dependencies
 
