@@ -1,7 +1,6 @@
 import { vi, type Mock, type Mocked } from 'vitest';
 import type { Vacuum } from 'node-miio';
 // node-miio's pure function (its own module: importing `node-miio` itself would load the real network layer)
-// eslint-disable-next-line n/no-missing-import -- it exists: the rule doesn't resolve deep imports of node-miio
 import { isCleaningState } from 'node-miio/dist/lib/devices/vacuums/vacuum_states.js';
 
 // ============= MIIO MOCKS ================

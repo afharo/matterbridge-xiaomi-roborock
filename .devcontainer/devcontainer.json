@@ -20,15 +20,13 @@
       "extensions": [
         "ms-vscode.vscode-typescript-next",
         "ms-azuretools.vscode-containers",
-        "dbaeumer.vscode-eslint",
+        "oxc.oxc-vscode",
         "esbenp.prettier-vscode",
         "github.vscode-github-actions",
         "github.vscode-pull-request-github"
       ],
       // Settings for the VS Code environment
       "settings": {
-        "eslint.format.enable": true,
-        "eslint.useFlatConfig": true,
         "editor.formatOnSave": true,
         "terminal.integrated.shell.linux": "/bin/bash",
         "terminal.integrated.scrollback": 10000

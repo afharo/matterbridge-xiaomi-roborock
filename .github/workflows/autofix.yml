@@ -33,7 +33,7 @@ jobs:
       - name: Run prettier
         run: npm run format
 
-      - name: Run eslint
+      - name: Run oxlint
         run: npm run lint:fix
 
       - name: Run autofix.ci to commit the changes

@@ -23,7 +23,7 @@ temp/
 .npmlocalignore
 .prettierignore
 .prettierlocalignore
-eslint.config.*
+.oxlintrc.json
 install-matterbridge-dev.sh
 install-matterbridge-main.sh
 vitest.config.*

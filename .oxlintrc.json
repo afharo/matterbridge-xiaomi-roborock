@@ -1,0 +1,148 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import", "node", "promise", "jsdoc", "unicorn"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "node": true,
+    "es2024": true
+  },
+  "ignorePatterns": ["dist", "node_modules", "coverage", "build", "types", "jest"],
+  "rules": {
+    "no-console": "warn",
+    "no-case-declarations": "error",
+    "no-empty": "error",
+    "no-fallthrough": "error",
+    "no-prototype-builtins": "error",
+    "no-redeclare": "error",
+    "no-regex-spaces": "error",
+    "no-useless-catch": "error",
+    "no-useless-escape": "error",
+    "no-unused-expressions": "error",
+    "no-useless-constructor": "error",
+    "no-array-constructor": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-rest-params": "error",
+    "prefer-spread": "error",
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "after-used",
+        "ignoreRestSiblings": true,
+        "varsIgnorePattern": "^_",
+        "argsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "typescript/ban-ts-comment": [
+      "error",
+      {
+        "minimumDescriptionLength": 10
+      }
+    ],
+    "typescript/no-dynamic-delete": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-extraneous-class": "error",
+    "typescript/no-invalid-void-type": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-non-null-asserted-nullish-coalescing": "error",
+    "typescript/no-non-null-assertion": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-this-alias": "error",
+    "typescript/no-unsafe-declaration-merging": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/prefer-literal-enum-member": "error",
+    "typescript/prefer-namespace-keyword": "error",
+    "typescript/triple-slash-reference": "error",
+    "typescript/unified-signatures": "error",
+    "import/no-named-as-default": "warn",
+    "import/no-named-as-default-member": "warn",
+    "import/no-duplicates": "warn",
+    "node/no-exports-assign": "error",
+    "unicorn/prefer-node-protocol": "error",
+    "unicorn/no-process-exit": "error",
+    "promise/always-return": "warn",
+    "promise/no-return-wrap": "error",
+    "promise/param-names": "error",
+    "promise/catch-or-return": "warn",
+    "promise/no-nesting": "warn",
+    "promise/no-promise-in-callback": "warn",
+    "promise/no-callback-in-promise": "warn",
+    "promise/no-new-statics": "error",
+    "promise/valid-params": "warn",
+    "jsdoc/check-access": "warn",
+    "jsdoc/check-property-names": "warn",
+    "jsdoc/check-tag-names": [
+      "warn",
+      {
+        "definedTags": ["created", "contributor", "remarks"]
+      }
+    ],
+    "jsdoc/empty-tags": "warn",
+    "jsdoc/implements-on-classes": "warn",
+    "jsdoc/no-defaults": "warn",
+    "jsdoc/require-param": "warn",
+    "jsdoc/require-param-name": "warn",
+    "jsdoc/require-param-type": "warn",
+    "jsdoc/require-property": "warn",
+    "jsdoc/require-property-description": "warn",
+    "jsdoc/require-property-name": "warn",
+    "jsdoc/require-property-type": "warn",
+    "jsdoc/require-returns-description": "warn",
+    "jsdoc/require-returns-type": "warn",
+    "jsdoc/require-yields": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.js", "**/*.cjs", "**/*.mjs"],
+      "rules": {
+        "typescript/no-require-imports": "off",
+        "typescript/no-this-alias": "off"
+      }
+    },
+    {
+      "files": ["**/*.ts"],
+      "rules": {
+        "no-redeclare": "off",
+        "jsdoc/check-tag-names": [
+          "warn",
+          {
+            "typed": true,
+            "definedTags": ["created", "contributor", "remarks"]
+          }
+        ],
+        "jsdoc/require-param-type": "off",
+        "jsdoc/require-property-type": "off",
+        "jsdoc/require-returns-type": "off"
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.mock.ts", "**/test.mocks.ts"],
+      "plugins": ["typescript", "import", "node", "promise", "jsdoc", "unicorn", "vitest"],
+      "rules": {
+        "jsdoc/require-param": "off",
+        "no-empty-function": "off",
+        "typescript/no-explicit-any": "off",
+        "vitest/expect-expect": "error",
+        "vitest/no-commented-out-tests": "error",
+        "vitest/no-conditional-expect": "error",
+        "vitest/no-disabled-tests": "warn",
+        "vitest/no-focused-tests": "error",
+        "vitest/no-identical-title": "error",
+        "vitest/no-import-node-test": "error",
+        "vitest/no-interpolation-in-snapshots": "error",
+        "vitest/no-mocks-import": "error",
+        "vitest/no-standalone-expect": "error",
+        "vitest/valid-describe-callback": "error",
+        "vitest/valid-expect": "error",
+        "vitest/valid-title": "error"
+      }
+    }
+  ]
+}

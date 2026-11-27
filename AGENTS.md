@@ -19,7 +19,7 @@ Guidance for AI coding agents (and humans) working on `matterbridge-xiaomi-robor
 npm install -g matterbridge   # the plugin is tested against the globally installed matterbridge
 npm ci
 npm run dev:link              # = npm link matterbridge: required before lint/test/build (CI does the same)
-npm run lint                  # eslint --max-warnings=0
+npm run lint                  # oxlint (warnings fail too); it doesn't sort imports nor check that JSDoc `@param` names match
 npm run format:check          # prettier
 npm test                      # vitest (not type-checked: `npm run build` only covers the sources)
 npm run build                 # tsc
