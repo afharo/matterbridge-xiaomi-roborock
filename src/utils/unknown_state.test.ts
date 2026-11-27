@@ -1,3 +1,5 @@
+import { describe, test, expect } from 'vitest';
+
 import { unknownStateCode, unknownStateIssueUrl } from './unknown_state.js';
 
 describe('unknownStateCode', () => {

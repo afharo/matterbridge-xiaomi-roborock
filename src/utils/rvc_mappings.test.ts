@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import { RvcOperationalState } from 'matterbridge/matter/clusters';
 import { VACUUM_STATES } from 'node-miio';
 

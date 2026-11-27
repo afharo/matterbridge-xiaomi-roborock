@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`findSpeedModes dreame.vacuum.mc1808 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > dreame.vacuum.mc1808 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -13,7 +13,7 @@ exports[`findSpeedModes dreame.vacuum.mc1808 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes dreame.vacuum.mc1808 (firmware undefined) 1`] = `
+exports[`findSpeedModes > dreame.vacuum.mc1808 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -26,7 +26,7 @@ exports[`findSpeedModes dreame.vacuum.mc1808 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a08 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a08 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -39,7 +39,7 @@ exports[`findSpeedModes roborock.vacuum.a08 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a08 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a08 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -52,7 +52,7 @@ exports[`findSpeedModes roborock.vacuum.a08 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a09 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a09 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -73,7 +73,7 @@ exports[`findSpeedModes roborock.vacuum.a09 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a09 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a09 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -94,7 +94,7 @@ exports[`findSpeedModes roborock.vacuum.a09 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a10 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a10 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -115,7 +115,7 @@ exports[`findSpeedModes roborock.vacuum.a10 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a10 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a10 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -136,7 +136,7 @@ exports[`findSpeedModes roborock.vacuum.a10 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a11 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a11 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -157,7 +157,7 @@ exports[`findSpeedModes roborock.vacuum.a11 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a11 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a11 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -178,7 +178,7 @@ exports[`findSpeedModes roborock.vacuum.a11 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a15 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a15 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -199,7 +199,7 @@ exports[`findSpeedModes roborock.vacuum.a15 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a15 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a15 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -220,7 +220,7 @@ exports[`findSpeedModes roborock.vacuum.a15 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a27 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a27 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -242,7 +242,7 @@ exports[`findSpeedModes roborock.vacuum.a27 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a27 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a27 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -264,7 +264,7 @@ exports[`findSpeedModes roborock.vacuum.a27 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a51 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a51 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -285,7 +285,7 @@ exports[`findSpeedModes roborock.vacuum.a51 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a51 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a51 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -306,7 +306,7 @@ exports[`findSpeedModes roborock.vacuum.a51 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a62 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a62 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -327,7 +327,7 @@ exports[`findSpeedModes roborock.vacuum.a62 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a62 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a62 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -348,7 +348,7 @@ exports[`findSpeedModes roborock.vacuum.a62 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a65 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a65 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -369,7 +369,7 @@ exports[`findSpeedModes roborock.vacuum.a65 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a65 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a65 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -390,7 +390,7 @@ exports[`findSpeedModes roborock.vacuum.a65 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a72 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a72 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -405,7 +405,7 @@ exports[`findSpeedModes roborock.vacuum.a72 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a72 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a72 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -420,7 +420,7 @@ exports[`findSpeedModes roborock.vacuum.a72 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a73 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a73 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -441,7 +441,7 @@ exports[`findSpeedModes roborock.vacuum.a73 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a73 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a73 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -462,7 +462,7 @@ exports[`findSpeedModes roborock.vacuum.a73 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a75 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a75 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -483,7 +483,7 @@ exports[`findSpeedModes roborock.vacuum.a75 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a75 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a75 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -504,7 +504,7 @@ exports[`findSpeedModes roborock.vacuum.a75 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a296 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a296 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -550,7 +550,7 @@ exports[`findSpeedModes roborock.vacuum.a296 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.a296 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.a296 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -596,7 +596,7 @@ exports[`findSpeedModes roborock.vacuum.a296 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.c1 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.c1 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -609,7 +609,7 @@ exports[`findSpeedModes roborock.vacuum.c1 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.c1 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.c1 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -622,7 +622,7 @@ exports[`findSpeedModes roborock.vacuum.c1 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.e2 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.e2 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -636,7 +636,7 @@ exports[`findSpeedModes roborock.vacuum.e2 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.e2 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.e2 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -650,7 +650,7 @@ exports[`findSpeedModes roborock.vacuum.e2 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.m1s (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.m1s (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -663,7 +663,7 @@ exports[`findSpeedModes roborock.vacuum.m1s (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.m1s (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.m1s (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -676,7 +676,7 @@ exports[`findSpeedModes roborock.vacuum.m1s (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.s5 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.s5 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -690,7 +690,7 @@ exports[`findSpeedModes roborock.vacuum.s5 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.s5 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.s5 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -704,7 +704,7 @@ exports[`findSpeedModes roborock.vacuum.s5 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.s5e (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.s5e (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -724,7 +724,7 @@ exports[`findSpeedModes roborock.vacuum.s5e (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.s5e (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.s5e (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -744,7 +744,7 @@ exports[`findSpeedModes roborock.vacuum.s5e (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.s6 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.s6 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -758,7 +758,7 @@ exports[`findSpeedModes roborock.vacuum.s6 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.s6 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.s6 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -772,7 +772,7 @@ exports[`findSpeedModes roborock.vacuum.s6 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.t4 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.t4 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -785,7 +785,7 @@ exports[`findSpeedModes roborock.vacuum.t4 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.t4 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.t4 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -798,7 +798,7 @@ exports[`findSpeedModes roborock.vacuum.t4 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.t6 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.t6 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -811,7 +811,7 @@ exports[`findSpeedModes roborock.vacuum.t6 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes roborock.vacuum.t6 (firmware undefined) 1`] = `
+exports[`findSpeedModes > roborock.vacuum.t6 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -824,7 +824,7 @@ exports[`findSpeedModes roborock.vacuum.t6 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes rockrobo.vacuum.v1 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > rockrobo.vacuum.v1 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -837,7 +837,7 @@ exports[`findSpeedModes rockrobo.vacuum.v1 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes rockrobo.vacuum.v1 (firmware undefined) 1`] = `
+exports[`findSpeedModes > rockrobo.vacuum.v1 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -850,7 +850,7 @@ exports[`findSpeedModes rockrobo.vacuum.v1 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes viomi.vacuum.v7 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > viomi.vacuum.v7 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -863,7 +863,7 @@ exports[`findSpeedModes viomi.vacuum.v7 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes viomi.vacuum.v7 (firmware undefined) 1`] = `
+exports[`findSpeedModes > viomi.vacuum.v7 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -876,7 +876,7 @@ exports[`findSpeedModes viomi.vacuum.v7 (firmware undefined) 1`] = `
 }
 `;
 
-exports[`findSpeedModes viomi.vacuum.v8 (firmware 4.0.0) 1`] = `
+exports[`findSpeedModes > viomi.vacuum.v8 (firmware 4.0.0) 1`] = `
 {
   "speed": [
     "NaN:Off:",
@@ -889,7 +889,7 @@ exports[`findSpeedModes viomi.vacuum.v8 (firmware 4.0.0) 1`] = `
 }
 `;
 
-exports[`findSpeedModes viomi.vacuum.v8 (firmware undefined) 1`] = `
+exports[`findSpeedModes > viomi.vacuum.v8 (firmware undefined) 1`] = `
 {
   "speed": [
     "NaN:Off:",

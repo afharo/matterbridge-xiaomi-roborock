@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 
+import { describe, test, expect, beforeEach, afterEach, vi, type Mock, type MockInstance } from 'vitest';
 import { Subject } from 'rxjs';
-import { jest } from '@jest/globals';
 import type { Logger } from 'matterbridge/logger';
 import { MatterbridgeRvcCleanModeServer, RoboticVacuumCleaner } from 'matterbridge/devices';
 import { PowerSource, RvcCleanMode, RvcOperationalState, RvcRunMode, ServiceArea } from 'matterbridge/matter/clusters';
@@ -29,13 +29,13 @@ describe('VacuumDeviceAccessory', () => {
 
   beforeEach(async () => {
     logger = {
-      debug: jest.fn(),
-      notice: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-      fatal: jest.fn(),
-      log: jest.fn(),
+      debug: vi.fn(),
+      notice: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      fatal: vi.fn(),
+      log: vi.fn(),
     };
 
     deviceManagerMock.device.getSerialNumber.mockResolvedValue('serial-number');
@@ -47,7 +47,7 @@ describe('VacuumDeviceAccessory', () => {
 
   afterEach(() => {
     deviceAccessory.stop();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('offline robot at startup (#248)', () => {
@@ -60,8 +60,8 @@ describe('VacuumDeviceAccessory', () => {
       supportedMaps: [],
     };
     const createStore = (saved?: unknown) => ({
-      get: jest.fn(async () => saved),
-      set: jest.fn(async () => undefined),
+      get: vi.fn(async () => saved),
+      set: vi.fn(async () => undefined),
     });
     const create = async (store: ReturnType<typeof createStore>) => {
       deviceAccessory.stop();
@@ -70,7 +70,7 @@ describe('VacuumDeviceAccessory', () => {
     };
 
     afterEach(() => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     test('saves the device info after connecting', async () => {
@@ -83,11 +83,11 @@ describe('VacuumDeviceAccessory', () => {
     });
 
     test('uses the saved info when the robot is not reachable', async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const store = createStore(snapshot);
       await create(store);
       const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
-      await jest.advanceTimersByTimeAsync(15_000);
+      await vi.advanceTimersByTimeAsync(15_000);
       const endpoint = (await endpointPromise) as RoboticVacuumCleaner;
       expect(endpoint).toBeInstanceOf(RoboticVacuumCleaner);
       expect(endpoint.serialNumber).toBe('saved-serial');
@@ -96,16 +96,16 @@ describe('VacuumDeviceAccessory', () => {
     });
 
     test('refreshes the saved info once the robot is back online', async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       const store = createStore(snapshot);
       await create(store);
       const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
-      await jest.advanceTimersByTimeAsync(15_000);
+      await vi.advanceTimersByTimeAsync(15_000);
       await endpointPromise;
       expect(store.set).not.toHaveBeenCalled();
 
       deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
-      await jest.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(0);
       expect(store.set).toHaveBeenCalledWith('device-snapshot:1.1.1.1:Test Vacuum', expect.objectContaining({ serialNumber: 'saved-serial', firmware: '1.0.0' }));
       expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('restart the plugin to apply them'));
     });
@@ -122,17 +122,17 @@ describe('VacuumDeviceAccessory', () => {
     });
 
     test('skips the robot when it was never connected and it is not reachable', async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
       await create(createStore());
       const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
-      await jest.advanceTimersByTimeAsync(60_000);
+      await vi.advanceTimersByTimeAsync(60_000);
       await expect(endpointPromise).resolves.toBeUndefined();
       expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Skipping it so the other devices and plugins can start'));
       expect(deviceManagerMock.stop).toHaveBeenCalled();
     });
 
     test('does not fail when the store fails', async () => {
-      const store = { get: jest.fn(async () => Promise.reject(new Error('disk'))), set: jest.fn(async () => Promise.reject(new Error('disk'))) };
+      const store = { get: vi.fn(async () => Promise.reject(new Error('disk'))), set: vi.fn(async () => Promise.reject(new Error('disk'))) };
       deviceAccessory.stop();
       const { VacuumDeviceAccessory } = await import('./vacuum_device_accessory.js');
       deviceAccessory = new VacuumDeviceAccessory({ name: 'Test Vacuum', ip: '1.1.1.1' }, logger, store);
@@ -185,7 +185,7 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       test('exposes the maps and assigns the areas to the current one', async () => {
-        deviceManagerMock.device.getMaps = jest.fn(async () => [
+        deviceManagerMock.device.getMaps = vi.fn(async () => [
           { id: 0, name: 'Ground floor' },
           { id: 1, name: '' },
         ]);
@@ -199,14 +199,14 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       test('skips the maps when there is only one', async () => {
-        deviceManagerMock.device.getMaps = jest.fn(async () => [{ id: 0, name: 'Home' }]);
+        deviceManagerMock.device.getMaps = vi.fn(async () => [{ id: 0, name: 'Home' }]);
         const options = await connect();
         expect(options.supportedMaps ?? []).toEqual([]);
         expect(options.supportedAreas?.map(({ mapId }) => mapId)).toEqual([null, null]);
       });
 
       test('skips the maps when the current map is unknown', async () => {
-        deviceManagerMock.device.getMaps = jest.fn(async () => [
+        deviceManagerMock.device.getMaps = vi.fn(async () => [
           { id: 0, name: 'A' },
           { id: 1, name: 'B' },
         ]);
@@ -217,7 +217,7 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       test('skips the maps when they cannot be retrieved', async () => {
-        deviceManagerMock.device.getMaps = jest.fn(async () => Promise.reject(new Error('unknown method')));
+        deviceManagerMock.device.getMaps = vi.fn(async () => Promise.reject(new Error('unknown method')));
         const options = await connect();
         expect(options.supportedMaps ?? []).toEqual([]);
       });
@@ -486,7 +486,7 @@ describe('VacuumDeviceAccessory', () => {
               ),
               cleaningTypes: { vacuum: 1, mop: 2, vacuumAndMop: 3, vacuumThenMop: 4 },
             });
-            deviceManagerMock.device.setCleaningType = jest.fn(async () => undefined);
+            deviceManagerMock.device.setCleaningType = vi.fn(async () => undefined);
             const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
             deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
             endpoint = (await endpointPromise) as RoboticVacuumCleaner;
@@ -616,7 +616,7 @@ describe('VacuumDeviceAccessory', () => {
           });
 
           test('on Cleaning, it starts a room cleaning if any rooms are selected', async () => {
-            jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce([16, 17]);
+            vi.spyOn(endpoint, 'getAttribute').mockReturnValueOnce([16, 17]);
 
             endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 2 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
             expect(logger.info).toHaveBeenCalledWith('[Name=Test Vacuum][Model=unknown] Initiating room cleaning...');
@@ -647,7 +647,7 @@ describe('VacuumDeviceAccessory', () => {
         });
 
         test('resumes the current room cleaning if areas were previously selected', async () => {
-          jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce([16, 17]);
+          vi.spyOn(endpoint, 'getAttribute').mockReturnValueOnce([16, 17]);
           endpoint.commandHandler.executeHandler('resume', { request: {} } as unknown as CommandHandlerPayload<'resume'>);
           expect(deviceManagerMock.device.resumeCleanRooms).toHaveBeenCalledWith([16, 17]);
         });
@@ -655,7 +655,7 @@ describe('VacuumDeviceAccessory', () => {
 
       describe('goHome', () => {
         test('sends the RVC to the charger without deadlock from updating attributes directly', async () => {
-          const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute');
+          const updateAttributeSpy = vi.spyOn(endpoint, 'updateAttribute');
           endpoint.commandHandler.executeHandler('goHome', { request: {} } as unknown as CommandHandlerPayload<'goHome'>);
           await Promise.resolve(); // Just waiting for the pending promises to run
           expect(deviceManagerMock.device.activateCharging).toHaveBeenCalled();
@@ -672,7 +672,7 @@ describe('VacuumDeviceAccessory', () => {
 
       describe('skipArea', () => {
         const startRoomCleaning = async (areas: number[]) => {
-          jest.spyOn(endpoint, 'getAttribute').mockReturnValueOnce(areas);
+          vi.spyOn(endpoint, 'getAttribute').mockReturnValueOnce(areas);
           await endpoint.commandHandler.executeHandler('RvcRunMode.changeToMode', { request: { newMode: 2 } } as unknown as CommandHandlerPayload<'RvcRunMode.changeToMode'>);
           deviceManagerMock.device.cleanRooms.mockClear();
         };
@@ -708,7 +708,7 @@ describe('VacuumDeviceAccessory', () => {
 
       describe('selectAreas', () => {
         test('sets the selected areas', async () => {
-          const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
+          const updateAttributeSpy = vi.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
           endpoint.commandHandler.executeHandler('selectAreas', {
             request: { newAreas: [17] },
             attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] },
@@ -717,7 +717,7 @@ describe('VacuumDeviceAccessory', () => {
         });
 
         test('sets an empty array as selected areas when all rooms are selected', async () => {
-          const updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
+          const updateAttributeSpy = vi.spyOn(endpoint, 'updateAttribute').mockResolvedValueOnce(true);
           endpoint.commandHandler.executeHandler('selectAreas', {
             request: { newAreas: [16, 17] },
             attributes: { supportedAreas: [{ areaId: 16 }, { areaId: 17 }] },
@@ -730,7 +730,7 @@ describe('VacuumDeviceAccessory', () => {
 
   describe('postRegister', () => {
     let endpoint: RoboticVacuumCleaner;
-    let updateAttributeSpy: jest.SpiedFunction<typeof endpoint.updateAttribute>;
+    let updateAttributeSpy: MockInstance<typeof endpoint.updateAttribute>;
 
     beforeEach(async () => {
       findSpeedModesMock.mockReturnValueOnce({
@@ -741,7 +741,7 @@ describe('VacuumDeviceAccessory', () => {
       const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
       deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
       endpoint = (await endpointPromise) as RoboticVacuumCleaner;
-      updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
+      updateAttributeSpy = vi.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
     });
 
     describe('serviceAreas hack', () => {
@@ -762,7 +762,7 @@ describe('VacuumDeviceAccessory', () => {
         const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
         deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
         endpoint = (await endpointPromise) as RoboticVacuumCleaner;
-        updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
+        updateAttributeSpy = vi.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
 
         await deviceAccessory.postRegister();
         expect(updateAttributeSpy).toHaveBeenCalledTimes(1);
@@ -771,14 +771,14 @@ describe('VacuumDeviceAccessory', () => {
     });
 
     describe('current area from the Xiaomi Cloud map', () => {
-      const createWatcher = () => Object.assign(new EventEmitter(), { start: jest.fn(async () => undefined), stop: jest.fn() });
+      const createWatcher = () => Object.assign(new EventEmitter(), { start: vi.fn(async () => undefined), stop: vi.fn() });
       let watcher: ReturnType<typeof createWatcher>;
-      let cloudService: { createMapWatcher: jest.Mock<(device: object, match: object) => Promise<unknown>> };
+      let cloudService: { createMapWatcher: Mock<(device: object, match: object) => Promise<unknown>> };
 
       beforeEach(async () => {
         deviceAccessory.stop();
         watcher = createWatcher();
-        cloudService = { createMapWatcher: jest.fn(async () => watcher) };
+        cloudService = { createMapWatcher: vi.fn(async () => watcher) };
         deviceManagerMock.device.getRoomMap.mockResolvedValue([
           ['16', 'Living room'],
           ['17', 'Kitchen'],
@@ -788,7 +788,7 @@ describe('VacuumDeviceAccessory', () => {
         const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
         deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
         endpoint = (await endpointPromise) as RoboticVacuumCleaner;
-        updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
+        updateAttributeSpy = vi.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
         await deviceAccessory.postRegister();
         updateAttributeSpy.mockClear();
       });
@@ -846,7 +846,7 @@ describe('VacuumDeviceAccessory', () => {
         const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
         deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
         endpoint = (await endpointPromise) as RoboticVacuumCleaner;
-        updateAttributeSpy = jest.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
+        updateAttributeSpy = vi.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
         await deviceAccessory.postRegister();
         updateAttributeSpy.mockClear();
       }
@@ -864,7 +864,7 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       test('with the Xiaomi Cloud, the map watcher reports it instead', async () => {
-        await create({ createMapWatcher: jest.fn(async () => undefined) });
+        await create({ createMapWatcher: vi.fn(async () => undefined) });
         deviceManagerMock.stateChanged$.next({ key: 'currentSegment', value: 17 });
         await new Promise(setImmediate);
         expect(updateAttributeSpy).not.toHaveBeenCalledWith(ServiceArea, 'currentArea', 17);
@@ -1176,10 +1176,10 @@ describe('VacuumDeviceAccessory', () => {
     });
 
     describe('auxiliary states and operation tracking', () => {
-      const operationalStateServer = { beginOperation: jest.fn(), completeOperation: jest.fn() };
+      const operationalStateServer = { beginOperation: vi.fn(), completeOperation: vi.fn() };
 
       beforeEach(async () => {
-        jest.spyOn(endpoint, 'act').mockImplementation(((actor: (agent: unknown) => unknown) => actor({ get: () => operationalStateServer })) as unknown as typeof endpoint.act);
+        vi.spyOn(endpoint, 'act').mockImplementation(((actor: (agent: unknown) => unknown) => actor({ get: () => operationalStateServer })) as unknown as typeof endpoint.act);
         await deviceAccessory.postRegister();
         updateAttributeSpy.mockClear();
       });
@@ -1219,7 +1219,7 @@ describe('VacuumDeviceAccessory', () => {
       });
 
       test('does not fail when tracking the operation fails', async () => {
-        jest.spyOn(endpoint, 'act').mockImplementation(() => {
+        vi.spyOn(endpoint, 'act').mockImplementation(() => {
           throw new Error('Endpoint is in the inactive state');
         });
         await emitState('cleaning');

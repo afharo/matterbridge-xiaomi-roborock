@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, vi } from 'vitest';
 import { RvcCleanMode } from 'matterbridge/matter/clusters';
 import { resolveVacuumModes, vacuumModels, type VacuumDevice } from 'node-miio';
 
@@ -62,8 +62,8 @@ describe('findSpeedModes', () => {
 describe('resolveSpeedModes', () => {
   const device = (fanSpeeds?: Array<{ value: number; name: string }>, waterBoxModes?: Array<{ value: number; name: string }>) =>
     ({
-      fanSpeeds: fanSpeeds && jest.fn(async () => fanSpeeds),
-      waterBoxModes: waterBoxModes && jest.fn(async () => waterBoxModes),
+      fanSpeeds: fanSpeeds && vi.fn(async () => fanSpeeds),
+      waterBoxModes: waterBoxModes && vi.fn(async () => waterBoxModes),
     }) as unknown as VacuumDevice;
 
   test("the models in node-miio's table keep its definitions", async () => {
@@ -81,7 +81,7 @@ describe('resolveSpeedModes', () => {
   });
 
   test('falls back to findSpeedModes when node-miio fails', async () => {
-    const d = { fanSpeeds: jest.fn(async () => Promise.reject(new Error('boom'))) } as unknown as VacuumDevice;
+    const d = { fanSpeeds: vi.fn(async () => Promise.reject(new Error('boom'))) } as unknown as VacuumDevice;
     await expect(resolveSpeedModes(d, 'dreame.vacuum.p2008')).resolves.toStrictEqual(findSpeedModes('dreame.vacuum.p2008'));
   });
 
@@ -193,9 +193,9 @@ describe('classifyCleaningTypes', () => {
 describe('resolveSpeedModes with cleaning types', () => {
   test('includes the cleaning types reported by node-miio', async () => {
     const device = {
-      fanSpeeds: jest.fn(async () => [{ value: 0, name: 'Silent' }]),
-      waterBoxModes: jest.fn(async () => [{ value: 1, name: 'Level1' }]),
-      cleaningTypes: jest.fn(async () => [
+      fanSpeeds: vi.fn(async () => [{ value: 0, name: 'Silent' }]),
+      waterBoxModes: vi.fn(async () => [{ value: 1, name: 'Level1' }]),
+      cleaningTypes: vi.fn(async () => [
         { value: 1, name: 'Sweep' },
         { value: 4, name: 'Sweep Before Mopping' },
       ]),
@@ -207,8 +207,8 @@ describe('resolveSpeedModes with cleaning types', () => {
 
   test('omits them when the device does not report any', async () => {
     const device = {
-      fanSpeeds: jest.fn(async () => [{ value: 0, name: 'Silent' }]),
-      cleaningTypes: jest.fn(async () => []),
+      fanSpeeds: vi.fn(async () => [{ value: 0, name: 'Silent' }]),
+      cleaningTypes: vi.fn(async () => []),
     } as unknown as VacuumDevice;
     expect(await resolveSpeedModes(device, 'xiaomi.vacuum.x')).not.toHaveProperty('cleaningTypes');
   });

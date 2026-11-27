@@ -9,5 +9,5 @@
     "removeComments": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["**/*.spec.ts", "**/*.test.ts", "**/__test__/*"]
+  "exclude": ["**/*.spec.ts", "**/*.test.ts", "**/*.mock.ts", "**/test.mocks.ts", "**/__test__/*"]
 }
