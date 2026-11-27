@@ -1,6 +1,6 @@
 {
   "name": "matterbridge-xiaomi-roborock",
-  "version": "0.12.3",
+  "version": "0.12.4",
   "description": "Matterbridge plugin for Xiaomi and Roborock robot vacuums (Mi Home or Roborock app): expose them over Matter as a native robot vacuum to Apple Home, Google Home, Alexa, SmartThings or Home Assistant.",
   "author": "https://github.com/afharo",
   "homepage": "https://github.com/afharo/matterbridge-xiaomi-roborock/blob/main/README.md",
