@@ -33,7 +33,7 @@ CI (`.github/workflows/build-matterbridge-plugin.yml`) runs them on Node 22/24/2
 - `src/vacuum_device_accessory.ts`: the Matter endpoint. It maps commands (run mode, clean mode, areas, pause, go home…)
   to node-miio calls, and node-miio states to Matter operational states.
 - `src/services/device_manager.ts`: connects to the device (`miio.device({ address, token })`), polls it, and emits state/error changes.
-  The `device.matches("type:vaccuum")` spelling is intentional: it's how abstract-things (used by node-miio) names the type.
+  node-miio spells the vacuum type `vacuum` (`device.matches("type:vacuum")`).
 - `src/utils/find_speed_modes.ts`: fan speeds / water levels → Matter clean modes.
   - The fan speeds and water levels come from node-miio. `findSpeedModes(model, fw)`: node-miio's table
     (`resolveVacuumModes`, with the firmware variants). `resolveSpeedModes(device, model, fw)`: the models in that table
