@@ -85,6 +85,25 @@ describe('resolveSpeedModes', () => {
     await expect(resolveSpeedModes(d, 'dreame.vacuum.p2008')).resolves.toStrictEqual(findSpeedModes('dreame.vacuum.p2008'));
   });
 
+  test('a failure reading the water box modes only drops the water levels', async () => {
+    const d = {
+      fanSpeeds: vi.fn(async () => [{ value: 0, name: 'Silent' }]),
+      waterBoxModes: vi.fn(async () => Promise.reject(new Error('boom'))),
+    } as unknown as VacuumDevice;
+    const modes = await resolveSpeedModes(d, 'dreame.vacuum.p2008');
+    expect(modes.speed.map(({ name }) => name)).toStrictEqual(['Off', 'Silent']);
+  });
+
+  test('devices without water box modes only get the fan speeds', async () => {
+    const d = device([
+      { value: 0, name: 'Silent' },
+      { value: 1, name: 'Standard' },
+    ]);
+    const modes = await resolveSpeedModes(d, 'dreame.vacuum.p2008');
+    expect(d.fanSpeeds).toHaveBeenCalledTimes(1);
+    expect(modes.speed.map(({ name }) => name)).toStrictEqual(['Off', 'Silent', 'Standard']);
+  });
+
   test('uses the modes reported by node-miio for other models (e.g. MIoT)', async () => {
     const modes = await resolveSpeedModes(
       device(

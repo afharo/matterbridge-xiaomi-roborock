@@ -109,6 +109,30 @@ describe('DeviceManager', () => {
     });
   });
 
+  describe('ensureDevice', () => {
+    let deviceManager: IDeviceManager;
+
+    afterEach(() => {
+      deviceManager.stop();
+    });
+
+    test('reconnects when the socket was destroyed', async () => {
+      miio.device.matches.mockReturnValue(true);
+      miio.device.property.mockReturnValue('charging');
+      miio.device.state.mockResolvedValue({});
+      deviceManager = new DeviceManager(log, { ip: '192.168.0.1', token: 'token' });
+      await new Promise((resolve) => process.nextTick(resolve));
+      miioMock.device.mockClear();
+
+      const connected = vi.spyOn(miio.device, 'connected', 'get').mockReturnValue(false);
+      await deviceManager.ensureDevice('test');
+      connected.mockRestore();
+
+      expect(log.info).toHaveBeenCalledWith('INF ensureDevice | test-model | The socket was destroyed or not initialised, initialising the device');
+      expect(miioMock.device).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('get state', () => {
     let deviceManager: IDeviceManager;
 
@@ -173,6 +197,16 @@ describe('DeviceManager', () => {
     });
 
     const addresses = () => (miioMock.device.mock.calls as Array<[{ address: string; token: string }]>).map(([options]) => `${options.address}/${options.token}`);
+
+    test('a failing lookup is only logged: it keeps retrying the configured IP', async () => {
+      miioMock.device.mockRejectedValueOnce(new Error('timeout'));
+      const locate = vi.fn(async () => Promise.reject(new Error('cloud down')));
+      deviceManager = new DeviceManager(log, { ip: '192.168.0.1', token: 'token' }, locate);
+      await vi.advanceTimersByTimeAsync(10000);
+      expect(locate).toHaveBeenCalledTimes(1);
+      expect(log.debug).toHaveBeenCalledWith('DEB relocate | Failed to locate the robot: Error: cloud down');
+      expect(addresses()).toEqual(['192.168.0.1/token', '192.168.0.1/token']);
+    });
 
     test("when it can't connect, it asks where the robot is, and connects there right away", async () => {
       miioMock.device.mockRejectedValueOnce(new Error('timeout'));
