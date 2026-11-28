@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi, type Mock } from 'vitest';
 import { AnsiLogger, LogLevel } from 'matterbridge/logger';
 import { PlatformConfig, PlatformMatterbridge } from 'matterbridge';
 
@@ -53,6 +53,12 @@ vi.spyOn(AnsiLogger.prototype, 'log').mockImplementation(() => {});
 
 describe('Matterbridge Xiaomi Roborock Vacuum Plugin', () => {
   let instance: XiaomiRoborockVacuumPlatform;
+
+  // The first import loads matterbridge (and matter.js): several seconds on a busy Windows runner. Pay it once here, not
+  // inside the 5s timeout of the first test that imports the module.
+  beforeAll(async () => {
+    await import('./module.js');
+  }, 60_000);
 
   beforeEach(() => {
     vi.clearAllMocks();
