@@ -110,6 +110,24 @@ describe('VacuumDeviceAccessory', () => {
       expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('restart the plugin to apply them'));
     });
 
+    test('a failure refreshing the saved info is only logged', async () => {
+      vi.useFakeTimers();
+      const store = createStore(snapshot);
+      await create(store);
+      const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+      await vi.advanceTimersByTimeAsync(15_000);
+      await endpointPromise;
+
+      findSpeedModesMock.mockImplementationOnce(() => {
+        throw new Error('unreadable modes');
+      });
+      deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+      await vi.advanceTimersByTimeAsync(0);
+      expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining('Failed to refresh the saved device info: Error: unreadable modes'));
+      expect(store.set).not.toHaveBeenCalled();
+      expect(logger.info).not.toHaveBeenCalledWith(expect.stringContaining('restart the plugin to apply them'));
+    });
+
     test("keeps the saved serial number when the robot reports a new one (the controllers don't register it as a new device)", async () => {
       const store = createStore({ ...snapshot, serialNumber: 'unknown' });
       await create(store);
@@ -474,6 +492,27 @@ describe('VacuumDeviceAccessory', () => {
           });
         });
 
+        describe('RvcCleanMode with cleaning types but no water levels (MIoT)', () => {
+          test('"Vacuum & Mop" is listed when there are no presets to replace it', async () => {
+            findSpeedModesMock.mockReturnValueOnce({
+              ...fromNodeMiioModes(
+                [
+                  { value: 0, name: 'Silent' },
+                  { value: 1, name: 'Basic' },
+                ],
+                [],
+              ),
+              cleaningTypes: { vacuum: 1, vacuumAndMop: 3 },
+            });
+            const endpointPromise = deviceAccessory.initializeMatterbridgeEndpoint();
+            deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+            endpoint = (await endpointPromise) as RoboticVacuumCleaner;
+            const options = endpoint.behaviors.optionsFor(MatterbridgeRvcCleanModeServer) as { supportedModes: RvcCleanMode.ModeOption[] };
+            expect(options.supportedModes.map(({ label, mode }) => `${mode}:${label}`)).toEqual(['1:Silent Vacuum', '2:Basic Vacuum', '3:Vacuum & Mop']);
+            expect(options.supportedModes[2].modeTags).toEqual([{ value: RvcCleanMode.ModeTag.Vacuum }, { value: RvcCleanMode.ModeTag.Mop }]);
+          });
+        });
+
         describe('RvcCleanMode.changeToMode with cleaning types (MIoT)', () => {
           beforeEach(async () => {
             findSpeedModesMock.mockReturnValueOnce({
@@ -502,6 +541,22 @@ describe('VacuumDeviceAccessory', () => {
             endpoint.commandHandler.executeHandler('RvcCleanMode.changeToMode', { request: { newMode } } as unknown as CommandHandlerPayload<'RvcCleanMode.changeToMode'>);
             await new Promise((resolve) => setTimeout(resolve, 0));
           };
+
+          test('the current cleaning type selects the combined mode that only depends on it', async () => {
+            const spy = vi.spyOn(endpoint, 'updateAttribute').mockResolvedValue(true);
+            await deviceAccessory.postRegister();
+            spy.mockClear();
+            deviceManagerMock.stateChanged$.next({ key: 'cleaningType', value: 4 });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(spy).toHaveBeenCalledWith(RvcCleanMode, 'currentMode', 4);
+
+            // The vacuum-only and mop-only types also set levels, so they are matched by the fan / water level instead
+            spy.mockClear();
+            deviceManagerMock.stateChanged$.next({ key: 'cleaningType', value: 1 });
+            deviceManagerMock.stateChanged$.next({ key: 'cleaningType', value: 99 });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(spy).not.toHaveBeenCalled();
+          });
 
           test('exposes the combined modes', () => {
             const options = endpoint.behaviors.optionsFor(MatterbridgeRvcCleanModeServer) as { supportedModes: RvcCleanMode.ModeOption[] };
@@ -813,6 +868,20 @@ describe('VacuumDeviceAccessory', () => {
         expect(updateAttributeSpy).toHaveBeenLastCalledWith(ServiceArea, 'currentArea', null);
       });
 
+      test('a failure reporting the room is logged, and the next rooms are still reported', async () => {
+        deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
+        await new Promise(setImmediate);
+
+        updateAttributeSpy.mockRejectedValueOnce(new Error('endpoint busy'));
+        watcher.emit('currentRoom', 17);
+        await new Promise(setImmediate);
+        expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Failed to report the current room: Error: endpoint busy'));
+
+        watcher.emit('currentRoom', 16);
+        await new Promise(setImmediate);
+        expect(updateAttributeSpy).toHaveBeenLastCalledWith(ServiceArea, 'currentArea', 16);
+      });
+
       test('a reconnection replaces the watcher; stop() stops it', async () => {
         deviceManagerMock.deviceConnected$.next(deviceManagerMock.device);
         await new Promise(setImmediate);
@@ -932,6 +1001,14 @@ describe('VacuumDeviceAccessory', () => {
           expect(updateAttributeSpy).toHaveBeenCalledTimes(2);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcRunMode, 'currentMode', 2);
           expect(updateAttributeSpy).toHaveBeenCalledWith(RvcOperationalState, 'operationalState', RvcOperationalState.OperationalState.Running);
+        });
+
+        test.each(['paused', 'error'])('when cleaning == true but the state is "%s", nothing is updated', async (state) => {
+          deviceManagerMock.property.mockReturnValue(state);
+          deviceManagerMock.stateChanged$.next({ key: 'cleaning', value: true });
+          await Promise.resolve();
+          expect(updateAttributeSpy).not.toHaveBeenCalled();
+          deviceManagerMock.property.mockReset();
         });
 
         test('when cleaningMode == 1 but the state is "paused"', async () => {

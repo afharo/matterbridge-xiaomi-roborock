@@ -73,6 +73,15 @@ describe('CloudService', () => {
     expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('is not in your Xiaomi account'));
   });
 
+  test('a session that fails to load is reported, with how to log in', async () => {
+    const { service, deps, log } = setup();
+    deps.loadSession.mockRejectedValueOnce(new Error('corrupted'));
+    await expect(service.createMapWatcher(roborock, { ip: '10.0.0.1' })).resolves.toBeUndefined();
+    expect(deps.createWatcher).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('failed to load the session: Error: corrupted'));
+    expect(log.warn).toHaveBeenCalledWith(expect.stringContaining('npx node-miio cloud login --qr'));
+  });
+
   test('an expired session is reported once; other failures only in the debug logs', async () => {
     const { service, watcher, log, cloud } = setup();
     cloud.getDevices.mockRejectedValueOnce(new CloudSessionExpiredError());
